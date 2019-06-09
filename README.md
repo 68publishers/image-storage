@@ -88,6 +88,17 @@ image_storage:
             applicators: []
 ```
 
+If you're using `Local` adapter you must modify `.htaccess` that is located in your www directory. For example:
+
+```apacheconf
+# locale images
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(images\/)(.+) index.php [L]
+```
+
+The Application will be called only if static file has not yet been generated. Otherwise server will serve static file.
+
 ## Usage
 
 @todo
