@@ -1,0 +1,37 @@
+{
+	"name": "68publishers/image-storage",
+	"description": "Image storage for Nette Framework generating images on-the-fly.",
+	"keywords": [ "68publishers", "nette", "image", "images", "image-storage" ],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Tomáš Glawaty",
+			"email": "tomasglawaty@icloud.com"
+		}
+	],
+	"require": {
+		"php": "~7.1",
+		"nette/di": "~2.4",
+		"nette/http": "~2.4",
+		"nette/utils": "~2.4",
+		"nette/finder": "~2.4",
+		"nette/application": "~2.4",
+		"latte/latte": "~2.4",
+		"tracy/tracy": "~2.4",
+		"symfony/console": "^4.0",
+		"league/flysystem": "^1.0",
+		"intervention/image": "^2.4"
+	},
+	"require-dev": {
+		"friendsofphp/php-cs-fixer": "^2.0",
+		"nette/tester": "^1.7",
+		"doctrine/dbal": "^2.9"
+	},
+	"suggest": {
+		"doctrine/dbal": "If you want to use custom Doctrine type."
+	},
+	"autoload": {
+		"classmap": ["src/"],
+		"files": []
+	}
+}
