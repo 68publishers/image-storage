@@ -29,7 +29,7 @@ final class CopyAssetsCommand extends Symfony\Component\Console\Command\Command
 	 */
 	protected function configure(): void
 	{
-		$this->setName('image-storage2:copy-assets')
+		$this->setName('image-storage:copy-assets')
 			->setDescription('Copies assets from defined paths to configured storage')
 			->addArgument('storage', Symfony\Component\Console\Input\InputArgument::OPTIONAL, 'Storage name from configuration - you can specify storage via this argument', NULL);
 	}
