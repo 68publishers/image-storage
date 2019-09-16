@@ -57,7 +57,11 @@ final class DefaultLinkGenerator implements ILinkGenerator
 			$link .= empty($v) ? '?' : ('?' . $v . '=');
 			$link .= $info->getVersion();
 		}
-		
+
+		if (!empty($this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST])) {
+			$link = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST] . '/' . $link;
+		}
+
 		return rawurldecode($link);
 	}
 

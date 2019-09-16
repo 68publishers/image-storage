@@ -12,6 +12,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	use Nette\SmartObject;
 
 	const 	BASE_PATH = 'BASE_PATH',
+			HOST = 'HOST',
 			VERSION_PARAMETER_NAME = 'VERSION_PARAMETER_NAME',
 			ORIGINAL_MODIFIER = 'ORIGINAL_MODIFIER',
 			MODIFIER_SEPARATOR = 'MODIFIER_SEPARATOR',
@@ -24,6 +25,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	/** @var array  */
 	private $env = [
 		self::BASE_PATH => '',
+		self::HOST => NULL,
 		self::ORIGINAL_MODIFIER => 'original',
 		self::MODIFIER_SEPARATOR => ',',
 		self::MODIFIER_ASSIGNER => ':',
@@ -43,6 +45,10 @@ final class Env implements \ArrayAccess, \JsonSerializable
 
 		// trim base path
 		$this->env[self::BASE_PATH] = rtrim((string) $this->env[self::BASE_PATH], '/');
+
+		if (!empty($this->env[self::HOST])) {
+			$this->env[self::HOST] = rtrim((string) $this->env[self::HOST], '/');
+		}
 	}
 
 
