@@ -55,7 +55,7 @@ final class Resize implements IModifierApplicator
 			? [ $height * ($imageWidth / $imageHeight), $height ]
 			: [ $width, $width * ($imageHeight / $imageWidth) ];
 
-		$image->resize($resizeWidth, $resizeHeight, function (Intervention\Image\Constraint $constraint) {
+		$image->resize($resizeWidth, $resizeHeight, static function (Intervention\Image\Constraint $constraint) {
 			$constraint->aspectRatio();
 		});
 

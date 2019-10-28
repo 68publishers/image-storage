@@ -11,16 +11,16 @@ final class Env implements \ArrayAccess, \JsonSerializable
 {
 	use Nette\SmartObject;
 
-	const 	BASE_PATH = 'BASE_PATH',
-			HOST = 'HOST',
-			VERSION_PARAMETER_NAME = 'VERSION_PARAMETER_NAME',
-			ORIGINAL_MODIFIER = 'ORIGINAL_MODIFIER',
-			MODIFIER_SEPARATOR = 'MODIFIER_SEPARATOR',
-			MODIFIER_ASSIGNER = 'MODIFIER_ASSIGNER',
-			ALLOWED_PIXEL_DENSITY = 'ALLOWED_PIXEL_DENSITY',
-			ALLOWED_RESOLUTIONS = 'ALLOWED_RESOLUTIONS',
-			ALLOWED_QUALITIES = 'ALLOWED_QUALITIES',
-			RESIZE_QUALITY = 'RESIZE_QUALITY';
+	public const    BASE_PATH = 'BASE_PATH',
+					HOST = 'HOST',
+					VERSION_PARAMETER_NAME = 'VERSION_PARAMETER_NAME',
+					ORIGINAL_MODIFIER = 'ORIGINAL_MODIFIER',
+					MODIFIER_SEPARATOR = 'MODIFIER_SEPARATOR',
+					MODIFIER_ASSIGNER = 'MODIFIER_ASSIGNER',
+					ALLOWED_PIXEL_DENSITY = 'ALLOWED_PIXEL_DENSITY',
+					ALLOWED_RESOLUTIONS = 'ALLOWED_RESOLUTIONS',
+					ALLOWED_QUALITIES = 'ALLOWED_QUALITIES',
+					RESIZE_QUALITY = 'RESIZE_QUALITY';
 
 	/** @var array  */
 	private $env = [
@@ -80,7 +80,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	/**
 	 * {@inheritdoc}
 	 */
-	public function offsetSet($offset, $value)
+	public function offsetSet($offset, $value): void
 	{
 		throw SixtyEightPublishers\ImageStorage\Exception\IllegalMethodCallException::notAllowed(__METHOD__);
 	}
@@ -88,7 +88,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	/**
 	 * {@inheritdoc}
 	 */
-	public function offsetUnset($offset)
+	public function offsetUnset($offset): void
 	{
 		throw SixtyEightPublishers\ImageStorage\Exception\IllegalMethodCallException::notAllowed(__METHOD__);
 	}

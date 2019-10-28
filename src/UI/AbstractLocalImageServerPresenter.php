@@ -19,7 +19,7 @@ abstract class AbstractLocalImageServerPresenter implements Nette\Application\IP
 	protected $imageStorageProvider;
 
 	/** @var string|NULL */
-	protected $imageStorageName = NULL;
+	protected $imageStorageName;
 
 	/**
 	 * @internal

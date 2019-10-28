@@ -49,7 +49,7 @@ final class Asset
 		$namespace = Nette\Utils\Strings::trim($namespace, '\\/');
 		$normalizedDirectory = str_replace('\\', '/', rtrim(realpath($directory), '\\/')) . '/';
 
-		return array_map(function (\SplFileInfo $fileInfo) use ($namespace, $normalizedDirectory) {
+		return array_map(static function (\SplFileInfo $fileInfo) use ($namespace, $normalizedDirectory) {
 			$path = str_replace('\\', '/', $fileInfo->getRealPath());
 
 			if (!Nette\Utils\Strings::startsWith($path, $normalizedDirectory)) {

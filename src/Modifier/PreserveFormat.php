@@ -8,9 +8,6 @@ use SixtyEightPublishers;
 
 final class PreserveFormat extends AbstractModifier
 {
-	const 	VALUES_TRUE = [ 1, '1', TRUE ],
-			VALUES_FALSE = [ 0, '0', FALSE ];
-
 	/** @var string  */
 	protected $alias = 'pf';
 

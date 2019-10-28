@@ -12,9 +12,6 @@ final class ModifierFacade implements IModifierFacade
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
-
 	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodec  */
 	private $codec;
 
@@ -31,18 +28,15 @@ final class ModifierFacade implements IModifierFacade
 	private $validators = [];
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                                     $env
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodecFactory                   $codecFactory
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollectionFactory       $presetCollectionFactory
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollectionFactory $modifierCollectionFactory
 	 */
 	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
 		SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodecFactory $codecFactory,
 		SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollectionFactory $presetCollectionFactory,
 		SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollectionFactory $modifierCollectionFactory
 	) {
-		$this->env = $env;
 		$this->presetCollection = $presetCollectionFactory->create();
 		$this->modifierCollection = $modifierCollectionFactory->create();
 		$this->codec = $codecFactory->create($this->modifierCollection);
@@ -168,9 +162,11 @@ final class ModifierFacade implements IModifierFacade
 	 */
 	public function formatAsString($modifiers): string
 	{
-		return $this->codec->encode(
-			empty($modifiers) ? [] : (is_array($modifiers) ? $modifiers : $this->presetCollection->get((string) $modifiers))
-		);
+		if (!empty($modifiers) && !is_array($modifiers)) {
+			$modifiers = $this->presetCollection->get((string) $modifiers);
+		}
+
+		return $this->codec->encode($modifiers ?? []);
 	}
 
 	/**
