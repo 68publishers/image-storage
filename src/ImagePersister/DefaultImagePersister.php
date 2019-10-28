@@ -115,7 +115,7 @@ class DefaultImagePersister implements IImagePersister
 	public function save(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, $modifiers = NULL, array $config = []): string
 	{
 		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
-			return $this->filesystem->write($path, $this->encodeImage($resource->getImage()));
+			return $this->filesystem->write($path, $this->encodeImage($resource->getImage()), $config);
 		}, $resource, $modifiers);
 	}
 
@@ -125,7 +125,7 @@ class DefaultImagePersister implements IImagePersister
 	public function updateOriginal(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string
 	{
 		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
-			$result = $this->filesystem->update($path, $this->encodeImage($resource->getImage()));
+			$result = $this->filesystem->update($path, $this->encodeImage($resource->getImage()), $config);
 
 			$this->delete($resource->getInfo(), TRUE);
 
@@ -161,7 +161,7 @@ class DefaultImagePersister implements IImagePersister
 			}
 		}
 
-		if (isset($config) && isset($disableAsserts)) {
+		if (isset($config, $disableAsserts)) {
 			$config->set('disable_asserts', $disableAsserts);
 		}
 	}

@@ -12,7 +12,7 @@ class ImageInfo
 {
 	use Nette\SmartObject;
 
-	const TRIM_CHARACTERS = Nette\Utils\Strings::TRIM_CHARACTERS . "\\/";
+	private const TRIM_CHARACTERS = Nette\Utils\Strings::TRIM_CHARACTERS . "\\/";
 
 	/** @var string  */
 	private $namespace;

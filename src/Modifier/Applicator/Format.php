@@ -12,10 +12,9 @@ final class Format implements IModifierApplicator
 {
 	use Nette\SmartObject;
 
-	const 	DEFAULT_FORMAT = 'jpg',
-			DEFAULT_MIME_TYPE = 'image/jpg';
+	public const DEFAULT_FORMAT = 'jpg';
 
-	const 	SUPPORTED_FORMATS = [
+	public const SUPPORTED_FORMATS = [
 		'gif' => 'image/gif',
 		'jpg' => 'image/jpeg',
 		'png' => 'image/png',

@@ -15,7 +15,7 @@ final class NoImageProvider implements INoImageProvider
 	private $defaultPath;
 
 	/** @var string[]  */
-	private $paths = [];
+	private $paths;
 
 	/**
 	 * @param string|NULL $defaultPath
@@ -66,6 +66,6 @@ final class NoImageProvider implements INoImageProvider
 	 */
 	public function isNoImage(string $path): bool
 	{
-		return $path === $this->defaultPath || FALSE !== array_search($path, $this->paths);
+		return $path === $this->defaultPath || in_array($path, $this->paths, TRUE);
 	}
 }

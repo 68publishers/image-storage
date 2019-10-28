@@ -59,7 +59,7 @@ final class ImageInfoFactory
 	{
 		$imageStorage = self::getImageStorage($imageStorageName);
 
-		return self::create($imageStorage->getNoImage($name), $imageStorageName, NULL, FALSE);
+		return self::create($imageStorage->getNoImage($name), $imageStorageName);
 	}
 
 	/**
@@ -83,10 +83,10 @@ final class ImageInfoFactory
 		} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidStateException $e) {
 			if (NULL === $name) {
 				throw $e;
-			} else {
-				trigger_error($e->getMessage(), E_WARNING);
-				$imageStorage = $provider->get(NULL);
 			}
+
+			trigger_error($e->getMessage(), E_WARNING);
+			$imageStorage = $provider->get();
 		}
 
 		return $imageStorage;

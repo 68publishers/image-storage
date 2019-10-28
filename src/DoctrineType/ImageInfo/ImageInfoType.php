@@ -10,7 +10,7 @@ use SixtyEightPublishers;
 
 class ImageInfoType extends Doctrine\DBAL\Types\JsonType
 {
-	const NAME = 'image_info';
+	public const NAME = 'image_info';
 
 	/** @var NULL|\SixtyEightPublishers\ImageStorage\IImageStorageProvider */
 	private $imageStorageProvider;
@@ -46,7 +46,7 @@ class ImageInfoType extends Doctrine\DBAL\Types\JsonType
 		try {
 			if (!$value instanceof ImageInfo) {
 				$value = ($value instanceof SixtyEightPublishers\ImageStorage\ImageInfo || (is_string($value) && !empty($value)))
-					? ImageInfoFactory::create((string) $value, NULL, is_string($value) ? NULL : $value->getVersion(), FALSE)
+					? ImageInfoFactory::create((string) $value, NULL, is_string($value) ? NULL : $value->getVersion())
 					: NULL;
 			}
 
@@ -73,7 +73,7 @@ class ImageInfoType extends Doctrine\DBAL\Types\JsonType
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getName()
+	public function getName(): string
 	{
 		return self::NAME;
 	}

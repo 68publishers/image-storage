@@ -57,7 +57,7 @@ final class CleanCommand extends Symfony\Component\Console\Command\Command
 					$output->writeln(sprintf('Storage %s was successfully cleaned.', $storage));
 				}
 			} else {
-				$count = array_sum(array_map(function (SixtyEightPublishers\ImageStorage\Cleaner\IStorageCleaner $cleaner) use ($namespace, $cacheOnly) {
+				$count = array_sum(array_map(static function (SixtyEightPublishers\ImageStorage\Cleaner\IStorageCleaner $cleaner) use ($namespace, $cacheOnly) {
 					return $cleaner->getCount($namespace, $cacheOnly);
 				}, $this->cleaners));
 

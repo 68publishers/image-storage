@@ -8,7 +8,7 @@ use SixtyEightPublishers;
 
 final class Orientation extends AbstractModifier
 {
-	const 	VALUES = [ 'auto', '0', '90', '-90', '180', '-180', '270', '-270' ];
+	private const VALUES = [ 'auto', '0', '90', '-90', '180', '-180', '270', '-270' ];
 
 	/** @var string  */
 	protected $alias = 'o';

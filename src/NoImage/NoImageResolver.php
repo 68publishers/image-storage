@@ -15,7 +15,7 @@ final class NoImageResolver implements INoImageResolver
 	private $noImageProvider;
 
 	/** @var array  */
-	private $rules = [];
+	private $rules;
 
 	/**
 	 * Rules are in format [ no image name => regex ]
@@ -37,11 +37,11 @@ final class NoImageResolver implements INoImageResolver
 	public function resolveNoImage(string $path): SixtyEightPublishers\ImageStorage\ImageInfo
 	{
 		foreach ($this->rules as $name => $regex) {
-			if (preg_match('#' . $regex . '#', (string) $path)) {
+			if (preg_match('#' . $regex . '#', $path)) {
 				return $this->noImageProvider->getNoImage($name);
 			}
 		}
 
-		return $this->noImageProvider->getNoImage(NULL);
+		return $this->noImageProvider->getNoImage();
 	}
 }

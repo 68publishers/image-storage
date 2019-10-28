@@ -12,7 +12,7 @@ use SixtyEightPublishers;
 
 class ImageStorageExtension extends Nette\DI\CompilerExtension
 {
-	const 	MODIFIERS = [
+	public const MODIFIERS = [
 		SixtyEightPublishers\ImageStorage\Modifier\Height::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Width::class,
 		SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class,
@@ -21,20 +21,20 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 		SixtyEightPublishers\ImageStorage\Modifier\Quality::class,
 	];
 
-	const 	APPLICATORS = [
+	public const APPLICATORS = [
 		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Resize::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Orientation::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Format::class,
 	];
 
-	const 	VALIDATORS = [
+	public const VALIDATORS = [
 		SixtyEightPublishers\ImageStorage\Modifier\Validator\AllowedResolutionValidator::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Validator\AllowedPixelDensityValidator::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Validator\AllowedQualityValidator::class,
 	];
 
-	const 	SERVER_LOCAL = 'local',
-			SERVER_EXTERNAL = 'external';
+	public const    SERVER_LOCAL = 'local',
+					SERVER_EXTERNAL = 'external';
 
 	/** @var array  */
 	private $defaults = [
@@ -260,17 +260,17 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 			->setType(SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade::class)
 			->setFactory(SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacade::class)
 			->addSetup('setModifiers', [
-				'modifiers' => array_map(function ($def) {
+				'modifiers' => array_map(static function ($def) {
 					return $def instanceof Nette\DI\Statement ? $def : new Nette\DI\Statement($def);
 				}, !empty($config['modifiers']) ? $config['modifiers'] : self::MODIFIERS),
 			])
 			->addSetup('setApplicators', [
-				'applicators' => array_map(function ($def) {
+				'applicators' => array_map(static function ($def) {
 					return $def instanceof Nette\DI\Statement ? $def : new Nette\DI\Statement($def);
 				}, !empty($config['applicators']) ? $config['applicators'] : self::APPLICATORS),
 			])
 			->addSetup('setValidators', [
-				'validators' => array_map(function ($def) {
+				'validators' => array_map(static function ($def) {
 					return $def instanceof Nette\DI\Statement ? $def : new Nette\DI\Statement($def);
 				}, !empty($config['validators']) ? $config['validators'] : self::VALIDATORS),
 			])
