@@ -32,6 +32,8 @@
 	},
 	"autoload": {
 		"classmap": ["src/"],
-		"files": []
+		"files": [
+			"src/descriptor_functions.php"
+		]
 	}
 }
