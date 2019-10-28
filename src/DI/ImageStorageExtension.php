@@ -47,7 +47,6 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 			'doctrine_type' => FALSE,
 			'latte_macros' => TRUE,
 		],
-		'descriptors' => [], # array of SixtyEightPublishers\ImageStorage\Responsive\Descriptor
 	];
 
 	/** @var array  */
@@ -137,14 +136,10 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 				}, $storages, array_keys($storages)),
 			]);
 
-		# srcset generator with descriptors
+		# srcset generator
 		$builder->addDefinition($this->prefix('srcset_generator_factory'))
 			->setImplement(SixtyEightPublishers\ImageStorage\Responsive\ISrcSetGeneratorFactory::class)
-			->setFactory(SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator::class, [
-				'descriptorIterator' => new Nette\DI\Statement(SixtyEightPublishers\ImageStorage\Responsive\DescriptorIterator::class, [
-					'descriptors' => $config['descriptors'],
-				]),
-			]);
+			->setFactory(SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator::class);
 
 		# latte macros enabled
 		if (TRUE === $config['bridge']['latte_macros']) {

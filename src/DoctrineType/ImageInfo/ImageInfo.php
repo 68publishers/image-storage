@@ -54,13 +54,14 @@ class ImageInfo extends SixtyEightPublishers\ImageStorage\ImageInfo implements \
 	}
 
 	/**
-	 * @param array|string|NULL $modifier
+	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor
+	 * @param array|string|NULL                                                    $modifier
 	 *
 	 * @return string
 	 */
-	public function srcSet($modifier = NULL): string
+	public function srcSet(SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifier = NULL): string
 	{
-		return $this->linkGenerator->srcSet($this, $modifier);
+		return $this->linkGenerator->srcSet($this, $descriptor, $modifier);
 	}
 
 	/************** interface \JsonSerializable **************/

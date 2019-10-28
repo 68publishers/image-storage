@@ -68,12 +68,12 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	/**
 	 * {@inheritdoc}
 	 */
-	public function srcSet(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string
+	public function srcSet(SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifiers = NULL): string
 	{
 		if (NULL === $this->srcSetGenerator) {
 			$this->srcSetGenerator = $this->srcSetGeneratorFactory->create($this, $this->modifierFacade);
 		}
 
-		return $this->srcSetGenerator->generate($info, $this->modifierFacade->formatAsArray($modifiers));
+		return $this->srcSetGenerator->generate($descriptor, $info, $this->modifierFacade->formatAsArray($modifiers));
 	}
 }

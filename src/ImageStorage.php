@@ -89,9 +89,9 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function srcSet(ImageInfo $info, $modifiers = NULL): string
+	public function srcSet(ImageInfo $info, Responsive\Descriptor\IDescriptor $descriptor, $modifiers = NULL): string
 	{
-		return $this->linkGenerator->srcSet($info, $modifiers);
+		return $this->linkGenerator->srcSet($info, $descriptor, $modifiers);
 	}
 
 	/**
@@ -113,7 +113,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function resolveNoImage(string $path): SixtyEightPublishers\ImageStorage\ImageInfo
+	public function resolveNoImage(string $path): ImageInfo
 	{
 		return $this->noImageResolver->resolveNoImage($path);
 	}
@@ -145,7 +145,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function exists(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): bool
+	public function exists(ImageInfo $info, $modifiers = NULL): bool
 	{
 		return $this->imagePersister->exists($info, $modifiers);
 	}
@@ -153,7 +153,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function save(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, $modifiers = NULL, array $config = []): string
+	public function save(Resource\IResource $resource, $modifiers = NULL, array $config = []): string
 	{
 		return $this->imagePersister->save($resource, $modifiers, $config);
 	}
@@ -161,7 +161,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOriginal(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string
+	public function updateOriginal(Resource\IResource $resource, array $config = []): string
 	{
 		return $this->imagePersister->updateOriginal($resource, $config);
 	}
@@ -169,7 +169,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function delete(SixtyEightPublishers\ImageStorage\ImageInfo $info, bool $cacheOnly = FALSE): void
+	public function delete(ImageInfo $info, bool $cacheOnly = FALSE): void
 	{
 		$this->imagePersister->delete($info, $cacheOnly);
 	}
