@@ -17,10 +17,11 @@ interface ILinkGenerator
 	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
-	 * @param NULL|array|string                            $modifiers
+	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo                         $info
+	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor
+	 * @param NULL|array|string                                                    $modifiers
 	 *
 	 * @return string
 	 */
-	public function srcSet(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string;
+	public function srcSet(SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifiers = NULL): string;
 }

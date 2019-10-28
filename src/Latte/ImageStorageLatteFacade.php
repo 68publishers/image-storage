@@ -48,16 +48,17 @@ final class ImageStorageLatteFacade
 	}
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo|string|NULL $info
-	 * @param array|string|NULL                                        $modifier
-	 * @param string|NULL                                              $linkGeneratorName
+	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo|string|NULL             $info
+	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor
+	 * @param array|string|NULL                                                    $modifier
+	 * @param string|NULL                                                          $linkGeneratorName
 	 *
 	 * @return string
 	 */
-	public function srcSet($info, $modifier = NULL, ?string $linkGeneratorName = NULL): string
+	public function srcSet($info, SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifier = NULL, ?string $linkGeneratorName = NULL): string
 	{
 		if ($info instanceof SixtyEightPublishers\ImageStorage\DoctrineType\ImageInfo\ImageInfo) {
-			return $info->srcSet($modifier);
+			return $info->srcSet($descriptor, $modifier);
 		}
 
 		$imageStorage = $this->imageStorageProvider->get($linkGeneratorName);
@@ -68,6 +69,7 @@ final class ImageStorageLatteFacade
 
 		return $imageStorage->srcSet(
 			$info instanceof SixtyEightPublishers\ImageStorage\ImageInfo ? $info : $imageStorage->createImageInfo((string) $info),
+			$descriptor,
 			$modifier
 		);
 	}

@@ -37,24 +37,32 @@ use Latte;
  * ============================== Macro "srcset" ==============================
  *
  * @syntax:
- *      base:       {srcset $info, ?$modifier, ?$generatorName}
- *      n-macro:    n:srcset="$info, ?$modifier, ?$generatorName"   => this usage generates `n:img` also
+ *      base:       {srcset $info, $descriptor, ?$modifier, ?$generatorName}
+ *      n-macro:    n:srcset="$info, $descriptor, ?$modifier, ?$generatorName"   => this usage generates `n:img` also
  *
  * @arguments
- *      Argument are same as for macro "img".
- *      Descriptors (pixel-densities with device-pixel-ratios) are defined in Extension's config (key `descriptors`)
+ *      $info: @see "img" macro
+ *      $descriptor:
+ *          required: YES
+ *          type: SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor
+ *
+ *          You can use "factory" functions w_descriptor(...) and x_descriptor(...) for comfortable manipulations
+ *      $modifier: @see "img" macro
+ *      $imageStorageName:  @see "img" macro
  *
  * @examples:
- *      1) <img n:srcset="'TEST/TESTID/img.jpeg'" alt="...">    => returns `original` image path
- *      1) <img n:srcset="'TEST/TESTID/img.jpeg', [ w: 300 ], 's3'" alt="...">     => returns image path with 300px width from `s3` storage
+ *      1) <img n:srcset="'TEST/TESTID/img.jpeg' w_descriptor(200, 400, 600)" alt="...">    => returns `original` image path
+ *      1) <img n:srcset="'TEST/TESTID/img.jpeg', x_descriptor(1, 2), [ w: 300 ], 's3'" alt="...">     => returns image path with 300px width from `s3` storage
  *
  */
 final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 {
 	/**
 	 * @param \Latte\Compiler $compiler
+	 *
+	 * @return void
 	 */
-	public static function install(Latte\Compiler $compiler)
+	public static function install(Latte\Compiler $compiler): void
 	{
 		$me = new static($compiler);
 		$me->addMacro('img', [$me, 'beginImage'], NULL, [$me, 'attrImage']);
@@ -106,10 +114,34 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	 */
 	public function attrSrcSet(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
-		return $writer->write(
-			'echo " srcset=\""; %raw echo "\" src=\""; %raw echo "\""',
-			$this->beginSrcSet($node, $writer),
-			$this->beginImage($node, $writer)
+		$srcset = $writer->write(
+			'echo " srcset=\""; %raw echo "\""; ',
+			$this->beginSrcSet($node, $writer)
 		);
+
+		$tokens = $node->tokenizer;
+		$newArgs = '';
+		$currentArgNumber = 1;
+
+		$tokens->reset();
+
+		while ($tokens->nextToken()) {
+			if (0 === $tokens->depth && $tokens->isCurrent(',')) {
+				$currentArgNumber++;
+			}
+
+			# join everything except second argument
+			if (2 !== $currentArgNumber) {
+				$newArgs .= $tokens->currentValue();
+			}
+		}
+
+		$node->setArgs($newArgs);
+		$writer = Latte\PhpWriter::using($node);
+
+		return $srcset . $writer->write(
+			'echo "src=\""; %raw echo "\"";',
+			$this->beginImage($node, $writer)
+			);
 	}
 }
