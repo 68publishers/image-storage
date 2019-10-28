@@ -54,7 +54,9 @@ final class DefaultStorageCleaner implements IStorageCleaner
 		$key = $namespace . '_' . ($recursive ? '1' : '0');
 
 		if (!isset($this->listContentsCache[$key])) {
-			$this->listContentsCache[$key] = $this->filesystem->listContents($namespace, $recursive);
+			$this->listContentsCache[$key] = array_filter($this->filesystem->listContents($namespace, $recursive), static function (array $content) {
+				return 'file' !== $content['type'] || !FileKeep::isKept($content['basename']);
+			});
 		}
 
 		return $this->listContentsCache[$key];
@@ -112,7 +114,7 @@ final class DefaultStorageCleaner implements IStorageCleaner
 	 */
 	private function createOriginalRegex(): string
 	{
-		return sprintf('/^.*(%s)$/', preg_quote($this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER]));
+		return sprintf('/^.*(%s)$/', preg_quote($this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER], '/'));
 	}
 
 	/*************** interface \SixtyEightPublishers\ImageStorage\Cleaner\IStorageCleaner ***************/
@@ -134,7 +136,7 @@ final class DefaultStorageCleaner implements IStorageCleaner
 
 		$regex = TRUE === $cacheOnly ? $this->createOriginalRegex() : NULL;
 
-		$contents = array_filter($contents, function (array $metadata) use ($regex) {
+		$contents = array_filter($contents, static function (array $metadata) use ($regex) {
 			if ('file' !== $metadata['type']) {
 				return FALSE;
 			}
