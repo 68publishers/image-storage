@@ -61,7 +61,7 @@ final class LocalImageServer implements IImageServer
 	private function stripBasePath(string $path): string
 	{
 		$path = ltrim($path, '/');
-		$basePath = ltrim($this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH], '/');
+		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
 
 		if (!empty($basePath) && Nette\Utils\Strings::startsWith($path, $basePath)) {
 			$path = ltrim(Nette\Utils\Strings::substring($path, Nette\Utils\Strings::length($basePath)), '/');

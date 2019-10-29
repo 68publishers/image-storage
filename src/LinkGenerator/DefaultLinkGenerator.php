@@ -46,7 +46,7 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string
 	{
 		$link = sprintf(
-			'%s/%s',
+			'/%s/%s',
 			$this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH],
 			$info->createPath($this->modifierFacade->formatAsString($modifiers))
 		);
@@ -59,7 +59,7 @@ final class DefaultLinkGenerator implements ILinkGenerator
 		}
 
 		if (!empty($this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST])) {
-			$link = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST] . '/' . $link;
+			$link = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST] . $link;
 		}
 
 		return rawurldecode($link);
