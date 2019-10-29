@@ -44,7 +44,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 		$this->env = array_merge($this->env, $env);
 
 		// trim base path
-		$this->env[self::BASE_PATH] = rtrim((string) $this->env[self::BASE_PATH], '/');
+		$this->env[self::BASE_PATH] = trim((string) $this->env[self::BASE_PATH], '/');
 
 		if (!empty($this->env[self::HOST])) {
 			$this->env[self::HOST] = rtrim((string) $this->env[self::HOST], '/');
