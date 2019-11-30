@@ -20,7 +20,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 					ALLOWED_PIXEL_DENSITY = 'ALLOWED_PIXEL_DENSITY',
 					ALLOWED_RESOLUTIONS = 'ALLOWED_RESOLUTIONS',
 					ALLOWED_QUALITIES = 'ALLOWED_QUALITIES',
-					RESIZE_QUALITY = 'RESIZE_QUALITY';
+					ENCODE_QUALITY = 'ENCODE_QUALITY';
 
 	/** @var array  */
 	private $env = [
@@ -33,7 +33,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 		self::ALLOWED_PIXEL_DENSITY => [],
 		self::ALLOWED_RESOLUTIONS => [],
 		self::ALLOWED_QUALITIES => [],
-		self::RESIZE_QUALITY => 100,
+		self::ENCODE_QUALITY => 90,
 	];
 
 	/**

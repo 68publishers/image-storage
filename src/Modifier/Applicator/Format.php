@@ -40,19 +40,14 @@ final class Format implements IModifierApplicator
 	public function apply(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): Intervention\Image\Image
 	{
 		$preserveFormat = TRUE === $info->isNoImage() ?: $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\PreserveFormat::class, FALSE);
-		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::RESIZE_QUALITY]);
-
-		# nothing
-		if (TRUE === $preserveFormat && 100 === $quality) {
-			return $image;
-		}
+		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ENCODE_QUALITY]);
 
 		$imageFormat = array_search($image->mime(), self::SUPPORTED_FORMATS, TRUE);
 		$newFormat = (TRUE === $preserveFormat && $imageFormat) ? $imageFormat : self::DEFAULT_FORMAT;
 
 		# same format
 		if ($imageFormat === $newFormat) {
-			return $image->encode($newFormat, $quality);
+			return $image->encode(NULL, $quality);
 		}
 
 		# change format to jpg
