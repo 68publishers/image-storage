@@ -29,7 +29,7 @@ image_storage:
         ALLOWED_PIXEL_DENSITY: [ 1, 2, 3 ]
         ALLOWED_RESOLUTIONS: [ 50x50, 200x200, 300x300, 200x, x200 ]
         ALLOWED_QUALITIES: [ 50, 80, 100 ]
-        RESIZE_QUALITY: 100
+        ENCODE_QUALITY: 90
         MODIFIER_SEPARATOR: ','
         MODIFIER_ASSIGNER: ':'
 

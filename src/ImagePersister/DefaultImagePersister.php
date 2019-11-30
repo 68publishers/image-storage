@@ -84,7 +84,7 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	protected function encodeImage(Intervention\Image\Image $image): string
 	{
-		$image = $image->isEncoded() ? $image : $image->encode(NULL, 100);
+		$image = $image->isEncoded() ? $image : $image->encode(NULL, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ENCODE_QUALITY]);
 
 		return $image->getEncoded();
 	}
