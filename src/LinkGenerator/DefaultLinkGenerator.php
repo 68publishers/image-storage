@@ -45,11 +45,8 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	 */
 	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string
 	{
-		$link = sprintf(
-			'/%s/%s',
-			$this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH],
-			$info->createPath($this->modifierFacade->formatAsString($modifiers))
-		);
+		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
+		$link = (!empty($basePath) ? '/' : '') . $basePath . '/' . $info->createPath($this->modifierFacade->formatAsString($modifiers));
 
 		if (NULL !== $info->getVersion()
 			&& isset($this->env[SixtyEightPublishers\ImageStorage\Config\Env::VERSION_PARAMETER_NAME])
