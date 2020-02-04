@@ -6,7 +6,6 @@ namespace SixtyEightPublishers\ImageStorage\ImageServer\Response;
 
 use Nette;
 use League;
-use SixtyEightPublishers;
 
 final class ImageResponse implements Nette\Application\IResponse
 {
