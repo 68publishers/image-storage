@@ -11,7 +11,7 @@ final class FileNotFoundException extends FilesystemException
 	 * @param int             $code
 	 * @param \Throwable|NULL $previous
 	 */
-	public function __construct(string $path, int $code = 0, \Throwable $previous = null)
+	public function __construct(string $path, int $code = 0, \Throwable $previous = NULL)
 	{
 		parent::__construct(sprintf(
 			'File "%s" not found.',

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\ImageServer\Response;
 
 use Nette;
-use SixtyEightPublishers;
 
 final class ErrorResponse extends Nette\Application\Responses\TextResponse
 {

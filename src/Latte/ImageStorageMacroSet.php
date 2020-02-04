@@ -142,6 +142,6 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 		return $srcset . $writer->write(
 			'echo "src=\""; %raw echo "\"";',
 			$this->beginImage($node, $writer)
-			);
+		);
 	}
 }

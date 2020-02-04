@@ -6,7 +6,6 @@ namespace SixtyEightPublishers\ImageStorage;
 
 use Nette;
 use League;
-use SixtyEightPublishers;
 
 final class ImageStorage implements IImageStorage
 {
