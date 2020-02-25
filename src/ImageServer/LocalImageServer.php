@@ -9,7 +9,8 @@ use SixtyEightPublishers;
 
 final class LocalImageServer implements IImageServer
 {
-	use Nette\SmartObject;
+	use Nette\SmartObject,
+		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
 	private $env;
@@ -122,6 +123,30 @@ final class LocalImageServer implements IImageServer
 		);
 	}
 
+	/**
+	 * @param \Nette\Http\IRequest $request
+	 * @param string               $path
+	 *
+	 * @return void
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\SignatureException
+	 */
+	private function validateSignature(Nette\Http\IRequest $request, string $path): void
+	{
+		if (NULL === $this->signatureStrategy) {
+			return;
+		}
+
+		$token = $request->getQuery($this->env[SixtyEightPublishers\ImageStorage\Config\Env::SIGNATURE_PARAMETER_NAME], '');
+
+		if (empty($token)) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\SignatureException('Missing signature in request.');
+		}
+
+		if (!$this->signatureStrategy->verifyToken($token, $path)) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\SignatureException('Request contains invalid signature.');
+		}
+	}
+
 	/************** interface \SixtyEightPublishers\ImageStorage\ImageServer\IImageServer **************/
 
 	/**
@@ -129,9 +154,10 @@ final class LocalImageServer implements IImageServer
 	 */
 	public function getImageResponse(Nette\Http\IRequest $request): Nette\Application\IResponse
 	{
-		[$info, $modifiers] = $this->parseImageInfoAndModifiers(
-			$this->stripBasePath($request->getUrl()->getPath())
-		);
+		$path = $this->stripBasePath($request->getUrl()->getPath());
+		[$info, $modifiers] = $this->parseImageInfoAndModifiers($path);
+
+		$this->validateSignature($request, $path);
 
 		try {
 			$path = $this->getFilePath($info, $modifiers);

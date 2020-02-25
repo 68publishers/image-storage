@@ -54,6 +54,7 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 		'adapter' => NULL, # filesystem adapter
 		'config' => [], # filesystem config
 		'server' => self::SERVER_LOCAL,
+		'signature' => NULL, # null or ISignatureStrategy statement or a string (= privateKey). The DefaultSignatureStrategy is used if a string is passed
 
 		'modifiers' => [],  # array of IModifier
 		'applicators' => [], # array of IModifierApplicator
@@ -231,6 +232,7 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 		$config = $this->validateConfig($this->storageDefaults, $config);
 		Nette\Utils\Validators::assert($config['adapter'], 'string|' . Nette\DI\Statement::class);
 		Nette\Utils\Validators::assert($config['config'], 'array');
+		Nette\Utils\Validators::assert($config['signature'], 'null|string|' . Nette\DI\Statement::class);
 
 		if (!in_array($config['server'], [ self::SERVER_LOCAL, self::SERVER_EXTERNAL ], TRUE)) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
@@ -239,11 +241,28 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 			));
 		}
 
+		# Flysystem Adapter
 		if ($this->needRegister($config['adapter'])) {
 			$config['adapter'] = $builder->addDefinition($this->prefix($name . '.filesystem_adapter'))
 				->setType(League\Flysystem\AdapterInterface::class)
 				->setFactory($config['adapter'])
 				->setAutowired(FALSE);
+		}
+
+		# Signature strategy
+		if (NULL !== $config['signature'] && $this->needRegister($config['signature'])) {
+			$signature = $builder->addDefinition($this->prefix($name . '.signature_strategy'))
+				->setType(SixtyEightPublishers\ImageStorage\Security\ISignatureStrategy::class)
+				->setFactory($config['signature'] instanceof Nette\DI\Statement ? $config['signature'] : SixtyEightPublishers\ImageStorage\Security\DefaultSignatureStrategy::class)
+				->setAutowired(FALSE);
+
+			if (is_string($config['signature'])) {
+				$signature->setArguments([
+					'privateKey' => $config['signature'],
+				]);
+			}
+
+			$config['signature'] = $signature;
 		}
 
 		# Flysytem
@@ -352,6 +371,9 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 				'resourceFactory' => $resourceFactory,
 				'imagePersister' => $imagePersister,
 				'imageServer' => $imageServer,
+			])
+			->addSetup('setSignatureStrategy', [
+				'signatureStrategy' => $config['signature'],
 			])
 			->setAutowired($autowired);
 

@@ -9,7 +9,8 @@ use SixtyEightPublishers;
 
 final class DefaultLinkGenerator implements ILinkGenerator
 {
-	use Nette\SmartObject;
+	use Nette\SmartObject,
+		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
 	private $env;
@@ -46,13 +47,21 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string
 	{
 		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
-		$link = (!empty($basePath) ? '/' : '') . $basePath . '/' . $info->createPath($this->modifierFacade->formatAsString($modifiers));
+		$path = $info->createPath($this->modifierFacade->formatAsString($modifiers));
+		$link = (!empty($basePath) ? '/' : '') . $basePath . '/' . $path;
+		$params = [];
 
-		if (NULL !== $info->getVersion()
-			&& isset($this->env[SixtyEightPublishers\ImageStorage\Config\Env::VERSION_PARAMETER_NAME])
-			&& is_string($v = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::VERSION_PARAMETER_NAME])) {
-			$link .= empty($v) ? '?' : ('?' . $v . '=');
-			$link .= $info->getVersion();
+		if (NULL !== $this->signatureStrategy) {
+			$params[] = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::SIGNATURE_PARAMETER_NAME] . '=' . $this->signatureStrategy->createToken($path);
+		}
+
+		if (NULL !== $info->getVersion()) {
+			$versionParameterName = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::VERSION_PARAMETER_NAME];
+			$params[] = empty($versionParameterName) ? $info->getVersion() : ($versionParameterName . '=' . $info->getVersion());
+		}
+
+		if (0 < count($params)) {
+			$link .= '?' . implode('&', $params);
 		}
 
 		if (!empty($this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST])) {
