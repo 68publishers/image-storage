@@ -61,6 +61,11 @@ abstract class AbstractLocalImageServerPresenter implements Nette\Application\IP
 				'File not found.',
 				Nette\Http\IResponse::S404_NOT_FOUND
 			);
+		} catch (SixtyEightPublishers\ImageStorage\Exception\SignatureException $e) {
+			$response = new SixtyEightPublishers\ImageStorage\ImageServer\Response\ErrorResponse(
+				$e->getMessage(),
+				Nette\Http\IResponse::S403_FORBIDDEN
+			);
 		} catch (\Throwable $e) {
 			$response = new SixtyEightPublishers\ImageStorage\ImageServer\Response\ErrorResponse(
 				'Internal server error. ' . $e->getMessage(),

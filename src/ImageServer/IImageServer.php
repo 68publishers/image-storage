@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\ImageServer;
 
 use Nette;
+use SixtyEightPublishers;
 
-interface IImageServer
+interface IImageServer extends SixtyEightPublishers\ImageStorage\Security\ISignatureStrategyAware
 {
 	/**
 	 * @param \Nette\Http\IRequest $request

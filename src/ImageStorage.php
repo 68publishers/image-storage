@@ -6,6 +6,7 @@ namespace SixtyEightPublishers\ImageStorage;
 
 use Nette;
 use League;
+use SixtyEightPublishers;
 
 final class ImageStorage implements IImageStorage
 {
@@ -75,6 +76,15 @@ final class ImageStorage implements IImageStorage
 	public function createImageInfo(string $path): ImageInfo
 	{
 		return new ImageInfo($path, $this->isNoImage($path));
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setSignatureStrategy(?SixtyEightPublishers\ImageStorage\Security\ISignatureStrategy $signatureStrategy): void
+	{
+		$this->linkGenerator->setSignatureStrategy($signatureStrategy);
+		$this->imageServer->setSignatureStrategy($signatureStrategy);
 	}
 
 	/**

@@ -9,7 +9,8 @@ use SixtyEightPublishers;
 
 final class ExternalImageServer implements IImageServer
 {
-	use Nette\SmartObject;
+	use Nette\SmartObject,
+		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
 
 	/************** interface \SixtyEightPublishers\ImageStorage\ImageServer\IImageServer **************/
 

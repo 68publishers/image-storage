@@ -6,7 +6,7 @@ namespace SixtyEightPublishers\ImageStorage\LinkGenerator;
 
 use SixtyEightPublishers;
 
-interface ILinkGenerator
+interface ILinkGenerator extends SixtyEightPublishers\ImageStorage\Security\ISignatureStrategyAware
 {
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
