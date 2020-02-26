@@ -26,6 +26,7 @@ image_storage:
         BASE_PATH: /images
         ORIGINAL_MODIFIER: original
         VERSION_PARAMETER_NAME: v
+        SIGNATURE_PARAMETER_NAME: s
         ALLOWED_PIXEL_DENSITY: [ 1, 2, 3 ]
         ALLOWED_RESOLUTIONS: [ 50x50, 200x200, 300x300, 200x, x200 ]
         ALLOWED_QUALITIES: [ 50, 80, 100 ]
@@ -52,6 +53,9 @@ image_storage:
                 visibility: ::constant(League\Flysystem\AdapterInterface::VISIBILITY_PUBLIC)
             
             server: local # "local" or "external", default is local
+
+            signature: my-arbitrary-private-key # a default value is NULL. If the value is a string then its passed as a privateKey into a DefaultSignatureStrategy class. 
+            # Eventually you can pass custom strategy e.g. My\Awesome\SignatureStrategy(foo, bar)
             
             # predefined presets
             presets:
