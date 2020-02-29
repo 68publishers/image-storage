@@ -136,14 +136,14 @@ final class ModifierFacade implements IModifierFacade
 			));
 		}
 
-		$modifiers = $this->modifierCollection->parseValues($modifiers);
+		$values = $this->modifierCollection->parseValues($modifiers);
 
 		foreach ($this->validators as $validator) {
-			$validator->validate($modifiers);
+			$validator->validate($values);
 		}
 
 		foreach ($this->applicators as $applicator) {
-			$image  = $applicator->apply($image, $info, $modifiers);
+			$image = $applicator->apply($image, $info, $values);
 		}
 
 		return $image;

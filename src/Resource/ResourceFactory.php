@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
 use Nette;
-use League;
 use Intervention;
 use SixtyEightPublishers;
 
@@ -13,10 +12,7 @@ final class ResourceFactory implements IResourceFactory
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
-
-	/** @var \League\Flysystem\FilesystemInterface  */
+	/** @var \SixtyEightPublishers\ImageStorage\Filesystem  */
 	private $filesystem;
 
 	/** @var \Intervention\Image\ImageManager  */
@@ -26,18 +22,15 @@ final class ResourceFactory implements IResourceFactory
 	private $modifierFacade;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
-	 * @param \League\Flysystem\FilesystemInterface                              $filesystem
+	 * @param \SixtyEightPublishers\ImageStorage\Filesystem                      $filesystem
 	 * @param \Intervention\Image\ImageManager                                   $imageManager
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	 */
 	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
-		League\Flysystem\FilesystemInterface $filesystem,
+		SixtyEightPublishers\ImageStorage\Filesystem $filesystem,
 		Intervention\Image\ImageManager $imageManager,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
-		$this->env = $env;
 		$this->filesystem = $filesystem;
 		$this->imageManager = $imageManager;
 		$this->modifierFacade = $modifierFacade;
@@ -47,16 +40,19 @@ final class ResourceFactory implements IResourceFactory
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \League\Flysystem\FileNotFoundException
 	 */
 	public function createResource(SixtyEightPublishers\ImageStorage\ImageInfo $info): IResource
 	{
-		$path = $info->createPath($this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER]);
+		$path = (string) $info;
+		$filesystem = $this->filesystem->getSource();
 
-		if (FALSE === $this->filesystem->has($path)) {
+		if (FALSE === $filesystem->has($path)) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException($path);
 		}
 
-		$source = $this->filesystem->read($path);
+		$source = $filesystem->read($path);
 
 		if (FALSE === $source) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException(sprintf(

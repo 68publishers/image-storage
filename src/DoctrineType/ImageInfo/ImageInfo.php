@@ -44,11 +44,11 @@ class ImageInfo extends SixtyEightPublishers\ImageStorage\ImageInfo implements \
 	}
 
 	/**
-	 * @param array|string|NULL $modifier
+	 * @param array|string $modifier
 	 *
 	 * @return string
 	 */
-	public function link($modifier = NULL): string
+	public function link($modifier): string
 	{
 		return $this->linkGenerator->link($this, $modifier);
 	}

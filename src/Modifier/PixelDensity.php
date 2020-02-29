@@ -6,12 +6,12 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers;
 
-final class PixelDensity extends AbstractModifier
+final class PixelDensity extends AbstractModifier implements IParsableModifier
 {
 	/** @var string  */
 	protected $alias = 'pd';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
+	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}

@@ -15,106 +15,69 @@ final class DefaultStorageCleaner implements IStorageCleaner
 	/** @var string  */
 	private $name;
 
-	/** @var \League\Flysystem\FilesystemInterface  */
+	/** @var \SixtyEightPublishers\ImageStorage\Filesystem  */
 	private $filesystem;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
-
-	/** @var \League\Flysystem\Config  */
-	private $config;
-
-	/** @var array  */
-	private $listContentsCache = [];
 
 	/**
 	 * @param string                                        $name
-	 * @param \League\Flysystem\FilesystemInterface         $filesystem
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env $env
+	 * @param \SixtyEightPublishers\ImageStorage\Filesystem $filesystem
 	 */
-	public function __construct(
-		string $name,
-		League\Flysystem\FilesystemInterface $filesystem,
-		SixtyEightPublishers\ImageStorage\Config\Env $env
-	) {
+	public function __construct(string $name, SixtyEightPublishers\ImageStorage\Filesystem $filesystem)
+	{
 		$this->name = $name;
 		$this->filesystem = $filesystem;
-		$this->env = $env;
-		$this->config = $filesystem instanceof League\Flysystem\Filesystem ? $filesystem->getConfig() : new League\Flysystem\Config();
 	}
 
 	/**
-	 * @param string $namespace
-	 * @param bool   $recursive
+	 * @param \League\Flysystem\FilesystemInterface $filesystem
+	 * @param string|NULL                           $namespace
 	 *
-	 * @return array
+	 * @return int
 	 */
-	private function listContents(string $namespace, bool $recursive): array
+	private function getFilesCount(League\Flysystem\FilesystemInterface $filesystem, ?string $namespace): int
 	{
-		$key = $namespace . '_' . ($recursive ? '1' : '0');
+		$contents = array_filter($filesystem->listContents($namespace ?? '', TRUE), static function (array $content) {
+			return 'file' === $content['type'] && !FileKeep::isKept($content['basename']);
+		});
 
-		if (!isset($this->listContentsCache[$key])) {
-			$this->listContentsCache[$key] = array_filter($this->filesystem->listContents($namespace, $recursive), static function (array $content) {
-				return 'file' !== $content['type'] || !FileKeep::isKept($content['basename']);
-			});
-		}
-
-		return $this->listContentsCache[$key];
+		return count($contents);
 	}
 
 	/**
-	 * @param array $contents
+	 * @param \League\Flysystem\FilesystemInterface $filesystem
+	 * @param string|NULL                           $namespace
 	 *
 	 * @return void
+	 * @noinspection PhpDocMissingThrowsInspection
 	 */
-	private function deleteAll(array $contents): void
+	private function cleanFilesystem(League\Flysystem\FilesystemInterface $filesystem, ?string $namespace): void
 	{
+		if ($filesystem instanceof League\Flysystem\Filesystem) {
+			$config = $filesystem->getConfig();
+			$disableAsserts = $config->get('disable_asserts', NULL);
+
+			$config->set('disable_asserts', TRUE);
+		}
+
+		# delete directories and files from root
+		$contents = array_filter($filesystem->listContents($namespace ?? '', FALSE), static function (array $content) {
+			return 'file' !== $content['type'] || !FileKeep::isKept($content['basename']);
+		});
+
 		foreach ($contents as $content) {
 			if ('dir' === $content['type']) {
-				$this->filesystem->deleteDir($content['path']);
+				$filesystem->deleteDir($content['path']);
 			}
 
 			if ('file' === $content['type']) {
-				try {
-					$this->filesystem->delete($content['path']);
-				} catch (League\Flysystem\FileNotFoundException $e) {
-					# nothing, just removed
-				}
-			}
-		}
-	}
-
-	/**
-	 * @param array $contents
-	 *
-	 * @return void
-	 */
-	private function deleteCacheOnly(array $contents): void
-	{
-		$paths = [];
-		$regex = $this->createOriginalRegex();
-
-		foreach ($contents as $content) {
-			if ('file' !== $content['type']) {
-				continue;
-			}
-
-			if (FALSE === isset($path[$content['dirname']]) && FALSE === (bool) preg_match($regex, $content['dirname'])) {
-				$paths[$content['dirname']] = TRUE;
+				/** @noinspection PhpUnhandledExceptionInspection */
+				$filesystem->delete($content['path']);
 			}
 		}
 
-		foreach (array_keys($paths) as $path) {
-			$this->filesystem->deleteDir($path);
+		if (isset($config, $disableAsserts)) {
+			$config->set('disable_asserts', $disableAsserts);
 		}
-	}
-
-	/**
-	 * @return string
-	 */
-	private function createOriginalRegex(): string
-	{
-		return sprintf('/^.*(%s)$/', preg_quote($this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER], '/'));
 	}
 
 	/*************** interface \SixtyEightPublishers\ImageStorage\Cleaner\IStorageCleaner ***************/
@@ -132,19 +95,13 @@ final class DefaultStorageCleaner implements IStorageCleaner
 	 */
 	public function getCount(?string $namespace, bool $cacheOnly = FALSE): int
 	{
-		$contents = $this->listContents($namespace ?? '', TRUE);
+		$count = $this->getFilesCount($this->filesystem->getCache(), $namespace);
 
-		$regex = TRUE === $cacheOnly ? $this->createOriginalRegex() : NULL;
+		if (FALSE === $cacheOnly) {
+			$count += $this->getFilesCount($this->filesystem->getSource(), $namespace);
+		}
 
-		$contents = array_filter($contents, static function (array $metadata) use ($regex) {
-			if ('file' !== $metadata['type']) {
-				return FALSE;
-			}
-
-			return NULL === $regex || FALSE === (bool) preg_match($regex, $metadata['dirname']);
-		});
-
-		return count($contents);
+		return $count;
 	}
 
 	/**
@@ -152,17 +109,12 @@ final class DefaultStorageCleaner implements IStorageCleaner
 	 */
 	public function clean(?string $namespace = NULL, bool $cacheOnly = FALSE): void
 	{
-		$contents = $this->listContents($namespace ?? '', $cacheOnly);
-		$disableAsserts = $this->config->get('disable_asserts', NULL);
+		$this->cleanFilesystem($this->filesystem->getCache(), $namespace);
 
-		$this->config->set('disable_asserts', TRUE);
-
-		if (FALSE === $cacheOnly) {
-			$this->deleteAll($contents);
-		} else {
-			$this->deleteCacheOnly($contents);
+		if (TRUE === $cacheOnly) {
+			return;
 		}
 
-		$this->config->set('disable_asserts', $disableAsserts);
+		$this->cleanFilesystem($this->filesystem->getSource(), $namespace);
 	}
 }

@@ -10,11 +10,11 @@ interface ILinkGenerator extends SixtyEightPublishers\ImageStorage\Security\ISig
 {
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
-	 * @param NULL|array|string                            $modifiers
+	 * @param array|string                                 $modifiers
 	 *
 	 * @return string
 	 */
-	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string;
+	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers): string;
 
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo                         $info

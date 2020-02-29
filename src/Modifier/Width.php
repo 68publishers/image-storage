@@ -6,12 +6,12 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers;
 
-final class Width extends AbstractModifier
+final class Width extends AbstractModifier implements IParsableModifier
 {
 	/** @var string  */
 	protected $alias = 'w';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
+	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}

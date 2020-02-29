@@ -79,7 +79,7 @@ final class SrcSetGenerator
 
 		return [
 			$modifier,
-			$descriptor . '::' . $info->createPath($key ?? $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER]),
+			$descriptor . '::' . $info . '::' . ($key ?? 'empty'),
 		];
 	}
 }

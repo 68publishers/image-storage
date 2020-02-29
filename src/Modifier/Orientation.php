@@ -6,14 +6,14 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers;
 
-final class Orientation extends AbstractModifier
+final class Orientation extends AbstractModifier implements IParsableModifier
 {
 	private const VALUES = [ 'auto', '0', '90', '-90', '180', '-180', '270', '-270' ];
 
 	/** @var string  */
 	protected $alias = 'o';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
+	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}

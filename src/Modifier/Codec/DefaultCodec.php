@@ -39,19 +39,26 @@ final class DefaultCodec implements ICodec
 	 */
 	public function encode(array $parameters): string
 	{
-		if (empty($parameters)) {
-			return $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER];
-		}
-
 		$result = [];
 		ksort($parameters);
 		$assigner = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_ASSIGNER];
 
 		foreach ($parameters as $k => $v) {
-			# check existence
-			$k = $this->collection->getByAlias($k)->getAlias();
+			$modifier = $this->collection->getByAlias($k);
+
+			if (!$modifier instanceof SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier) {
+				if (TRUE === (bool) $v) {
+					$result[] = $k;
+				}
+
+				continue;
+			}
 
 			$result[] = $k . $assigner . ((string) $v);
+		}
+
+		if (empty($parameters)) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Parameters can\`t be empty.');
 		}
 
 		return implode($this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_SEPARATOR], $result);
@@ -66,8 +73,8 @@ final class DefaultCodec implements ICodec
 			return $this->decodeCache[$path];
 		}
 
-		if ($path === $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER]) {
-			return [];
+		if (empty($path)) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Path can\`t be empty.');
 		}
 
 		$parameters = [];
@@ -75,19 +82,35 @@ final class DefaultCodec implements ICodec
 
 		foreach (explode($this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_SEPARATOR], $path) as $modifier) {
 			$modifier = explode($assigner, $modifier);
+			$count = count($modifier);
 
-			if (2 !== count($modifier)) {
+			if (1 > $count || 2 < $count) {
 				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
-					'Invalid path "%s" passed, modifier "%s" has invalid format.',
+					'An invalid path "%s" passed, a modifier "%s" has invalid format.',
 					$path,
 					implode($assigner, $modifier)
 				));
 			}
 
-			[ $alias, $value ] = $modifier;
-			$modifier = $this->collection->getByAlias($alias);
+			$modifierObject = $this->collection->getByAlias($modifier[0]);
 
-			$parameters[$modifier->getAlias()] = $value;
+			if (1 === $count && $modifierObject instanceof SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier) {
+				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+					'An invalid path "%s" passed, a modifier "%s" must have a value.',
+					$path,
+					$modifierObject->getAlias()
+				));
+			}
+
+			if (2 === $count && !$modifierObject instanceof SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier) {
+				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+					'An invalid path "%s" passed, a modifier "%s" can\'t have a value.',
+					$path,
+					$modifierObject->getAlias()
+				));
+			}
+
+			$parameters[$modifierObject->getAlias()] = 2 === $count ? $modifier[1] : TRUE;
 		}
 
 		return $this->decodeCache[$path] = $parameters;

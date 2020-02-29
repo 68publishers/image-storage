@@ -10,9 +10,10 @@ use League;
 use Intervention;
 use SixtyEightPublishers;
 
-class ImageStorageExtension extends Nette\DI\CompilerExtension
+final class ImageStorageExtension extends Nette\DI\CompilerExtension
 {
 	public const MODIFIERS = [
+		SixtyEightPublishers\ImageStorage\Modifier\Original::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Height::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Width::class,
 		SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class,
@@ -51,8 +52,18 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 	/** @var array  */
 	private $storageDefaults = [
-		'adapter' => NULL, # filesystem adapter
-		'config' => [], # filesystem config
+		'source' => [
+			'adapter' => NULL, # filesystem adapter
+			'config' => [
+				'visibility' => League\Flysystem\AdapterInterface::VISIBILITY_PRIVATE,
+			], # filesystem config
+		],
+		'cache' => [
+			'adapter' => NULL, # filesystem adapter
+			'config' => [
+				'visibility' => League\Flysystem\AdapterInterface::VISIBILITY_PUBLIC,
+			], # filesystem config
+		],
 		'server' => self::SERVER_LOCAL,
 		'signature' => NULL, # null or ISignatureStrategy statement or a string (= privateKey). The DefaultSignatureStrategy is used if a string is passed
 
@@ -230,8 +241,6 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$config = $this->validateConfig($this->storageDefaults, $config);
-		Nette\Utils\Validators::assert($config['adapter'], 'string|' . Nette\DI\Statement::class);
-		Nette\Utils\Validators::assert($config['config'], 'array');
 		Nette\Utils\Validators::assert($config['signature'], 'null|string|' . Nette\DI\Statement::class);
 
 		if (!in_array($config['server'], [ self::SERVER_LOCAL, self::SERVER_EXTERNAL ], TRUE)) {
@@ -241,13 +250,13 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 			));
 		}
 
-		# Flysystem Adapter
-		if ($this->needRegister($config['adapter'])) {
-			$config['adapter'] = $builder->addDefinition($this->prefix($name . '.filesystem_adapter'))
-				->setType(League\Flysystem\AdapterInterface::class)
-				->setFactory($config['adapter'])
-				->setAutowired(FALSE);
-		}
+		$filesystem = $builder->addDefinition($this->prefix($name . '.filesystem_service'))
+			->setType(SixtyEightPublishers\ImageStorage\Filesystem::class)
+			->setArguments([
+				'source' => $this->registerFilesystem($config['source'], $name, 'source'),
+				'cache' => $this->registerFilesystem($config['cache'], $name, 'cache'),
+			])
+			->setAutowired(FALSE);
 
 		# Signature strategy
 		if (NULL !== $config['signature'] && $this->needRegister($config['signature'])) {
@@ -264,15 +273,6 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 			$config['signature'] = $signature;
 		}
-
-		# Flysytem
-		$filesystem = $builder->addDefinition($this->prefix($name . '.filesystem'))
-			->setType(League\Flysystem\FilesystemInterface::class)
-			->setFactory(League\Flysystem\Filesystem::class, [
-				'adapter' => $config['adapter'],
-				'config' => $config['config'],
-			])
-			->setAutowired(FALSE);
 
 		# Modifiers
 		$modifierFacade = $builder->addDefinition($this->prefix($name . '.modifier_facade'))
@@ -405,6 +405,39 @@ class ImageStorageExtension extends Nette\DI\CompilerExtension
 			->setAutowired(FALSE);
 
 		return $imageStorage;
+	}
+
+	/**
+	 * @param array  $filesystemConfig
+	 * @param string $storageName
+	 * @param string $filesystemName
+	 *
+	 * @return \Nette\DI\ServiceDefinition
+	 * @throws \Nette\Utils\AssertionException
+	 */
+	private function registerFilesystem(array &$filesystemConfig, string $storageName, string $filesystemName): Nette\DI\ServiceDefinition
+	{
+		$builder = $this->getContainerBuilder();
+
+		Nette\Utils\Validators::assert($filesystemConfig['adapter'], 'string|' . Nette\DI\Statement::class);
+		Nette\Utils\Validators::assert($filesystemConfig['config'], 'array');
+
+		# Flysystem Adapter
+		if ($this->needRegister($filesystemConfig['adapter'])) {
+			$config['adapter'] = $builder->addDefinition($this->prefix($storageName . '.filesystem_adapter.' . $filesystemName))
+				->setType(League\Flysystem\AdapterInterface::class)
+				->setFactory($filesystemConfig['adapter'])
+				->setAutowired(FALSE);
+		}
+
+		# Flysytem
+		return $builder->addDefinition($this->prefix($storageName . '.filesystem.' . $filesystemName))
+			->setType(League\Flysystem\FilesystemInterface::class)
+			->setFactory(League\Flysystem\Filesystem::class, [
+				'adapter' => $filesystemConfig['adapter'],
+				'config' => $filesystemConfig['config'],
+			])
+			->setAutowired(FALSE);
 	}
 
 	/**

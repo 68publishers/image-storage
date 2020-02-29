@@ -12,6 +12,8 @@ interface IResourceFactory
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\Resource\IResource
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
 	 */
 	public function createResource(SixtyEightPublishers\ImageStorage\ImageInfo $info): IResource;
 

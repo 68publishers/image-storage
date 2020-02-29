@@ -104,8 +104,16 @@ final class ModifierCollection implements IModifierCollection
 		foreach ($parameters as $k => $v) {
 			$modifier = $this->getByAlias($k);
 
-			if (NULL !== ($value = $modifier->parseValue($v))) {
-				$values[$modifier->getName()] = $value;
+			if ($modifier instanceof SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier) {
+				if (NULL !== ($value = $modifier->parseValue($v))) {
+					$values[$modifier->getName()] = $value;
+				}
+
+				continue;
+			}
+
+			if (TRUE === (bool) $v) {
+				$values[$modifier->getName()] = TRUE;
 			}
 		}
 
