@@ -28,8 +28,9 @@ final class ImageStorageLatteFacade
 	 * @param string|NULL                                              $linkGeneratorName
 	 *
 	 * @return string
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
-	public function link($info, $modifier = NULL, ?string $linkGeneratorName = NULL): string
+	public function link($info, $modifier, ?string $linkGeneratorName = NULL): string
 	{
 		if ($info instanceof SixtyEightPublishers\ImageStorage\DoctrineType\ImageInfo\ImageInfo) {
 			return $info->link($modifier);
@@ -54,6 +55,7 @@ final class ImageStorageLatteFacade
 	 * @param string|NULL                                                          $linkGeneratorName
 	 *
 	 * @return string
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
 	public function srcSet($info, SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifier = NULL, ?string $linkGeneratorName = NULL): string
 	{

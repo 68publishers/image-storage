@@ -13,7 +13,7 @@ class DefaultImagePersister implements IImagePersister
 {
 	use Nette\SmartObject;
 
-	/** @var \League\Flysystem\FilesystemInterface  */
+	/** @var \SixtyEightPublishers\ImageStorage\Filesystem  */
 	private $filesystem;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
@@ -23,12 +23,12 @@ class DefaultImagePersister implements IImagePersister
 	private $modifierFacade;
 
 	/**
-	 * @param \League\Flysystem\FilesystemInterface                              $filesystem
+	 * @param \SixtyEightPublishers\ImageStorage\Filesystem                      $filesystem
 	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	 */
 	public function __construct(
-		League\Flysystem\FilesystemInterface $filesystem,
+		SixtyEightPublishers\ImageStorage\Filesystem $filesystem,
 		SixtyEightPublishers\ImageStorage\Config\Env $env,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
@@ -49,11 +49,13 @@ class DefaultImagePersister implements IImagePersister
 	{
 		if (!empty($modifiers)) {
 			$resource->modifyImage($modifiers);
-		}
 
-		$path = $resource->getInfo()->createPath(
-			$this->modifierFacade->formatAsString($modifiers)
-		);
+			$path = $resource->getInfo()->createPath(
+				$this->modifierFacade->formatAsString($modifiers)
+			);
+		} else {
+			$path = (string) $resource->getInfo();
+		}
 
 		try {
 			$result = (bool) $cb($resource, $path);
@@ -89,12 +91,34 @@ class DefaultImagePersister implements IImagePersister
 		return $image->getEncoded();
 	}
 
+	/**
+	 * @param \League\Flysystem\FilesystemInterface $filesystem
+	 * @param callable                              $cb
+	 *
+	 * @return void
+	 */
+	protected function prepareDelete(League\Flysystem\FilesystemInterface $filesystem, callable $cb): void
+	{
+		if ($filesystem instanceof League\Flysystem\Filesystem) {
+			$config = $filesystem->getConfig();
+			$disableAsserts = $config->get('disable_asserts', NULL);
+
+			$config->set('disable_asserts', TRUE);
+		}
+
+		$cb($filesystem, $config ?? NULL);
+
+		if (isset($config, $disableAsserts)) {
+			$config->set('disable_asserts', $disableAsserts);
+		}
+	}
+
 	/**************** interface \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister ****************/
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilesystem(): League\Flysystem\FilesystemInterface
+	public function getFilesystem(): SixtyEightPublishers\ImageStorage\Filesystem
 	{
 		return $this->filesystem;
 	}
@@ -104,8 +128,10 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	public function exists(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): bool
 	{
-		return $this->filesystem->has(
-			$info->createPath($this->modifierFacade->formatAsString($modifiers))
+		$filesystem = empty($modifiers) ? $this->filesystem->getSource() : $this->filesystem->getCache();
+
+		return $filesystem->has(
+			empty($modifiers) ? (string) $info : $info->createPath($this->modifierFacade->formatAsString($modifiers))
 		);
 	}
 
@@ -114,18 +140,20 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	public function save(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, $modifiers = NULL, array $config = []): string
 	{
-		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
-			return $this->filesystem->write($path, $this->encodeImage($resource->getImage()), $config);
+		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($modifiers, $config) {
+			$filesystem = empty($modifiers) ? $this->filesystem->getSource() : $this->filesystem->getCache();
+
+			return $filesystem->write($path, $this->encodeImage($resource->getImage()), $config);
 		}, $resource, $modifiers);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOriginal(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string
+	public function update(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string
 	{
 		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
-			$result = $this->filesystem->update($path, $this->encodeImage($resource->getImage()), $config);
+			$result = $this->filesystem->getSource()->update($path, $this->encodeImage($resource->getImage()), $config);
 
 			$this->delete($resource->getInfo(), TRUE);
 
@@ -138,31 +166,16 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	public function delete(SixtyEightPublishers\ImageStorage\ImageInfo $info, bool $cacheOnly = FALSE): void
 	{
-		if ($this->filesystem instanceof League\Flysystem\Filesystem) {
-			$config = $this->filesystem->getConfig();
-			$disableAsserts = $config->get('disable_asserts', NULL);
+		$this->prepareDelete($this->filesystem->getCache(), static function (League\Flysystem\FilesystemInterface $filesystem) use ($info) {
+			$filesystem->deleteDir($info->getNamespace());
+		});
 
-			$config->set('disable_asserts', TRUE);
+		if (TRUE === $cacheOnly) {
+			return;
 		}
 
-		foreach ($this->filesystem->listContents($info->getNamespace(), FALSE) as $metadata) {
-			if ($metadata['type'] !== 'dir') {
-				continue;
-			}
-
-			if (TRUE === $cacheOnly && $metadata['basename'] === $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ORIGINAL_MODIFIER]) {
-				continue;
-			}
-
-			try {
-				$this->filesystem->delete($metadata['path'] . '/' . $info->getName());
-			} catch (League\Flysystem\FileNotFoundException $e) {
-				# nothing
-			}
-		}
-
-		if (isset($config, $disableAsserts)) {
-			$config->set('disable_asserts', $disableAsserts);
-		}
+		$this->prepareDelete($this->filesystem->getSource(), static function (League\Flysystem\FilesystemInterface $filesystem) use ($info) {
+			$filesystem->delete((string) $info);
+		});
 	}
 }

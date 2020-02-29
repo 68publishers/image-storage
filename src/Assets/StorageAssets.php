@@ -63,7 +63,7 @@ final class StorageAssets implements \IteratorAggregate, \Countable
 			);
 
 			try {
-				$this->imageStorage->updateOriginal($resource);
+				$this->imageStorage->update($resource);
 			} catch (SixtyEightPublishers\ImageStorage\Exception\IException $e) {
 				$this->imageStorage->save($resource);
 			}

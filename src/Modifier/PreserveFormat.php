@@ -6,12 +6,12 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers;
 
-final class PreserveFormat extends AbstractModifier
+final class PreserveFormat extends AbstractModifier implements IParsableModifier
 {
 	/** @var string  */
 	protected $alias = 'pf';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
+	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}

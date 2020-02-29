@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\ImagePersister;
 
-use League;
 use SixtyEightPublishers;
 
 interface IImagePersister
 {
 	/**
-	 * @return \League\Flysystem\FilesystemInterface
+	 * @return \SixtyEightPublishers\ImageStorage\Filesystem
 	 */
-	public function getFilesystem(): League\Flysystem\FilesystemInterface;
+	public function getFilesystem(): SixtyEightPublishers\ImageStorage\Filesystem;
 
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
@@ -30,6 +29,7 @@ interface IImagePersister
 	 * @param array                                                 $config
 	 *
 	 * @return string
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
 	 */
 	public function save(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, $modifiers = NULL, array $config = []): string;
 
@@ -40,8 +40,9 @@ interface IImagePersister
 	 * @param array                                                 $config
 	 *
 	 * @return string
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
 	 */
-	public function updateOriginal(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string;
+	public function update(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string;
 
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info

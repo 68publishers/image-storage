@@ -6,12 +6,12 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers;
 
-final class Quality extends AbstractModifier
+final class Quality extends AbstractModifier implements IParsableModifier
 {
 	/** @var string  */
 	protected $alias = 'q';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
+	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}

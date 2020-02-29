@@ -15,6 +15,7 @@ interface IImageStorage extends LinkGenerator\ILinkGenerator, NoImage\INoImagePr
 	 * @param string $path
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
 	public function createImageInfo(string $path): ImageInfo;
 }

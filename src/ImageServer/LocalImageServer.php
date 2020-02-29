@@ -79,18 +79,18 @@ final class LocalImageServer implements IImageServer
 	 */
 	private function parseImageInfoAndModifiers(string $path): array
 	{
-		$path = explode('/', $path);
+		$parts = explode('/', $path);
 
-		if (2 > ($pathCount = count($path))) {
+		if (2 > ($pathCount = count($parts))) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Missing modifier in requested path.');
 		}
 
-		$modifiers = $path[$pathCount -2];
-		unset($path[$pathCount - 2]);
+		$modifiers = $parts[$pathCount -2];
+		unset($parts[$pathCount - 2]);
 
 		return [
 			new SixtyEightPublishers\ImageStorage\ImageInfo(
-				$path = implode('/', $path),
+				$path = implode('/', $parts),
 				$this->noImageProvider->isNoImage($path)
 			),
 			$this->modifierFacade->getCodec()->decode($modifiers),
@@ -103,18 +103,12 @@ final class LocalImageServer implements IImageServer
 	 *
 	 * @return string
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
 	 */
 	private function getFilePath(SixtyEightPublishers\ImageStorage\ImageInfo $info, array $modifiers): string
 	{
 		if (TRUE === $this->imagePersister->exists($info, $modifiers)) {
 			return $info->createPath($this->modifierFacade->getCodec()->encode($modifiers));
-		}
-
-		# if original is requested
-		if (empty($modifiers)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException(
-				$info->createPath($this->modifierFacade->getCodec()->encode($modifiers))
-			);
 		}
 
 		return $this->imagePersister->save(
@@ -165,6 +159,6 @@ final class LocalImageServer implements IImageServer
 			$path = $this->getFilePath($this->noImageResolver->resolveNoImage((string) $info), $modifiers);
 		}
 
-		return new Response\ImageResponse($this->imagePersister->getFilesystem(), $path);
+		return new Response\ImageResponse($this->imagePersister->getFilesystem()->getCache(), $path);
 	}
 }

@@ -13,6 +13,7 @@ interface IImageServer extends SixtyEightPublishers\ImageStorage\Security\ISigna
 	 * @param \Nette\Http\IRequest $request
 	 *
 	 * @return \Nette\Application\IResponse
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\IException
 	 */
 	public function getImageResponse(Nette\Http\IRequest $request): Nette\Application\IResponse;
 }

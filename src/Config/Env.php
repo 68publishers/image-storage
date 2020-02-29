@@ -15,7 +15,6 @@ final class Env implements \ArrayAccess, \JsonSerializable
 					HOST = 'HOST',
 					VERSION_PARAMETER_NAME = 'VERSION_PARAMETER_NAME',
 					SIGNATURE_PARAMETER_NAME = 'SIGNATURE_PARAMETER_NAME',
-					ORIGINAL_MODIFIER = 'ORIGINAL_MODIFIER',
 					MODIFIER_SEPARATOR = 'MODIFIER_SEPARATOR',
 					MODIFIER_ASSIGNER = 'MODIFIER_ASSIGNER',
 					ALLOWED_PIXEL_DENSITY = 'ALLOWED_PIXEL_DENSITY',
@@ -27,7 +26,6 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	private $env = [
 		self::BASE_PATH => '',
 		self::HOST => NULL,
-		self::ORIGINAL_MODIFIER => 'original',
 		self::MODIFIER_SEPARATOR => ',',
 		self::MODIFIER_ASSIGNER => ':',
 		self::VERSION_PARAMETER_NAME => '_v',
@@ -52,7 +50,6 @@ final class Env implements \ArrayAccess, \JsonSerializable
 			$this->env[self::HOST] = rtrim((string) $this->env[self::HOST], '/');
 		}
 	}
-
 
 	/*************** interface \ArrayAccess ***************/
 

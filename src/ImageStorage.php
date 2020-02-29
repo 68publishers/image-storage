@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage;
 
 use Nette;
-use League;
 use SixtyEightPublishers;
 
 final class ImageStorage implements IImageStorage
@@ -90,7 +89,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function link(ImageInfo $info, $modifiers = NULL): string
+	public function link(ImageInfo $info, $modifiers): string
 	{
 		return $this->linkGenerator->link($info, $modifiers);
 	}
@@ -146,7 +145,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilesystem(): League\Flysystem\FilesystemInterface
+	public function getFilesystem(): SixtyEightPublishers\ImageStorage\Filesystem
 	{
 		return $this->imagePersister->getFilesystem();
 	}
@@ -170,9 +169,9 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateOriginal(Resource\IResource $resource, array $config = []): string
+	public function update(Resource\IResource $resource, array $config = []): string
 	{
-		return $this->imagePersister->updateOriginal($resource, $config);
+		return $this->imagePersister->update($resource, $config);
 	}
 
 	/**

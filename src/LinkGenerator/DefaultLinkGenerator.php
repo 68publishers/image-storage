@@ -44,7 +44,7 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	/**
 	 * {@inheritdoc}
 	 */
-	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers = NULL): string
+	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers): string
 	{
 		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
 		$path = $info->createPath($this->modifierFacade->formatAsString($modifiers));
@@ -73,6 +73,8 @@ final class DefaultLinkGenerator implements ILinkGenerator
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \Nette\Utils\JsonException
 	 */
 	public function srcSet(SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor $descriptor, $modifiers = NULL): string
 	{
@@ -80,6 +82,6 @@ final class DefaultLinkGenerator implements ILinkGenerator
 			$this->srcSetGenerator = $this->srcSetGeneratorFactory->create($this, $this->modifierFacade);
 		}
 
-		return $this->srcSetGenerator->generate($descriptor, $info, $this->modifierFacade->formatAsArray($modifiers));
+		return $this->srcSetGenerator->generate($descriptor, $info, NULL === $modifiers ? [] : $this->modifierFacade->formatAsArray($modifiers));
 	}
 }
