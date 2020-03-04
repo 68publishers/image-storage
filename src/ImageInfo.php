@@ -5,14 +5,10 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage;
 
 use Nette;
-use League;
-use SixtyEightPublishers;
 
 class ImageInfo
 {
 	use Nette\SmartObject;
-
-	private const TRIM_CHARACTERS = Nette\Utils\Strings::TRIM_CHARACTERS . "\\/";
 
 	/** @var string  */
 	private $namespace;
@@ -20,7 +16,10 @@ class ImageInfo
 	/** @var string  */
 	private $name;
 
-	/** @var NULL|string */
+	/** @var string|NULL */
+	private $extension;
+
+	/** @var string|NULL */
 	private $version;
 
 	/** @var bool  */
@@ -34,9 +33,13 @@ class ImageInfo
 	 */
 	public function __construct(string $path, bool $isNoImage = FALSE)
 	{
-		$parts = explode('/', $path);
-		$this->setName(Nette\Utils\Strings::trim(array_pop($parts), self::TRIM_CHARACTERS));
-		$this->setNamespace(Nette\Utils\Strings::trim(implode('/', $parts), self::TRIM_CHARACTERS));
+		$namespace = explode('/', trim($path, " \t\n\r\0\x0B/"));
+		$name = explode('.', array_pop($namespace));
+		$extension = 1 < count($name) ? array_pop($name) : NULL;
+
+		$this->setName(implode('.', $name));
+		$this->setNamespace(implode('/', $namespace));
+		$this->setExtension($extension);
 
 		$this->isNoImage = $isNoImage;
 	}
@@ -62,10 +65,27 @@ class ImageInfo
 	public function setName(string $name): ImageInfo
 	{
 		if ($name === '') {
-			throw SixtyEightPublishers\ImageStorage\Exception\ImageInfoException::invalidPath($name);
+			throw Exception\ImageInfoException::invalidPath($name);
 		}
 
 		$this->name = $name;
+
+		return $this;
+	}
+
+	/**
+	 * @param string|NULL $extension
+	 *
+	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
+	 */
+	public function setExtension(?string $extension): ImageInfo
+	{
+		if (NULL !== $extension && !Helper\SupportedType::isExtensionSupported($extension)) {
+			throw Exception\ImageInfoException::unsupportedExtension($extension);
+		}
+
+		$this->extension = $extension;
 
 		return $this;
 	}
@@ -101,6 +121,14 @@ class ImageInfo
 	/**
 	 * @return NULL|string
 	 */
+	public function getExtension(): ?string
+	{
+		return $this->extension;
+	}
+
+	/**
+	 * @return NULL|string
+	 */
 	public function getVersion(): ?string
 	{
 		return $this->version;
@@ -115,24 +143,18 @@ class ImageInfo
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getContentType(): string
-	{
-		/** @noinspection PhpInternalEntityUsedInspection */
-		return League\Flysystem\Util\MimeType::detectByFilename($this->getName());
-	}
-
-	/**
 	 * @param string $modifier
 	 *
 	 * @return string
 	 */
 	public function createPath(string $modifier): string
 	{
-		return $this->namespace === ''
-			? sprintf('%s/%s', $modifier, $this->name)
-			: sprintf('%s/%s/%s', $this->namespace, $modifier, $this->name);
+		$namespace = $this->getNamespace();
+		$extension = NULL === $this->getExtension() ? '' : '.' . $this->getExtension();
+
+		return $namespace === ''
+			? sprintf('%s/%s%s', $modifier, $this->getName(), $extension)
+			: sprintf('%s/%s/%s%s', $namespace, $modifier, $this->getName(), $extension);
 	}
 
 	/**
@@ -140,8 +162,11 @@ class ImageInfo
 	 */
 	public function __toString()
 	{
-		return $this->namespace === ''
-			? $this->name
-			: sprintf('%s/%s', $this->namespace, $this->name);
+		$namespace = $this->getNamespace();
+		$extension = NULL === $this->getExtension() ? '' : '.' . $this->getExtension();
+
+		return $namespace === ''
+			? $this->getNamespace() . $extension
+			: sprintf('%s/%s%s', $namespace, $this->getName(), $extension);
 	}
 }

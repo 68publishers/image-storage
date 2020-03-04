@@ -104,6 +104,7 @@ final class LocalImageServer implements IImageServer
 	 * @return string
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
 	private function getFilePath(SixtyEightPublishers\ImageStorage\ImageInfo $info, array $modifiers): string
 	{
@@ -149,9 +150,10 @@ final class LocalImageServer implements IImageServer
 	public function getImageResponse(Nette\Http\IRequest $request): Nette\Application\IResponse
 	{
 		$path = $this->stripBasePath($request->getUrl()->getPath());
-		[$info, $modifiers] = $this->parseImageInfoAndModifiers($path);
 
 		$this->validateSignature($request, $path);
+
+		[$info, $modifiers] = $this->parseImageInfoAndModifiers($path);
 
 		try {
 			$path = $this->getFilePath($info, $modifiers);
