@@ -53,12 +53,20 @@ class DefaultImagePersister implements IImagePersister
 			$path = $resource->getInfo()->createPath(
 				$this->modifierFacade->formatAsString($modifiers)
 			);
+			$filesystem = $this->filesystem->getCache();
 		} else {
-			$path = (string) $resource->getInfo();
+			$info = $resource->getInfo();
+
+			if (NULL !== $info->getExtension()) {
+				throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException('Name for source (original) image must be provided without file extension.');
+			}
+
+			$path = (string) $info;
+			$filesystem = $this->filesystem->getSource();
 		}
 
 		try {
-			$result = (bool) $cb($resource, $path);
+			$result = (bool) $cb($filesystem, $resource, $path);
 
 			if (FALSE === $result) {
 				throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException(sprintf(
@@ -140,9 +148,7 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	public function save(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, $modifiers = NULL, array $config = []): string
 	{
-		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($modifiers, $config) {
-			$filesystem = empty($modifiers) ? $this->filesystem->getSource() : $this->filesystem->getCache();
-
+		return $this->persistResource(function (League\Flysystem\FilesystemInterface $filesystem, SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
 			return $filesystem->write($path, $this->encodeImage($resource->getImage()), $config);
 		}, $resource, $modifiers);
 	}
@@ -152,8 +158,8 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	public function update(SixtyEightPublishers\ImageStorage\Resource\IResource $resource, array $config = []): string
 	{
-		return $this->persistResource(function (SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
-			$result = $this->filesystem->getSource()->update($path, $this->encodeImage($resource->getImage()), $config);
+		return $this->persistResource(function (League\Flysystem\FilesystemInterface $filesystem, SixtyEightPublishers\ImageStorage\Resource\IResource $resource, string $path) use ($config) {
+			$result = $filesystem->update($path, $this->encodeImage($resource->getImage()), $config);
 
 			$this->delete($resource->getInfo(), TRUE);
 

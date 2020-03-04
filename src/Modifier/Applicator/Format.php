@@ -12,14 +12,7 @@ final class Format implements IModifierApplicator
 {
 	use Nette\SmartObject;
 
-	public const DEFAULT_FORMAT = 'jpg';
-
-	public const SUPPORTED_FORMATS = [
-		'gif' => 'image/gif',
-		'jpg' => 'image/jpeg',
-		'png' => 'image/png',
-		'webp' => 'image/webp',
-	];
+	public const DEFAULT_EXTENSION = 'jpg';
 
 	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
 	private $env;
@@ -32,6 +25,29 @@ final class Format implements IModifierApplicator
 		$this->env = $env;
 	}
 
+	/**
+	 * @param \Intervention\Image\Image                    $image
+	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
+	 *
+	 * @return string
+	 */
+	private function getFileExtension(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info): string
+	{
+		$extension = $info->getExtension();
+
+		if (NULL !== $extension && SixtyEightPublishers\ImageStorage\Helper\SupportedType::isExtensionSupported($extension)) {
+			return $extension;
+		}
+
+		try {
+			$extension = SixtyEightPublishers\ImageStorage\Helper\SupportedType::getExtensionByType($image->mime());
+		} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException $e) {
+			$extension = self::DEFAULT_EXTENSION;
+		}
+
+		return $extension;
+	}
+
 	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator **************/
 
 	/**
@@ -39,24 +55,20 @@ final class Format implements IModifierApplicator
 	 */
 	public function apply(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): Intervention\Image\Image
 	{
-		$preserveFormat = TRUE === $info->isNoImage() ?: $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\PreserveFormat::class, FALSE);
+		$extension = $this->getFileExtension($image, $info);
 		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ENCODE_QUALITY]);
 
-		$imageFormat = array_search($image->mime(), self::SUPPORTED_FORMATS, TRUE);
-		$newFormat = (TRUE === $preserveFormat && $imageFormat) ? $imageFormat : self::DEFAULT_FORMAT;
-
-		# same format
-		if ($imageFormat === $newFormat) {
-			return $image->encode(NULL, $quality);
-		}
-
-		# change format to jpg
-		if ('jpg' === $newFormat) {
+		if (in_array($extension, ['jpg', 'pjpg'], TRUE)) {
 			$image = $image->getDriver()
 				->newImage($image->width(), $image->height(), '#fff')
 				->insert($image, 'top-left', 0, 0);
+
+			if ('jppg' === $extension) {
+				$image->interlace();
+				$extension = 'jpg';
+			}
 		}
 
-		return $image->encode($newFormat, $quality);
+		return $image->encode($extension, $quality);
 	}
 }

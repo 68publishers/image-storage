@@ -21,4 +21,17 @@ final class ImageInfoException extends \Exception implements IException
 			SixtyEightPublishers\ImageStorage\ImageInfo::class
 		));
 	}
+
+	/**
+	 * @param string $extension
+	 *
+	 * @return static
+	 */
+	public static function unsupportedExtension(string $extension): self
+	{
+		return new static(sprintf(
+			'File extension .%s is not supported.',
+			$extension
+		));
+	}
 }
