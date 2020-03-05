@@ -28,7 +28,7 @@ class ImageInfo extends SixtyEightPublishers\ImageStorage\ImageInfo implements \
 		string $imageStorageName,
 		?string $version = NULL
 	) {
-		parent::__construct((string) $info, $info->isNoImage());
+		parent::__construct((string) $info);
 
 		$this->linkGenerator = $linkGenerator;
 		$this->imageStorageName = $imageStorageName;

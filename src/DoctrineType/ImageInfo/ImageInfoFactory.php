@@ -73,7 +73,6 @@ final class ImageInfoFactory
 		static $provider;
 
 		if (NULL === $provider) {
-			/** @noinspection PhpUndefinedMethodInspection */
 			/** @var \SixtyEightPublishers\ImageStorage\IImageStorageProvider $provider */
 			$provider = Doctrine\DBAL\Types\Type::getType(ImageInfoType::NAME)->getImageStorageProvider();
 		}

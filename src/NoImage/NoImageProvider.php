@@ -30,6 +30,7 @@ final class NoImageProvider implements INoImageProvider
 	/**
 	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidStateException
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
 	private function getDefaultImageInfo(): SixtyEightPublishers\ImageStorage\ImageInfo
 	{
@@ -37,7 +38,7 @@ final class NoImageProvider implements INoImageProvider
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidStateException('Default no-image path is not defined.');
 		}
 
-		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->defaultPath, TRUE);
+		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->defaultPath);
 	}
 
 	/**************** interface \SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider ****************/
@@ -58,7 +59,7 @@ final class NoImageProvider implements INoImageProvider
 			));
 		}
 
-		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->paths[$name], TRUE);
+		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->paths[$name]);
 	}
 
 	/**
