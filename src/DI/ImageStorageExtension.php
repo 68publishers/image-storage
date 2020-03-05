@@ -349,7 +349,6 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 		if (self::SERVER_LOCAL === $config['server']) {
 			$imageServer->setFactory(SixtyEightPublishers\ImageStorage\ImageServer\LocalImageServer::class, [
-				'noImageProvider' => $noImageProvider,
 				'noImageResolver' => $noImageResolver,
 				'resourceFactory' => $resourceFactory,
 				'imagePersister' => $imagePersister,

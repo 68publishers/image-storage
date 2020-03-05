@@ -74,7 +74,7 @@ final class ImageStorage implements IImageStorage
 	 */
 	public function createImageInfo(string $path): ImageInfo
 	{
-		return new ImageInfo($path, $this->isNoImage($path));
+		return new ImageInfo($path);
 	}
 
 	/**

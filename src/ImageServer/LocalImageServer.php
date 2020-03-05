@@ -18,9 +18,6 @@ final class LocalImageServer implements IImageServer
 	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver  */
 	private $noImageResolver;
 
-	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider  */
-	private $noImageProvider;
-
 	/** @var \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory  */
 	private $resourceFactory;
 
@@ -33,7 +30,6 @@ final class LocalImageServer implements IImageServer
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
 	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver        $noImageResolver
-	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider        $noImageProvider
 	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory       $resourceFactory
 	 * @param \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister  $imagePersister
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
@@ -41,14 +37,12 @@ final class LocalImageServer implements IImageServer
 	public function __construct(
 		SixtyEightPublishers\ImageStorage\Config\Env $env,
 		SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver $noImageResolver,
-		SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider $noImageProvider,
 		SixtyEightPublishers\ImageStorage\Resource\IResourceFactory $resourceFactory,
 		SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister $imagePersister,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
 		$this->env = $env;
 		$this->noImageResolver = $noImageResolver;
-		$this->noImageProvider = $noImageProvider;
 		$this->resourceFactory = $resourceFactory;
 		$this->imagePersister = $imagePersister;
 		$this->modifierFacade = $modifierFacade;
@@ -89,10 +83,7 @@ final class LocalImageServer implements IImageServer
 		unset($parts[$pathCount - 2]);
 
 		return [
-			new SixtyEightPublishers\ImageStorage\ImageInfo(
-				$path = implode('/', $parts),
-				$this->noImageProvider->isNoImage($path)
-			),
+			new SixtyEightPublishers\ImageStorage\ImageInfo($path = implode('/', $parts)),
 			$this->modifierFacade->getCodec()->decode($modifiers),
 		];
 	}

@@ -22,16 +22,12 @@ class ImageInfo
 	/** @var string|NULL */
 	private $version;
 
-	/** @var bool  */
-	private $isNoImage;
-
 	/**
 	 * @param string $path
-	 * @param bool   $isNoImage
 	 *
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
-	public function __construct(string $path, bool $isNoImage = FALSE)
+	public function __construct(string $path)
 	{
 		$namespace = explode('/', trim($path, " \t\n\r\0\x0B/"));
 		$name = explode('.', array_pop($namespace));
@@ -40,8 +36,6 @@ class ImageInfo
 		$this->setName(implode('.', $name));
 		$this->setNamespace(implode('/', $namespace));
 		$this->setExtension($extension);
-
-		$this->isNoImage = $isNoImage;
 	}
 
 	/**
@@ -132,14 +126,6 @@ class ImageInfo
 	public function getVersion(): ?string
 	{
 		return $this->version;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isNoImage(): bool
-	{
-		return $this->isNoImage;
 	}
 
 	/**
