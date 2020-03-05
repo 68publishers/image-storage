@@ -45,7 +45,7 @@ final class ResourceFactory implements IResourceFactory
 	 */
 	public function createResource(SixtyEightPublishers\ImageStorage\ImageInfo $info): IResource
 	{
-		$path = (string) $info;
+		$path = $info->createSourcePath();
 		$filesystem = $this->filesystem->getSource();
 
 		if (FALSE === $filesystem->has($path)) {

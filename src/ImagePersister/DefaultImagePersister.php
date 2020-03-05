@@ -50,18 +50,12 @@ class DefaultImagePersister implements IImagePersister
 		if (!empty($modifiers)) {
 			$resource->modifyImage($modifiers);
 
-			$path = $resource->getInfo()->createPath(
+			$path = $resource->getInfo()->createCachedPath(
 				$this->modifierFacade->formatAsString($modifiers)
 			);
 			$filesystem = $this->filesystem->getCache();
 		} else {
-			$info = $resource->getInfo();
-
-			if (NULL !== $info->getExtension()) {
-				throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException('Name for source (original) image must be provided without file extension.');
-			}
-
-			$path = (string) $info;
+			$path = $resource->getInfo()->createSourcePath();
 			$filesystem = $this->filesystem->getSource();
 		}
 
@@ -139,7 +133,7 @@ class DefaultImagePersister implements IImagePersister
 		$filesystem = empty($modifiers) ? $this->filesystem->getSource() : $this->filesystem->getCache();
 
 		return $filesystem->has(
-			empty($modifiers) ? (string) $info : $info->createPath($this->modifierFacade->formatAsString($modifiers))
+			empty($modifiers) ? $info->createSourcePath() : $info->createCachedPath($this->modifierFacade->formatAsString($modifiers))
 		);
 	}
 
@@ -181,7 +175,7 @@ class DefaultImagePersister implements IImagePersister
 		}
 
 		$this->prepareDelete($this->filesystem->getSource(), static function (League\Flysystem\FilesystemInterface $filesystem) use ($info) {
-			$filesystem->delete((string) $info);
+			$filesystem->delete($info->createSourcePath());
 		});
 	}
 }

@@ -100,7 +100,7 @@ final class LocalImageServer implements IImageServer
 	private function getFilePath(SixtyEightPublishers\ImageStorage\ImageInfo $info, array $modifiers): string
 	{
 		if (TRUE === $this->imagePersister->exists($info, $modifiers)) {
-			return $info->createPath($this->modifierFacade->getCodec()->encode($modifiers));
+			return $info->createCachedPath($this->modifierFacade->getCodec()->encode($modifiers));
 		}
 
 		return $this->imagePersister->save(
