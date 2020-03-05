@@ -21,6 +21,9 @@ final class SupportedType
 		'webp' => 'image/webp',
 	];
 
+	/** @var array  */
+	private static $default = ['jpg', 'image/jpg'];
+
 	/**
 	 * @return array
 	 */
@@ -35,6 +38,22 @@ final class SupportedType
 	public static function getSupportedExtensions(): array
 	{
 		return array_keys(self::$supportedTypes);
+	}
+
+	/**
+	 * @return string
+	 */
+	public static function getDefaultExtension(): string
+	{
+		return self::$default[0];
+	}
+
+	/**
+	 * @return string
+	 */
+	public static function getDefaultType(): string
+	{
+		return self::$default[1];
 	}
 
 	/**
@@ -103,5 +122,16 @@ final class SupportedType
 	public static function setSupportedTypes(array $types): void
 	{
 		self::$supportedTypes = $types;
+	}
+
+	/**
+	 * @param string $extension
+	 * @param string $type
+	 *
+	 * @return void
+	 */
+	public static function setDefault(string $extension, string $type): void
+	{
+		self::$default = [$extension, $type];
 	}
 }

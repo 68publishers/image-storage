@@ -12,8 +12,6 @@ final class Format implements IModifierApplicator
 {
 	use Nette\SmartObject;
 
-	public const DEFAULT_EXTENSION = 'jpg';
-
 	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
 	private $env;
 
@@ -42,7 +40,7 @@ final class Format implements IModifierApplicator
 		try {
 			$extension = SixtyEightPublishers\ImageStorage\Helper\SupportedType::getExtensionByType($image->mime());
 		} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException $e) {
-			$extension = self::DEFAULT_EXTENSION;
+			$extension = SixtyEightPublishers\ImageStorage\Helper\SupportedType::getDefaultExtension();
 		}
 
 		return $extension;

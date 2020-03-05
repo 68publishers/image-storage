@@ -147,26 +147,33 @@ class ImageInfo
 	 *
 	 * @return string
 	 */
-	public function createPath(string $modifier): string
+	public function createCachedPath(string $modifier): string
 	{
 		$namespace = $this->getNamespace();
-		$extension = NULL === $this->getExtension() ? '' : '.' . $this->getExtension();
+		$extension = $this->getExtension() ?? Helper\SupportedType::getDefaultExtension();
 
 		return $namespace === ''
 			? sprintf('%s/%s%s', $modifier, $this->getName(), $extension)
-			: sprintf('%s/%s/%s%s', $namespace, $modifier, $this->getName(), $extension);
+			: sprintf('%s/%s/%s.%s', $namespace, $modifier, $this->getName(), $extension);
 	}
 
 	/**
 	 * @return string
 	 */
-	public function __toString()
+	public function createSourcePath(): string
 	{
 		$namespace = $this->getNamespace();
-		$extension = NULL === $this->getExtension() ? '' : '.' . $this->getExtension();
 
 		return $namespace === ''
-			? $this->getNamespace() . $extension
-			: sprintf('%s/%s%s', $namespace, $this->getName(), $extension);
+			? $this->getName()
+			: sprintf('%s/%s', $namespace, $this->getName());
+	}
+
+	/**
+	 * @return string
+	 */
+	public function __toString(): string
+	{
+		return $this->createSourcePath() . (NULL === $this->getExtension() ? '' : '.' . $this->getExtension());
 	}
 }
