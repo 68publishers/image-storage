@@ -82,10 +82,13 @@ final class LocalImageServer implements IImageServer
 		$modifiers = $parts[$pathCount -2];
 		unset($parts[$pathCount - 2]);
 
-		return [
-			new SixtyEightPublishers\ImageStorage\ImageInfo($path = implode('/', $parts)),
-			$this->modifierFacade->getCodec()->decode($modifiers),
-		];
+		$info = new SixtyEightPublishers\ImageStorage\ImageInfo($path = implode('/', $parts));
+
+		if (NULL === $info->getExtension()) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Missing file extension in requested path.');
+		}
+
+		return [$info, $this->modifierFacade->getCodec()->decode($modifiers)];
 	}
 
 	/**
@@ -95,7 +98,6 @@ final class LocalImageServer implements IImageServer
 	 * @return string
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
 	 */
 	private function getFilePath(SixtyEightPublishers\ImageStorage\ImageInfo $info, array $modifiers): string
 	{
