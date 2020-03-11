@@ -24,7 +24,7 @@ image_storage:
     env:
         # "env" variables, look on default values into Env class
         BASE_PATH: /images
-        ORIGINAL_MODIFIER: original
+        HOST: %images.host_url% # or NULL
         VERSION_PARAMETER_NAME: v
         SIGNATURE_PARAMETER_NAME: s
         ALLOWED_PIXEL_DENSITY: [ 1, 2, 3 ]
@@ -45,13 +45,16 @@ image_storage:
     # You must define almost one storage
     storages:
         local:
-            # Flysystem adapter
-            adapter: League\Flysystem\Adapter\Local(%wwwDir%/images)
-            
-            # default Flysystem config => make uploaded files public
-            config:
-                visibility: ::constant(League\Flysystem\AdapterInterface::VISIBILITY_PUBLIC)
-            
+            source:
+                adapter: League\Flysystem\Adapter\Local(%wwwDir%/images)
+                config: # Flysytem config, this is a default value defined by an extension:
+                    visibility: ::constant(League\Flysystem\AdapterInterface::VISIBILITY_PRIVATE)
+
+            cache:
+                adapter: League\Flysystem\Adapter\Local(%appDir%/../private/images)
+                config: # Flysytem config, this is a default value defined by an extension:
+                    visibility: ::constant(League\Flysystem\AdapterInterface::VISIBILITY_PUBLIC)
+
             server: local # "local" or "external", default is local
 
             signature: my-arbitrary-private-key # a default value is NULL. If the value is a string then its passed as a privateKey into a DefaultSignatureStrategy class. 
