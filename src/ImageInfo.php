@@ -85,6 +85,19 @@ class ImageInfo
 	}
 
 	/**
+	 * Alias for ::getExtension() with required value
+	 *
+	 * @param string $extension
+	 *
+	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
+	 */
+	public function ext(string $extension): ImageInfo
+	{
+		return $this->setExtension($extension);
+	}
+
+	/**
 	 * @param string|NULL $version
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
