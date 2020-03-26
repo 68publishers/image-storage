@@ -61,7 +61,7 @@ final class Format implements IModifierApplicator
 				->newImage($image->width(), $image->height(), '#fff')
 				->insert($image, 'top-left', 0, 0);
 
-			if ('jppg' === $extension) {
+			if ('pjpg' === $extension) {
 				$image->interlace();
 				$extension = 'jpg';
 			}

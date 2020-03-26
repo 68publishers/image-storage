@@ -152,7 +152,7 @@ class ImageInfo
 		$extension = $this->getExtension() ?? Helper\SupportedType::getDefaultExtension();
 
 		return $namespace === ''
-			? sprintf('%s/%s%s', $modifier, $this->getName(), $extension)
+			? sprintf('%s/%s.%s', $modifier, $this->getName(), $extension)
 			: sprintf('%s/%s/%s.%s', $namespace, $modifier, $this->getName(), $extension);
 	}
 

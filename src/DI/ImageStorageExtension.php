@@ -22,8 +22,8 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 	];
 
 	public const APPLICATORS = [
-		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Resize::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Orientation::class,
+		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Resize::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Applicator\Format::class,
 	];
 

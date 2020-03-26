@@ -22,7 +22,7 @@ final class SupportedType
 	];
 
 	/** @var array  */
-	private static $default = ['jpg', 'image/jpg'];
+	private static $default = ['jpg', 'image/jpeg'];
 
 	/**
 	 * @return array
