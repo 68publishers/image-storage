@@ -11,16 +11,16 @@ final class Config implements \ArrayAccess, \JsonSerializable
 {
 	use Nette\SmartObject;
 
-	public const    BASE_PATH = 'BASE_PATH',
-					HOST = 'HOST',
-					VERSION_PARAMETER_NAME = 'VERSION_PARAMETER_NAME',
-					SIGNATURE_PARAMETER_NAME = 'SIGNATURE_PARAMETER_NAME',
-					MODIFIER_SEPARATOR = 'MODIFIER_SEPARATOR',
-					MODIFIER_ASSIGNER = 'MODIFIER_ASSIGNER',
-					ALLOWED_PIXEL_DENSITY = 'ALLOWED_PIXEL_DENSITY',
-					ALLOWED_RESOLUTIONS = 'ALLOWED_RESOLUTIONS',
-					ALLOWED_QUALITIES = 'ALLOWED_QUALITIES',
-					ENCODE_QUALITY = 'ENCODE_QUALITY';
+	public const    BASE_PATH = 'base_path',
+					HOST = 'host',
+					VERSION_PARAMETER_NAME = 'version_parameter_name',
+					SIGNATURE_PARAMETER_NAME = 'signature_parameter_name',
+					MODIFIER_SEPARATOR = 'modifier_separator',
+					MODIFIER_ASSIGNER = 'modifier_assigner',
+					ALLOWED_PIXEL_DENSITY = 'allowed_pixel_density',
+					ALLOWED_RESOLUTIONS = 'allowed_resolutions',
+					ALLOWED_QUALITIES = 'allowed_qualities',
+					ENCODE_QUALITY = 'encode_quality';
 
 	/** @var array  */
 	private $config = [
