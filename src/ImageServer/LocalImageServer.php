@@ -151,7 +151,15 @@ final class LocalImageServer implements IImageServer
 		try {
 			$path = $this->getFilePath($info, $modifiers);
 		} catch (SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException $e) {
-			$path = $this->getFilePath($this->noImageResolver->resolveNoImage((string) $info), $modifiers);
+			try {
+				$noImageInfo = $this->noImageResolver->resolveNoImage((string) $info);
+			} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidStateException $_) {
+				throw $e;
+			}
+
+			$noImageInfo->setExtension($info->getExtension());
+
+			$path = $this->getFilePath($noImageInfo, $modifiers);
 		}
 
 		return new Response\ImageResponse($this->imagePersister->getFilesystem()->getCache(), $path);
