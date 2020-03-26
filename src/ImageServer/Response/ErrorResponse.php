@@ -6,7 +6,7 @@ namespace SixtyEightPublishers\ImageStorage\ImageServer\Response;
 
 use Nette;
 
-final class ErrorResponse extends Nette\Application\Responses\TextResponse
+final class ErrorResponse extends Nette\Application\Responses\JsonResponse
 {
 	use Nette\SmartObject;
 
@@ -19,7 +19,10 @@ final class ErrorResponse extends Nette\Application\Responses\TextResponse
 	 */
 	public function __construct(string $message, int $code = Nette\Http\IResponse::S500_INTERNAL_SERVER_ERROR)
 	{
-		parent::__construct($message);
+		parent::__construct([
+			'code' => $code,
+			'error' => $message,
+		]);
 
 		$this->code = $code;
 	}
