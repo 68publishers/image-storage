@@ -16,24 +16,24 @@ class DefaultImagePersister implements IImagePersister
 	/** @var \SixtyEightPublishers\ImageStorage\Filesystem  */
 	private $filesystem;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
 	private $modifierFacade;
 
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\Filesystem                      $filesystem
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                   $config
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	 */
 	public function __construct(
 		SixtyEightPublishers\ImageStorage\Filesystem $filesystem,
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
+		SixtyEightPublishers\ImageStorage\Config\Config $config,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
 		$this->filesystem = $filesystem;
-		$this->env = $env;
+		$this->config = $config;
 		$this->modifierFacade = $modifierFacade;
 	}
 
@@ -88,7 +88,7 @@ class DefaultImagePersister implements IImagePersister
 	 */
 	protected function encodeImage(Intervention\Image\Image $image): string
 	{
-		$image = $image->isEncoded() ? $image : $image->encode(NULL, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ENCODE_QUALITY]);
+		$image = $image->isEncoded() ? $image : $image->encode(NULL, $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY]);
 
 		return $image->getEncoded();
 	}

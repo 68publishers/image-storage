@@ -11,8 +11,8 @@ final class DefaultCodec implements ICodec
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection  */
 	private $collection;
@@ -21,14 +21,14 @@ final class DefaultCodec implements ICodec
 	private $decodeCache = [];
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                              $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                           $config
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection $collection
 	 */
 	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
+		SixtyEightPublishers\ImageStorage\Config\Config $config,
 		SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection $collection
 	) {
-		$this->env = $env;
+		$this->config = $config;
 		$this->collection = $collection;
 	}
 
@@ -41,7 +41,7 @@ final class DefaultCodec implements ICodec
 	{
 		$result = [];
 		ksort($parameters);
-		$assigner = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_ASSIGNER];
+		$assigner = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_ASSIGNER];
 
 		foreach ($parameters as $k => $v) {
 			$modifier = $this->collection->getByAlias($k);
@@ -61,7 +61,7 @@ final class DefaultCodec implements ICodec
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Parameters can\`t be empty.');
 		}
 
-		return implode($this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_SEPARATOR], $result);
+		return implode($this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_SEPARATOR], $result);
 	}
 
 	/**
@@ -78,9 +78,9 @@ final class DefaultCodec implements ICodec
 		}
 
 		$parameters = [];
-		$assigner = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_ASSIGNER];
+		$assigner = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_ASSIGNER];
 
-		foreach (explode($this->env[SixtyEightPublishers\ImageStorage\Config\Env::MODIFIER_SEPARATOR], $path) as $modifier) {
+		foreach (explode($this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_SEPARATOR], $path) as $modifier) {
 			$modifier = explode($assigner, $modifier);
 			$count = count($modifier);
 
