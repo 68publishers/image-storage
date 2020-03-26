@@ -7,7 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Config;
 use Nette;
 use SixtyEightPublishers;
 
-final class Env implements \ArrayAccess, \JsonSerializable
+final class Config implements \ArrayAccess, \JsonSerializable
 {
 	use Nette\SmartObject;
 
@@ -23,7 +23,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 					ENCODE_QUALITY = 'ENCODE_QUALITY';
 
 	/** @var array  */
-	private $env = [
+	private $config = [
 		self::BASE_PATH => '',
 		self::HOST => NULL,
 		self::MODIFIER_SEPARATOR => ',',
@@ -37,17 +37,17 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	];
 
 	/**
-	 * @param array $env
+	 * @param array $config
 	 */
-	public function __construct(array $env)
+	public function __construct(array $config)
 	{
-		$this->env = array_merge($this->env, $env);
+		$this->config = array_merge($this->config, $config);
 
 		// trim base path
-		$this->env[self::BASE_PATH] = trim((string) $this->env[self::BASE_PATH], '/');
+		$this->config[self::BASE_PATH] = trim((string) $this->config[self::BASE_PATH], '/');
 
-		if (!empty($this->env[self::HOST])) {
-			$this->env[self::HOST] = rtrim((string) $this->env[self::HOST], '/');
+		if (!empty($this->config[self::HOST])) {
+			$this->config[self::HOST] = rtrim((string) $this->config[self::HOST], '/');
 		}
 	}
 
@@ -58,7 +58,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	 */
 	public function offsetExists($offset): bool
 	{
-		return array_key_exists($offset, $this->env);
+		return array_key_exists($offset, $this->config);
 	}
 
 	/**
@@ -73,7 +73,7 @@ final class Env implements \ArrayAccess, \JsonSerializable
 			));
 		}
 
-		return $this->env[$offset];
+		return $this->config[$offset];
 	}
 
 	/**
@@ -100,6 +100,6 @@ final class Env implements \ArrayAccess, \JsonSerializable
 	 */
 	public function jsonSerialize(): array
 	{
-		return $this->env;
+		return $this->config;
 	}
 }

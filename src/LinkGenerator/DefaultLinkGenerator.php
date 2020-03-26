@@ -12,8 +12,8 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	use Nette\SmartObject,
 		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
 	private $modifierFacade;
@@ -25,16 +25,16 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	private $srcSetGenerator;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                         $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                      $config
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade    $modifierFacade
 	 * @param \SixtyEightPublishers\ImageStorage\Responsive\ISrcSetGeneratorFactory $srcSetGeneratorFactory
 	 */
 	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
+		SixtyEightPublishers\ImageStorage\Config\Config $config,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade,
 		SixtyEightPublishers\ImageStorage\Responsive\ISrcSetGeneratorFactory $srcSetGeneratorFactory
 	) {
-		$this->env = $env;
+		$this->config = $config;
 		$this->modifierFacade = $modifierFacade;
 		$this->srcSetGeneratorFactory = $srcSetGeneratorFactory;
 	}
@@ -46,17 +46,17 @@ final class DefaultLinkGenerator implements ILinkGenerator
 	 */
 	public function link(SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers): string
 	{
-		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
+		$basePath = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
 		$path = $info->createCachedPath($this->modifierFacade->formatAsString($modifiers));
 		$link = (!empty($basePath) ? '/' : '') . $basePath . '/' . $path;
 		$params = [];
 
 		if (NULL !== $this->signatureStrategy) {
-			$params[] = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::SIGNATURE_PARAMETER_NAME] . '=' . $this->signatureStrategy->createToken($path);
+			$params[] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME] . '=' . $this->signatureStrategy->createToken($path);
 		}
 
 		if (NULL !== $info->getVersion()) {
-			$versionParameterName = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::VERSION_PARAMETER_NAME];
+			$versionParameterName = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::VERSION_PARAMETER_NAME];
 			$params[] = empty($versionParameterName) ? $info->getVersion() : ($versionParameterName . '=' . $info->getVersion());
 		}
 
@@ -64,8 +64,8 @@ final class DefaultLinkGenerator implements ILinkGenerator
 			$link .= '?' . implode('&', $params);
 		}
 
-		if (!empty($this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST])) {
-			$link = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::HOST] . $link;
+		if (!empty($this->config[SixtyEightPublishers\ImageStorage\Config\Config::HOST])) {
+			$link = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::HOST] . $link;
 		}
 
 		return rawurldecode($link);

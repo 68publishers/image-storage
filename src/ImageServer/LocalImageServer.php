@@ -12,8 +12,8 @@ final class LocalImageServer implements IImageServer
 	use Nette\SmartObject,
 		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver  */
 	private $noImageResolver;
@@ -28,20 +28,20 @@ final class LocalImageServer implements IImageServer
 	private $modifierFacade;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                   $config
 	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver        $noImageResolver
 	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory       $resourceFactory
 	 * @param \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister  $imagePersister
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	 */
 	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Env $env,
+		SixtyEightPublishers\ImageStorage\Config\Config $config,
 		SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver $noImageResolver,
 		SixtyEightPublishers\ImageStorage\Resource\IResourceFactory $resourceFactory,
 		SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister $imagePersister,
 		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
-		$this->env = $env;
+		$this->config = $config;
 		$this->noImageResolver = $noImageResolver;
 		$this->resourceFactory = $resourceFactory;
 		$this->imagePersister = $imagePersister;
@@ -56,7 +56,7 @@ final class LocalImageServer implements IImageServer
 	private function stripBasePath(string $path): string
 	{
 		$path = ltrim($path, '/');
-		$basePath = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::BASE_PATH];
+		$basePath = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
 
 		if (!empty($basePath) && Nette\Utils\Strings::startsWith($path, $basePath)) {
 			$path = ltrim(Nette\Utils\Strings::substring($path, Nette\Utils\Strings::length($basePath)), '/');
@@ -124,7 +124,7 @@ final class LocalImageServer implements IImageServer
 			return;
 		}
 
-		$token = $request->getQuery($this->env[SixtyEightPublishers\ImageStorage\Config\Env::SIGNATURE_PARAMETER_NAME], '');
+		$token = $request->getQuery($this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME], '');
 
 		if (empty($token)) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\SignatureException('Missing signature in request.');

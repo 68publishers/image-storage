@@ -11,15 +11,15 @@ final class AllowedPixelDensityValidator implements IValidator
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config $config
 	 */
-	public function __construct(SixtyEightPublishers\ImageStorage\Config\Env $env)
+	public function __construct(SixtyEightPublishers\ImageStorage\Config\Config $config)
 	{
-		$this->env = $env;
+		$this->config = $config;
 	}
 
 	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Validator\IValidator **************/
@@ -29,7 +29,7 @@ final class AllowedPixelDensityValidator implements IValidator
 	 */
 	public function validate(SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): void
 	{
-		$allowedPixelDensities = $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ALLOWED_PIXEL_DENSITY];
+		$allowedPixelDensities = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_PIXEL_DENSITY];
 
 		if (!is_array($allowedPixelDensities) || empty($allowedPixelDensities)) {
 			return;

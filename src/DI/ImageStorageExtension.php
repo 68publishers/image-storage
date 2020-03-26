@@ -38,7 +38,7 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 	/** @var array  */
 	private $defaults = [
-		'env' => [],
+		'config' => [],
 		'driver' => 'gd', # gd or imagick
 		'storages' => [
 			# array of storage definitions, first one is default
@@ -106,11 +106,11 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 			));
 		}
 
-		# environment
-		$builder->addDefinition($this->prefix('env'))
-			->setType(SixtyEightPublishers\ImageStorage\Config\Env::class)
+		# config
+		$builder->addDefinition($this->prefix('config'))
+			->setType(SixtyEightPublishers\ImageStorage\Config\Config::class)
 			->setArguments([
-				'env' => $config['env'],
+				'config' => $config['config'],
 			]);
 
 		# image manager

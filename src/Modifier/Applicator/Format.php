@@ -12,15 +12,15 @@ final class Format implements IModifierApplicator
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env $env
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config $config
 	 */
-	public function __construct(SixtyEightPublishers\ImageStorage\Config\Env $env)
+	public function __construct(SixtyEightPublishers\ImageStorage\Config\Config $config)
 	{
-		$this->env = $env;
+		$this->config = $config;
 	}
 
 	/**
@@ -54,7 +54,7 @@ final class Format implements IModifierApplicator
 	public function apply(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): Intervention\Image\Image
 	{
 		$extension = $this->getFileExtension($image, $info);
-		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->env[SixtyEightPublishers\ImageStorage\Config\Env::ENCODE_QUALITY]);
+		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY]);
 
 		if (in_array($extension, ['jpg', 'pjpg'], TRUE)) {
 			$image = $image->getDriver()

@@ -17,25 +17,19 @@ final class SrcSetGenerator
 	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
 	private $modifierFacade;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Env  */
-	private $env;
-
 	/** @var array  */
 	private $results = [];
 
 	/**
 	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator    $linkGenerator
 	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Env                      $env
 	 */
 	public function __construct(
 		SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator $linkGenerator,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade,
-		SixtyEightPublishers\ImageStorage\Config\Env $env
+		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
 	) {
 		$this->linkGenerator = $linkGenerator;
 		$this->modifierFacade = $modifierFacade;
-		$this->env = $env;
 	}
 
 	/**
