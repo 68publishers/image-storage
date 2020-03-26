@@ -17,9 +17,6 @@ final class ImageStorage implements IImageStorage
 	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator  */
 	private $linkGenerator;
 
-	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider  */
-	private $noImageProvider;
-
 	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver  */
 	private $noImageResolver;
 
@@ -35,7 +32,6 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * @param string                                                            $name
 	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator   $linkGenerator
-	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider       $noImageProvider
 	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver       $noImageResolver
 	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory      $resourceFactory
 	 * @param \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister $imagePersister
@@ -44,7 +40,6 @@ final class ImageStorage implements IImageStorage
 	public function __construct(
 		string $name,
 		LinkGenerator\ILinkGenerator $linkGenerator,
-		NoImage\INoImageProvider $noImageProvider,
 		NoImage\INoImageResolver $noImageResolver,
 		Resource\IResourceFactory $resourceFactory,
 		ImagePersister\IImagePersister $imagePersister,
@@ -52,7 +47,6 @@ final class ImageStorage implements IImageStorage
 	) {
 		$this->name = $name;
 		$this->linkGenerator = $linkGenerator;
-		$this->noImageProvider = $noImageProvider;
 		$this->noImageResolver = $noImageResolver;
 		$this->resourceFactory = $resourceFactory;
 		$this->imagePersister = $imagePersister;
@@ -107,7 +101,7 @@ final class ImageStorage implements IImageStorage
 	 */
 	public function getNoImage(?string $name = NULL): ImageInfo
 	{
-		return $this->noImageProvider->getNoImage($name);
+		return $this->noImageResolver->getNoImage($name);
 	}
 
 	/**
@@ -115,7 +109,7 @@ final class ImageStorage implements IImageStorage
 	 */
 	public function isNoImage(string $path): bool
 	{
-		return $this->noImageProvider->isNoImage($path);
+		return $this->noImageResolver->isNoImage($path);
 	}
 
 	/**

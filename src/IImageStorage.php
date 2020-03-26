@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage;
 
-interface IImageStorage extends LinkGenerator\ILinkGenerator, NoImage\INoImageProvider, NoImage\INoImageResolver, Resource\IResourceFactory, ImagePersister\IImagePersister, ImageServer\IImageServer
+interface IImageStorage extends LinkGenerator\ILinkGenerator, NoImage\INoImageResolver, Resource\IResourceFactory, ImagePersister\IImagePersister, ImageServer\IImageServer
 {
 	/**
 	 * @return string
