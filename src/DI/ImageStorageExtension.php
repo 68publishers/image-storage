@@ -64,7 +64,6 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 			], # filesystem config
 		],
 		'server' => self::SERVER_LOCAL,
-		'signature' => NULL, # null or ISignatureStrategy statement or a string (= privateKey). The DefaultSignatureStrategy is used if a string is passed
 
 		'modifiers' => [],  # array of IModifier
 		'applicators' => [], # array of IModifierApplicator
@@ -84,6 +83,8 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \Nette\Utils\AssertionException
 	 */
 	public function loadConfiguration(): void
 	{
@@ -138,12 +139,14 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 			->setFactory(SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollection::class);
 
 		# image storage provider
+		$signatureEnabled = !empty($config['config'][SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_KEY] ?? '');
+
 		$builder->addDefinition($this->prefix('image_storage_provider'))
 			->setType(SixtyEightPublishers\ImageStorage\IImageStorageProvider::class)
 			->setFactory(SixtyEightPublishers\ImageStorage\ImageStorageProvider::class, [
-				'defaultImageStorage' => $this->registerImageStorage(key($storages), array_shift($storages), TRUE),
-				'imageStorages' => array_map(function ($config, $key) {
-					return $this->registerImageStorage((string) $key, $config);
+				'defaultImageStorage' => $this->registerImageStorage(key($storages), array_shift($storages), $signatureEnabled, TRUE),
+				'imageStorages' => array_map(function ($storageConfig, $key) use ($signatureEnabled) {
+					return $this->registerImageStorage((string) $key, $storageConfig, $signatureEnabled);
 				}, $storages, array_keys($storages)),
 			]);
 
@@ -230,17 +233,17 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 	/**
 	 * @param string $name
 	 * @param array  $config
+	 * @param bool   $signatureEnabled
 	 * @param bool   $autowired
 	 *
 	 * @return \Nette\DI\ServiceDefinition
 	 * @throws \Nette\Utils\AssertionException
 	 */
-	private function registerImageStorage(string $name, array $config, bool $autowired = FALSE): Nette\DI\ServiceDefinition
+	private function registerImageStorage(string $name, array $config, bool $signatureEnabled, bool $autowired = FALSE): Nette\DI\ServiceDefinition
 	{
 		$builder = $this->getContainerBuilder();
 
 		$config = $this->validateConfig($this->storageDefaults, $config);
-		Nette\Utils\Validators::assert($config['signature'], 'null|string|' . Nette\DI\Statement::class);
 
 		if (!in_array($config['server'], [ self::SERVER_LOCAL, self::SERVER_EXTERNAL ], TRUE)) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
@@ -258,19 +261,13 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 			->setAutowired(FALSE);
 
 		# Signature strategy
-		if (NULL !== $config['signature'] && $this->needRegister($config['signature'])) {
+		$signature = NULL;
+
+		if (TRUE === $signatureEnabled) {
 			$signature = $builder->addDefinition($this->prefix($name . '.signature_strategy'))
 				->setType(SixtyEightPublishers\ImageStorage\Security\ISignatureStrategy::class)
-				->setFactory($config['signature'] instanceof Nette\DI\Statement ? $config['signature'] : SixtyEightPublishers\ImageStorage\Security\DefaultSignatureStrategy::class)
+				->setFactory(SixtyEightPublishers\ImageStorage\Security\DefaultSignatureStrategy::class)
 				->setAutowired(FALSE);
-
-			if (is_string($config['signature'])) {
-				$signature->setArguments([
-					'privateKey' => $config['signature'],
-				]);
-			}
-
-			$config['signature'] = $signature;
 		}
 
 		# Modifiers
@@ -371,7 +368,7 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 				'imageServer' => $imageServer,
 			])
 			->addSetup('setSignatureStrategy', [
-				'signatureStrategy' => $config['signature'],
+				'signatureStrategy' => $signature,
 			])
 			->setAutowired($autowired);
 

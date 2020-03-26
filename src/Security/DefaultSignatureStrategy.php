@@ -5,25 +5,21 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Security;
 
 use Nette;
+use SixtyEightPublishers;
 
 final class DefaultSignatureStrategy implements ISignatureStrategy
 {
 	use Nette\SmartObject;
 
-	/** @var string  */
-	private $privateKey;
-
-	/** @var string  */
-	private $algorithm;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/**
-	 * @param string $privateKey
-	 * @param string $algorithm
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config $config
 	 */
-	public function __construct(string $privateKey, string $algorithm = 'sha256')
+	public function __construct(SixtyEightPublishers\ImageStorage\Config\Config $config)
 	{
-		$this->privateKey = $privateKey;
-		$this->algorithm = $algorithm;
+		$this->config = $config;
 	}
 
 	/************ interface \SixtyEightPublishers\ImageStorage\Security\ISignatureStrategy ************/
@@ -34,9 +30,9 @@ final class DefaultSignatureStrategy implements ISignatureStrategy
 	public function createToken(string $path): string
 	{
 		return hash_hmac(
-			$this->algorithm,
+			$this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_ALGORITHM],
 			ltrim($path, '/'),
-			$this->privateKey
+			(string) $this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_KEY]
 		);
 	}
 
