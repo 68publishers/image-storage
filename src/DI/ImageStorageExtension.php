@@ -75,7 +75,7 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 		'no_image' => [
 			'default' => NULL,
 		],
-		'no_image_rules' => [],
+		'no_image_patterns' => [],
 	];
 
 	/** @var NULL|array */
@@ -298,19 +298,12 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 		$defaultNoImage = $config['no_image']['default'];
 		unset($config['no_image']['default']);
 
-		$noImageProvider = $builder->addDefinition($this->prefix($name . '.no_image_provider'))
-			->setType(SixtyEightPublishers\ImageStorage\NoImage\INoImageProvider::class)
-			->setFactory(SixtyEightPublishers\ImageStorage\NoImage\NoImageProvider::class, [
-				'defaultPath' => $defaultNoImage,
-				'paths' => $config['no_image'],
-			])
-			->setAutowired(FALSE);
-
 		$noImageResolver = $builder->addDefinition($this->prefix($name . '.no_image_resolver'))
 			->setType(SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver::class)
 			->setFactory(SixtyEightPublishers\ImageStorage\NoImage\NoImageResolver::class, [
-				'noImageProvider' => $noImageProvider,
-				'rules' => $config['no_image_rules'],
+				'defaultPath' => $defaultNoImage,
+				'paths' => $config['no_image'],
+				'patterns' => $config['no_image_patterns'],
 			])
 			->setAutowired(FALSE);
 
@@ -361,7 +354,6 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 			->setFactory(SixtyEightPublishers\ImageStorage\ImageStorage::class, [
 				'name' => $name,
 				'linkGenerator' => $linkGenerator,
-				'noImageProvider' => $noImageProvider,
 				'noImageResolver' => $noImageResolver,
 				'resourceFactory' => $resourceFactory,
 				'imagePersister' => $imagePersister,
