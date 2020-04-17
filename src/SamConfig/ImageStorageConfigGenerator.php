@@ -12,17 +12,6 @@ final class ImageStorageConfigGenerator implements IImageStorageConfigGenerator
 {
 	use Nette\SmartObject;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
-	private $config;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Config $config
-	 */
-	public function __construct(SixtyEightPublishers\ImageStorage\Config\Config $config)
-	{
-		$this->config = $config;
-	}
-
 	/************** interface \SixtyEightPublishers\ImageStorage\SamConfig\IImageStorageConfigGenerator **************/
 
 	/**
@@ -68,6 +57,7 @@ final class ImageStorageConfigGenerator implements IImageStorageConfigGenerator
 		}
 
 		$parameterOverrides = new ParameterOverrides();
+		$config = $imageStorage->getConfig();
 		$noImageConfig = $imageStorage->getNoImageConfig();
 		$noImages = $noImagePatterns = [];
 
@@ -83,16 +73,16 @@ final class ImageStorageConfigGenerator implements IImageStorageConfigGenerator
 			$noImagePatterns[] = $noImageName . '::' . $pattern;
 		}
 
-		$parameterOverrides['BasePath'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
-		$parameterOverrides['ModifierSeparator'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_SEPARATOR];
-		$parameterOverrides['ModifierAssigner'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_ASSIGNER];
-		$parameterOverrides['SignatureParameterName'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME];
-		$parameterOverrides['SignatureKey'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_KEY];
-		$parameterOverrides['SignatureAlgorithm'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_ALGORITHM];
-		$parameterOverrides['AllowedPixelDensity'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_PIXEL_DENSITY];
-		$parameterOverrides['AllowedResolutions'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_RESOLUTIONS];
-		$parameterOverrides['AllowedQualities'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_QUALITIES];
-		$parameterOverrides['EncodeQuality'] = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY];
+		$parameterOverrides['BasePath'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
+		$parameterOverrides['ModifierSeparator'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_SEPARATOR];
+		$parameterOverrides['ModifierAssigner'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_ASSIGNER];
+		$parameterOverrides['SignatureParameterName'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME];
+		$parameterOverrides['SignatureKey'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_KEY];
+		$parameterOverrides['SignatureAlgorithm'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_ALGORITHM];
+		$parameterOverrides['AllowedPixelDensity'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_PIXEL_DENSITY];
+		$parameterOverrides['AllowedResolutions'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_RESOLUTIONS];
+		$parameterOverrides['AllowedQualities'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::ALLOWED_QUALITIES];
+		$parameterOverrides['EncodeQuality'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY];
 		$parameterOverrides['SourceBucketName'] = $sourceAdapter->getBucket();
 		$parameterOverrides['CacheBucketName'] = $cacheAdapter->getBucket();
 		$parameterOverrides['NoImages'] = $noImages;
