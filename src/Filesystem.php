@@ -28,7 +28,7 @@ final class Filesystem
 	}
 
 	/**
-	 * @return \League\Flysystem\FilesystemInterface
+	 * @return \League\Flysystem\FilesystemInterface|\League\Flysystem\Filesystem
 	 */
 	public function getSource(): League\Flysystem\FilesystemInterface
 	{
@@ -36,7 +36,7 @@ final class Filesystem
 	}
 
 	/**
-	 * @return \League\Flysystem\FilesystemInterface
+	 * @return \League\Flysystem\FilesystemInterface|\League\Flysystem\Filesystem
 	 */
 	public function getCache(): League\Flysystem\FilesystemInterface
 	{
