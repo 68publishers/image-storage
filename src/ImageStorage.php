@@ -99,6 +99,14 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
+	public function getNoImageConfig(): SixtyEightPublishers\ImageStorage\Config\NoImageConfig
+	{
+		return $this->noImageResolver->getNoImageConfig();
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
 	public function getNoImage(?string $name = NULL): ImageInfo
 	{
 		return $this->noImageResolver->getNoImage($name);

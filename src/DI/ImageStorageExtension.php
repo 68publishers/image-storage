@@ -298,12 +298,19 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 		$defaultNoImage = $config['no_image']['default'];
 		unset($config['no_image']['default']);
 
-		$noImageResolver = $builder->addDefinition($this->prefix($name . '.no_image_resolver'))
-			->setType(SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver::class)
-			->setFactory(SixtyEightPublishers\ImageStorage\NoImage\NoImageResolver::class, [
+		$noImageConfig = $builder->addDefinition($this->prefix($name . '.no_image_config'))
+			->setType(SixtyEightPublishers\ImageStorage\Config\NoImageConfig::class)
+			->setArguments([
 				'defaultPath' => $defaultNoImage,
 				'paths' => $config['no_image'],
 				'patterns' => $config['no_image_patterns'],
+			])
+			->setAutowired(FALSE);
+
+		$noImageResolver = $builder->addDefinition($this->prefix($name . '.no_image_resolver'))
+			->setType(SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver::class)
+			->setFactory(SixtyEightPublishers\ImageStorage\NoImage\NoImageResolver::class, [
+				'noImageConfig' => $noImageConfig,
 			])
 			->setAutowired(FALSE);
 
