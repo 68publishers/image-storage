@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage;
 
 use Nette;
-use SixtyEightPublishers;
 
 final class ImageStorage implements IImageStorage
 {
@@ -13,6 +12,9 @@ final class ImageStorage implements IImageStorage
 
 	/** @var string  */
 	private $name;
+
+	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
+	private $config;
 
 	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator  */
 	private $linkGenerator;
@@ -31,6 +33,7 @@ final class ImageStorage implements IImageStorage
 
 	/**
 	 * @param string                                                            $name
+	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                  $config
 	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator   $linkGenerator
 	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver       $noImageResolver
 	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory      $resourceFactory
@@ -39,6 +42,7 @@ final class ImageStorage implements IImageStorage
 	 */
 	public function __construct(
 		string $name,
+		Config\Config $config,
 		LinkGenerator\ILinkGenerator $linkGenerator,
 		NoImage\INoImageResolver $noImageResolver,
 		Resource\IResourceFactory $resourceFactory,
@@ -46,6 +50,7 @@ final class ImageStorage implements IImageStorage
 		ImageServer\IImageServer $imageServer
 	) {
 		$this->name = $name;
+		$this->config = $config;
 		$this->linkGenerator = $linkGenerator;
 		$this->noImageResolver = $noImageResolver;
 		$this->resourceFactory = $resourceFactory;
@@ -66,6 +71,14 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
+	public function getConfig(): Config\Config
+	{
+		return $this->config;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
 	public function createImageInfo(string $path): ImageInfo
 	{
 		return new ImageInfo($path);
@@ -74,7 +87,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function setSignatureStrategy(?SixtyEightPublishers\ImageStorage\Security\ISignatureStrategy $signatureStrategy): void
+	public function setSignatureStrategy(?Security\ISignatureStrategy $signatureStrategy): void
 	{
 		$this->linkGenerator->setSignatureStrategy($signatureStrategy);
 		$this->imageServer->setSignatureStrategy($signatureStrategy);
@@ -99,7 +112,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getNoImageConfig(): SixtyEightPublishers\ImageStorage\Config\NoImageConfig
+	public function getNoImageConfig(): Config\NoImageConfig
 	{
 		return $this->noImageResolver->getNoImageConfig();
 	}
@@ -147,7 +160,7 @@ final class ImageStorage implements IImageStorage
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilesystem(): SixtyEightPublishers\ImageStorage\Filesystem
+	public function getFilesystem(): Filesystem
 	{
 		return $this->imagePersister->getFilesystem();
 	}

@@ -12,6 +12,11 @@ interface IImageStorage extends LinkGenerator\ILinkGenerator, NoImage\INoImageRe
 	public function getName(): string;
 
 	/**
+	 * @return \SixtyEightPublishers\ImageStorage\Config\Config
+	 */
+	public function getConfig(): Config\Config;
+
+	/**
 	 * @param string $path
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo
