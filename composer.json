@@ -26,10 +26,13 @@
 	"require-dev": {
 		"friendsofphp/php-cs-fixer": "^2.0",
 		"nette/tester": "^1.7",
-		"doctrine/dbal": "^2.9"
+		"doctrine/dbal": "^2.9",
+		"yosymfony/toml": "^1.0",
+		"league/flysystem-aws-s3-v3": "^1.0"
 	},
 	"suggest": {
-		"doctrine/dbal": "If you want to use custom Doctrine type."
+		"doctrine/dbal": "If you want to use custom Doctrine type.",
+		"yosymfony/toml": "If you want to an extension ImageStorageAwsExtension for an integration with 68publishers/image-storage-lambda."
 	},
 	"autoload": {
 		"classmap": ["src/"],
