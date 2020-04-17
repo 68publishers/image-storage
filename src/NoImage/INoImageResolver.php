@@ -9,6 +9,11 @@ use SixtyEightPublishers;
 interface INoImageResolver
 {
 	/**
+	 * @return \SixtyEightPublishers\ImageStorage\Config\NoImageConfig
+	 */
+	public function getNoImageConfig(): SixtyEightPublishers\ImageStorage\Config\NoImageConfig;
+
+	/**
 	 * @param string|NULL $name
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\ImageInfo

@@ -11,25 +11,15 @@ final class NoImageResolver implements INoImageResolver
 {
 	use Nette\SmartObject;
 
-	/** @var string|NULL  */
-	private $defaultPath;
-
-	/** @var string[]  */
-	private $paths;
-
-	/** @var string[]  */
-	private $patterns;
+	/** @var \SixtyEightPublishers\ImageStorage\Config\NoImageConfig  */
+	private $noImageConfig;
 
 	/**
-	 * @param string|NULL $defaultPath
-	 * @param array       $paths
-	 * @param array       $patterns
+	 * @param \SixtyEightPublishers\ImageStorage\Config\NoImageConfig $noImageConfig
 	 */
-	public function __construct(?string $defaultPath, array $paths, array $patterns)
+	public function __construct(SixtyEightPublishers\ImageStorage\Config\NoImageConfig $noImageConfig)
 	{
-		$this->defaultPath = $defaultPath;
-		$this->paths = $paths;
-		$this->patterns = $patterns;
+		$this->noImageConfig = $noImageConfig;
 	}
 
 	/**
@@ -39,14 +29,22 @@ final class NoImageResolver implements INoImageResolver
 	 */
 	private function getDefaultImageInfo(): SixtyEightPublishers\ImageStorage\ImageInfo
 	{
-		if (NULL === $this->defaultPath) {
+		if (NULL === $this->noImageConfig->getDefaultPath()) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidStateException('Default no-image path is not defined.');
 		}
 
-		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->defaultPath);
+		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->noImageConfig->getDefaultPath());
 	}
 
 	/**************** interface \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver ****************/
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getNoImageConfig(): SixtyEightPublishers\ImageStorage\Config\NoImageConfig
+	{
+		return $this->noImageConfig;
+	}
 
 	/**
 	 * {@inheritdoc}
@@ -59,14 +57,16 @@ final class NoImageResolver implements INoImageResolver
 			return $this->getDefaultImageInfo();
 		}
 
-		if (!isset($this->paths[$name])) {
+		$paths = $this->noImageConfig->getPaths();
+
+		if (!isset($paths[$name])) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidStateException(sprintf(
 				'No-image with name "%s" is not defined.',
 				$name
 			));
 		}
 
-		return new SixtyEightPublishers\ImageStorage\ImageInfo($this->paths[$name]);
+		return new SixtyEightPublishers\ImageStorage\ImageInfo($paths[$name]);
 	}
 
 	/**
@@ -74,7 +74,7 @@ final class NoImageResolver implements INoImageResolver
 	 */
 	public function isNoImage(string $path): bool
 	{
-		return $path === $this->defaultPath || in_array($path, $this->paths, TRUE);
+		return $path === $this->noImageConfig->getDefaultPath() || in_array($path, $this->noImageConfig->getPaths(), TRUE);
 	}
 
 	/**
@@ -84,7 +84,7 @@ final class NoImageResolver implements INoImageResolver
 	 */
 	public function resolveNoImage(string $path): SixtyEightPublishers\ImageStorage\ImageInfo
 	{
-		foreach ($this->patterns as $name => $regex) {
+		foreach ($this->noImageConfig->getPatterns() as $name => $regex) {
 			if (preg_match('#' . $regex . '#', $path)) {
 				return $this->getNoImage($name);
 			}
