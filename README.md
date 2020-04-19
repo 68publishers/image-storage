@@ -97,11 +97,116 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(images\/)(.+) index.php [L]
 ```
 
-The Application will be called only if static file has not yet been generated. Otherwise server will serve static file.
+The Application will be called only if a static file has not yet been generated. Otherwise the server will serve the static file.
 
 ## Usage
 
 @todo
+
+## Integration with AWS S3 and image-storage-lambda
+
+The image storage can be integrated with the Amazon S3 object storage and the package [68publishers/image-storage-lambda](https://github.com/68publishers/image-storage-lambda). So your image storage can be completely serverless!
+Of course you can deploy the `image-storage-lambda` application manually and also synchronize options from the `image-storage` with the `image-storage-lambda` manually.
+
+At least you can follow these simple steps for a partial integration:
+
+1) Create a deployment bucket on the S3
+
+When you deploy the AWS SAM application in guide mode (`sam deploy --guided`) the deployment bucket will be created automatically. But the application will be built in a non-guided mode so we must create the bucket manually.
+If you don't know how to create an S3 bucket please follow the [Amazon documentation](https://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html). We recommend to enable versioning on this bucket.
+
+2) Required packages `league/flysystem-aws-s3-v3` (the S3 adapter for Flysystem) and `yosymfony/toml` (suggested by this package) in your application
+
+3) Configure the image storage with the S3 filesystem (an example with a minimal configuration):
+
+```yaml
+extensions:
+    68publishers.imageStorage: SixtyEightPublishers\ImageStorage\DI\ImageStorageExtension
+
+services:
+    s3Client:
+        class: Aws\S3\S3Client([... your S3 config ...])
+        autowired: no
+
+68publishers.imageStorage:
+    config:
+        # configure what you want but omit the `host` option for now
+
+    storages:
+        s3:
+            source:
+                adapter: League\Flysystem\AwsS3v3\AwsS3Adapter(@s3Client, my-awesome-source-bucket) # a bucket doesn't exists at this point
+            cache:
+                adapter: League\Flysystem\AwsS3v3\AwsS3Adapter(@s3Client, my-awesome-cache-bucket) # a bucket doesn't exists at this point
+            server: external
+            # if you have your own no-images:
+            assets:
+                %assetsDir%/images/noimage: noimage
+            no_image:
+                default: noimage/default.png
+                user: noimage/user.png
+            no_image_patterns:
+                user: '^user\/'
+```
+
+4) Register and configure the `ImageStorageLambda` extension
+
+```yaml
+extensions:
+    68publishers.imageStorageLambda: SixtyEightPublishers\ImageStorage\DI\ImageStorageLambdaExtension
+
+68publishers.imageStorageLambda:
+    output_dir: %appDir%/config/image-storage-lambda # this is default
+    stacks:
+        s3:
+            stack_name: my-awesome-image-storage
+            s3_bucket: {NAME OF YOUR DEPLOYMENT BUCKET FROM THE STEP 1}
+            # optional settings:
+            version: 2.0 # default is 1.0
+            s3_prefix: custom-prefix # a stack_name is used by default
+            region: e-central-1 # a region from your S3 client is used by default
+            confirm_changeset: yes # default false, must be changeset manually confirmed during deploy?
+            capabilities: CAPABILITY_IAM # default, CAPABILITY_IAM or CAPABILITY_NAMED_IAM only
+```
+
+5) Generate configuration for the `image-storage-lambda`
+
+```sh
+$ php bin/console image-storage:lambda:dump-config
+```
+
+The configuration file will be placed by default in a directory `app/config/image-storage-lambda/my-awesome-image-storage/samconfig.toml`. Keep this file versioned in the Git.
+
+6) Download `image-storage-lambda`, build and deploy!
+
+Firstly setup your local environment by requirements defined [here](https://github.com/68publishers/image-storage-lambda#requirements). Then download the package outside your project.
+
+```sh
+$ git clone https://github.com/68publishers/image-storage-lambda.git image-storage-lambda
+$ cd ./image-storage-lambda
+```
+
+Unfortunately SAM CLI doesn't allow you to define a path to your `samconfig.toml` file (related issue https://github.com/awslabs/aws-sam-cli/issues/1615) at this moment. 
+So you must copy the config to the root of the `image-storage-lambda` application.
+And then you can build and deploy the application!
+
+```sh
+$ cp ../my-project/app/config/image-storage-lambda/my-awesome-image-storage/samconfig.toml samconfig.toml
+$ sam build
+$ sam deploy
+```
+
+7) Set the CloudFront URL as a host in the image storage config
+
+The URL of your CloudFront distribution is listed in Outputs after a successful deployment. More information are [here](https://github.com/68publishers/image-storage-lambda#what-is-the-url-of-my-api).
+
+```yaml
+# ...
+68publishers.imageStorage:
+    config:
+        host: {CLOUDFRONT URL}
+# ...
+```
 
 ## Contributing
 
