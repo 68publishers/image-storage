@@ -418,7 +418,7 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 
 		# Flysystem Adapter
 		if ($this->needRegister($filesystemConfig['adapter'])) {
-			$config['adapter'] = $builder->addDefinition($this->prefix($storageName . '.filesystem_adapter.' . $filesystemName))
+			$filesystemConfig['adapter'] = $builder->addDefinition($this->prefix($storageName . '.filesystem_adapter.' . $filesystemName))
 				->setType(League\Flysystem\AdapterInterface::class)
 				->setFactory($filesystemConfig['adapter'])
 				->setAutowired(FALSE);
