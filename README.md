@@ -40,7 +40,7 @@ image_storage:
     
     bridge:
         # if you want to register a Latte macros, a default is yes
-    	latte_macros: yes
+        latte_macros: yes
         # if you want to register a Doctrine type, a default is no
         doctrine_type: yes
 
@@ -66,7 +66,7 @@ image_storage:
                 md: { w: 300, h: 300 }
                 lg: { w: 600, h: 600 }
                 xl: { w: 1000, h: 709 }
-                foo: { w: 20, h: 20, pf: 1, o: 90 }
+                foo: { w: 20, h: 20, o: 90 }
                 
             # default assets, images are synchronized via a console command
             assets:
