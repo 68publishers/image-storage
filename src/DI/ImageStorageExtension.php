@@ -17,6 +17,7 @@ final class ImageStorageExtension extends Nette\DI\CompilerExtension
 		SixtyEightPublishers\ImageStorage\Modifier\Height::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Width::class,
 		SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::class,
+		SixtyEightPublishers\ImageStorage\Modifier\Fit::class,
 		SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Orientation::class,
 		SixtyEightPublishers\ImageStorage\Modifier\Quality::class,
