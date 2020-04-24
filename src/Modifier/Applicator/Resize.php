@@ -21,7 +21,17 @@ final class Resize implements IModifierApplicator
 	{
 		$width = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Width::class);
 		$height = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Height::class);
+		$aspectRatio = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::class, []);
 		$pd = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class, 1.0);
+
+		if (!empty($aspectRatio) && ((NULL === $width && NULL === $height) || (NULL !== $width && NULL !== $height))) {
+			throw new SixtyEightPublishers\ImageStorage\Exception\ModifierException(sprintf(
+				'The only one dimension (width or height) must be defined if an aspect ratio is used. Passed values: w=%s, h=%s, ar=%s',
+				$width ?? 'null',
+				$height ?? 'null',
+				implode(':', $aspectRatio)
+			));
+		}
 
 		if (NULL === $width && NULL === $height && 1.0 === $pd) {
 			return $image;
@@ -35,9 +45,9 @@ final class Resize implements IModifierApplicator
 			$width = $imageWidth;
 			$height = $imageHeight;
 		} elseif (NULL === $width) {
-			$width = $height * ($imageWidth / $imageHeight);
+			$width = $height * (($aspectRatio[SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::KEY_WIDTH] ?? $imageWidth) / ($aspectRatio[SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::KEY_HEIGHT] ?? $imageHeight));
 		} elseif (NULL === $height) {
-			$height = $width / ($imageWidth / $imageHeight);
+			$height = $width / (($aspectRatio[SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::KEY_WIDTH] ?? $imageWidth) / ($aspectRatio[SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::KEY_HEIGHT] ?? $imageHeight));
 		}
 
 		// apply pixel density
