@@ -23,6 +23,7 @@ final class Resize implements IModifierApplicator
 		$height = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Height::class);
 		$aspectRatio = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\AspectRatio::class, []);
 		$pd = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class, 1.0);
+		$fit = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Fit::class, SixtyEightPublishers\ImageStorage\Modifier\Fit::CROP_CENTER);
 
 		if (!empty($aspectRatio) && ((NULL === $width && NULL === $height) || (NULL !== $width && NULL !== $height))) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\ModifierException(sprintf(
@@ -58,27 +59,26 @@ final class Resize implements IModifierApplicator
 			return $image;
 		}
 
-		// resize image & crop it to the center
-		// @TODO: Implement crop options in future!
+		switch ($fit) {
+			case SixtyEightPublishers\ImageStorage\Modifier\Fit::CONTAIN:
+				return $image->resize($width, $height, static function (Intervention\Image\Constraint $constraint) {
+					$constraint->aspectRatio();
+				});
 
-		[ $resizeWidth, $resizeHeight ] = ($height > $width * ($imageHeight / $imageWidth))
-			? [ $height * ($imageWidth / $imageHeight), $height ]
-			: [ $width, $width * ($imageHeight / $imageWidth) ];
+			case SixtyEightPublishers\ImageStorage\Modifier\Fit::STRETCH:
+				return $image->resize($width, $height);
 
-		$image->resize($resizeWidth, $resizeHeight, static function (Intervention\Image\Constraint $constraint) {
-			$constraint->aspectRatio();
-		});
+			case SixtyEightPublishers\ImageStorage\Modifier\Fit::FILL:
+				return $image->resize($width, $height, static function (Intervention\Image\Constraint $constraint) {
+					$constraint->aspectRatio();
+					$constraint->upsize();
+				})->resizeCanvas($width, $height, 'center');
+		}
 
-		$imageWidth = $image->width();
-		$imageHeight = $image->height();
-		$offsetX = 0 > ($offsetX = (int) (($imageWidth * 50 / 100) - ($width / 2))) ? 0 : $offsetX;
-		$offsetY = 0 > ($offsetY = (int) (($imageHeight * 50 / 100) - ($height / 2))) ? 0 : $offsetY;
+		if (Nette\Utils\Strings::startsWith($fit, 'crop-')) {
+			$fit = Nette\Utils\Strings::substring($fit, 5);
+		}
 
-		return $image->crop(
-			$width,
-			$height,
-			$offsetX > ($imageWidth - $width) ? ($imageWidth - $width) : $offsetX,
-			$offsetY > ($imageHeight - $height) ? ($imageHeight - $height) : $offsetY
-		);
+		return $image->fit($width, $height, NULL, $fit);
 	}
 }
