@@ -12,6 +12,11 @@ interface IDescriptor
 	public function __toString(): string;
 
 	/**
+	 * @return array
+	 */
+	public function getDefaultModifiers(): array;
+
+	/**
 	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade $args
 	 *
 	 * @return string

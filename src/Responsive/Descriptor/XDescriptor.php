@@ -47,6 +47,16 @@ final class XDescriptor implements IDescriptor
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function getDefaultModifiers(): array
+	{
+		return [
+			'pd' => min($this->pixelDensities),
+		];
+	}
+
+	/**
 	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade $args
 	 *
 	 * @return string
