@@ -54,6 +54,16 @@ final class WDescriptor implements IDescriptor
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function getDefaultModifiers(): array
+	{
+		return [
+			'w' => min($this->widths),
+		];
+	}
+
+	/**
 	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade $args
 	 *
 	 * @return string
