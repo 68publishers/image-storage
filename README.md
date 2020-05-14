@@ -103,6 +103,88 @@ The Application will be called only if a static file has not yet been generated.
 
 @todo
 
+### Latte Macros
+
+#### Macro "src"
+
+Arguments:
+
+| # | Type | Required | Default | Note |
+| ----- | ----- | ----- | ----- | ----- |
+| 1 | `string`\|`SixtyEightPublishers\ImageStorage\ImageInfo` | yes | - | a path to the requested image or an ImageInfo object |
+| 2 | `string`\|`array` | yes | - | an array with modifiers or preset's name (defined in configuration) |
+| 3 | `string`\|`null` | no | null | a name of the storage. A default storage is used if argument isn't provided |
+
+```latte
+{src 'namespace/file.png', [ w => 300, h => 600 ]}
+{src $info, [ w => 300, h => 600 ], s3_storage}
+{src $info, my_preset}
+
+<img n:src="'namespace/file.png', [ w => 300, h => 600 ]" alt="">
+<img n:src="$info, [ w => 300, h => 600 ], s3_storage" alt="">
+<img n:src="$info->ext(webp), my_preset" alt="">
+```
+
+#### Macro "srcset"
+
+Arguments:
+
+| # | Type | Required | Default | Note |
+| ----- | ----- | ----- | ----- | ----- |
+| 1 | `string`\|`SixtyEightPublishers\ImageStorage\ImageInfo` | yes | - | a path to the requested image or an ImageInfo object |
+| 2 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` are available |
+| 3 | `string`\|`array`\|`null` | no | null | an array with modifiers or preset's name (defined in configuration) or null |
+| 4 | `string`\|`null` | no | null | a name of the storage. A default storage is used if argument isn't provided |
+
+```latte
+{srcset 'namespace/file.png', x_descriptor(1, 2, 3)}
+{srcset $info, x_descriptor(1, 2, 3), null, s3_storage}
+{srcset $info, w_descriptor(300, 500, 700, 900, 1100), [ ar => '2x1' ]}
+
+<img n:srcset="'namespace/file.png', x_descriptor(1, 2, 3)" alt="">
+<img n:srcset="$info, x_descriptor(1, 2, 3), null s3_storage" alt="">
+<img n:srcset="$info->ext(jpeg), w_descriptor(300, 500, 700, 900, 1100), [ ar => '2x1' ]" alt="">
+
+<img n:srcset="$info, w_descriptor(300, 500, 700, 900, 1100), [ ar => '2x1' ]" n:src="$info, [w => 300, h => 150]" alt="">
+```
+
+If the HTML attribute `src` or the Latte Macro `n:src` is not defined then the `src` attribute is generated automatically by `n:srcset` macro with the lowest size.
+
+#### Macro "picture"
+
+Picture arguments:
+
+| # | Type | Required | Default | Note |
+| ----- | ----- | ----- | ----- | ----- |
+| 1 | `string`\|`SixtyEightPublishers\ImageStorage\ImageInfo` | yes | - | a path to the requested image or an ImageInfo object |
+| 2 | `string`\|`null` | no | null | a name of the storage. A default storage is used if argument isn't provided |
+
+Src arguments:
+
+| # | Type | Required | Default | Note |
+| ----- | ----- | ----- | ----- | ----- |
+| 1 | `string`\|`array` | yes | - | an array with modifiers or preset's name (defined in configuration) |
+
+Srcset arguments:
+
+| # | Type | Required | Default | Note |
+| ----- | ----- | ----- | ----- | ----- |
+| 1 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` are available |
+| 2 | `string`\|`array`\|`null` | no | null | an array with modifiers or preset's name (defined in configuration) or null |
+
+```latte
+<picture n:picture="'namespace/file.png'">
+    <source n:srcset="w_descriptor(320, 640, 1024)" media="(min-width: 36em)" sizes="33.3vw" type="image/webp">
+    <source n:srcset="w_descriptor(320, 640, 1024)" media="(min-width: 36em)" sizes="33.3vw">
+    <source n:srcset="x_descriptor(1,2), [ w => 300 ]" type="image/webp">
+    <source n:srcset="x_descriptor(1,2), [ w => 300 ]">
+    <img n:src="[w => 300]" alt="">
+</picture>
+```
+
+The format of the requested image can be changed via the HTML attribute `type` and vice versa the `type` attribute will be generated from an ImageInfo's file extension if the attribute is missing.
+
+
 ## Integration with AWS S3 and image-storage-lambda
 
 The image storage can be integrated with the Amazon S3 object storage and the package [68publishers/image-storage-lambda](https://github.com/68publishers/image-storage-lambda). So your image storage can be completely serverless!
