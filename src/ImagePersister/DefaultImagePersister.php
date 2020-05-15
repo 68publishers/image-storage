@@ -69,6 +69,9 @@ class DefaultImagePersister implements IImagePersister
 				));
 			}
 		} catch (League\Flysystem\FileExistsException $exception) {
+			if (empty($modifiers)) {
+				throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException($exception->getMessage(), $exception->getCode(), $exception);
+			}
 			# already written by another process (log?)
 		} catch (League\Flysystem\Exception $e) {
 			throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException($e->getMessage(), $e->getCode(), $e);
