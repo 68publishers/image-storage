@@ -132,7 +132,7 @@ Arguments:
 | # | Type | Required | Default | Note |
 | ----- | ----- | ----- | ----- | ----- |
 | 1 | `string`\|`SixtyEightPublishers\ImageStorage\ImageInfo` | yes | - | a path to the requested image or an ImageInfo object |
-| 2 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` are available |
+| 2 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` and `w_descriptor_range()` are available |
 | 3 | `string`\|`array`\|`null` | no | null | an array with modifiers or preset's name (defined in configuration) or null |
 | 4 | `string`\|`null` | no | null | a name of the storage. A default storage is used if argument isn't provided |
 
@@ -169,7 +169,7 @@ Srcset arguments:
 
 | # | Type | Required | Default | Note |
 | ----- | ----- | ----- | ----- | ----- |
-| 1 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` are available |
+| 1 | `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor` | yes | - | a helper functions `w_descriptor()`, `x_descriptor()` and `w_descriptor_range()` are available |
 | 2 | `string`\|`array`\|`null` | no | null | an array with modifiers or preset's name (defined in configuration) or null |
 
 ```latte
