@@ -93,7 +93,7 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	 */
 	public function beginSrcSet(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
-		return $this->resolveBaseWriter($node, $writer)->write('echo %escape($this->global->imageStorageLatteFacade->getSrcSetAttributes(NULL, %node.args)["srcset");');
+		return $this->resolveBaseWriter($node, $writer)->write('echo %escape($this->global->imageStorageLatteFacade->getSrcSetAttributes(NULL, %node.args)["srcset"]);');
 	}
 
 	/**
@@ -185,7 +185,7 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 			$this->validateSourceMacroNode($node);
 		}
 
-		if ($this->isMacroNodeInPicture($node)) {
+		if ($this->isMacroNodeInPicture($node->htmlNode)) {
 			$writer = $this->createComposedWritter($node->parentNode, $node);
 		}
 
@@ -203,13 +203,22 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	}
 
 	/**
-	 * @param \Latte\MacroNode $node
+	 * @param \Latte\HtmlNode $node
 	 *
 	 * @return bool
 	 */
-	private function isMacroNodeInPicture(Latte\MacroNode $node): bool
+	private function isMacroNodeInPicture(Latte\HtmlNode $node): bool
 	{
-		return NULL !== $node->htmlNode->parentNode && 'picture' === $node->htmlNode->parentNode->name && isset($node->htmlNode->parentNode->macroAttrs['picture']);
+		if (NULL === $node->parentNode) {
+			return FALSE;
+		}
+
+		if ('noscript' === $node->parentNode->name) {
+			return $this->isMacroNodeInPicture($node->parentNode);
+		}
+
+
+		return 'picture' === $node->parentNode->name && isset($node->parentNode->macroAttrs['picture']);
 	}
 
 	/**
@@ -221,7 +230,7 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	private function validateSourceMacroNode(Latte\MacroNode $node): void
 	{
 		# if the macro is applied on a SOURCE element than parent element must be the PICTURE element with an attribute n:picture
-		if ($this->isSourceMacroNode($node) && !$this->isMacroNodeInPicture($node)) {
+		if ($this->isSourceMacroNode($node) && !$this->isMacroNodeInPicture($node->htmlNode)) {
 			throw new Latte\CompileException('The parent element must be <picture> with an attirbute n:picture.');
 		}
 	}
