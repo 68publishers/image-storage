@@ -14,7 +14,7 @@
 		"ext-json": "*",
 		"nette/di": "~2.4",
 		"nette/http": "~2.4",
-		"nette/utils": "~2.4",
+		"nette/utils": "~3.0",
 		"nette/finder": "~2.4",
 		"nette/application": "~2.4",
 		"latte/latte": "~2.4",
