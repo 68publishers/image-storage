@@ -40,9 +40,7 @@ final class ImageStorageLatteFacade
 			'type' => $type ?? SixtyEightPublishers\ImageStorage\Helper\SupportedType::getTypeByExtension($info->getExtension()),
 		];
 
-		if (NULL !== $originalExt) {
-			$info->setExtension($originalExt);
-		}
+		$info->setExtension($originalExt);
 
 		return $output;
 	}
@@ -67,9 +65,7 @@ final class ImageStorageLatteFacade
 			'type' => $type ?? SixtyEightPublishers\ImageStorage\Helper\SupportedType::getTypeByExtension($info->getExtension()),
 		];
 
-		if (NULL !== $originalExt) {
-			$info->setExtension($originalExt);
-		}
+		$info->setExtension($originalExt);
 
 		return $output;
 	}
@@ -96,16 +92,18 @@ final class ImageStorageLatteFacade
 
 		$info = $info instanceof SixtyEightPublishers\ImageStorage\ImageInfo ? $info : $imageStorage->createImageInfo((string) $info);
 
-		if (NULL !== $type) {
-			$originalExtension = $info->getExtension();
+		$originalExtension = $info->getExtension();
 
+		if (NULL !== $type) {
 			$info->setExtension(SixtyEightPublishers\ImageStorage\Helper\SupportedType::getExtensionByType($type));
+		} elseif (NULL === $originalExtension) {
+			$info->setExtension(SixtyEightPublishers\ImageStorage\Helper\SupportedType::getDefaultExtension());
 		}
 
 		return [
 			$imageStorage,
 			$info,
-			$originalExtension ?? NULL,
+			$originalExtension,
 		];
 	}
 }
