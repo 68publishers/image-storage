@@ -81,7 +81,10 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	 */
 	public function beginSrc(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
-		return $this->resolveBaseWriter($node, $writer)->write('echo %escape($this->global->imageStorageLatteFacade->getSrcAttributes(NULL, %node.args)["src"]);');
+		return $this->resolveBaseWriter($node, $writer)->write(
+			'echo %escape($this->global->imageStorageLatteFacade->getSrcAttributes(%word, %node.args)["src"]);',
+			$this->resolveImageType($node)
+		);
 	}
 
 	/**
@@ -93,7 +96,10 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	 */
 	public function beginSrcSet(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
-		return $this->resolveBaseWriter($node, $writer)->write('echo %escape($this->global->imageStorageLatteFacade->getSrcSetAttributes(NULL, %node.args)["srcset"]);');
+		return $this->resolveBaseWriter($node, $writer)->write(
+			'echo %escape($this->global->imageStorageLatteFacade->getSrcSetAttributes(%word, %node.args)["srcset"]);',
+			$this->resolveImageType($node)
+		);
 	}
 
 	/**
@@ -106,16 +112,11 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	public function attrSrc(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
 		$writer = $this->resolveBaseWriter($node, $writer);
-		$type = 'NULL';
-
-		if (isset($node->htmlNode->attrs['type']) && $this->isSourceMacroNode($node)) {
-			$type = $node->htmlNode->attrs['type'];
-		}
 
 		$output = $writer->write(
 			'$__tmp_image_attributes = $this->global->imageStorageLatteFacade->getSrcAttributes(%word, %node.args); '
 			. 'echo " " . %word . "\"" . %escape($__tmp_image_attributes["src"]) . "\""; ',
-			$type,
+			$this->resolveImageType($node),
 			$node->htmlNode->name === 'a' ? 'href=' : 'src='
 		);
 
@@ -136,16 +137,11 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 	public function attrSrcSet(Latte\MacroNode $node, Latte\PhpWriter $writer): string
 	{
 		$writer = $this->resolveBaseWriter($node, $writer);
-		$type = 'NULL';
-
-		if (isset($node->htmlNode->attrs['type']) && $this->isSourceMacroNode($node)) {
-			$type = $node->htmlNode->attrs['type'];
-		}
 
 		$output = $writer->write(
 			'$__tmp_image_attributes = $this->global->imageStorageLatteFacade->getSrcSetAttributes(%word, %node.args); '
 			. 'echo " srcset=\"" . %escape($__tmp_image_attributes["srcset"]) . "\""; ',
-			$type
+			$this->resolveImageType($node)
 		);
 
 		if (!isset($node->htmlNode->attrs['type']) && $this->isSourceMacroNode($node)) {
@@ -219,6 +215,20 @@ final class ImageStorageMacroSet extends Latte\Macros\MacroSet
 
 
 		return 'picture' === $node->parentNode->name && isset($node->parentNode->macroAttrs['picture']);
+	}
+
+	/**
+	 * @param \Latte\MacroNode $node
+	 *
+	 * @return string
+	 */
+	private function resolveImageType(Latte\MacroNode $node): string
+	{
+		if (isset($node->htmlNode, $node->htmlNode->attrs['type']) && $this->isSourceMacroNode($node)) {
+			return $node->htmlNode->attrs['type'];
+		}
+
+		return 'NULL';
 	}
 
 	/**
