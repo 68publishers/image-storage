@@ -22,7 +22,8 @@ final class Config implements \ArrayAccess, \JsonSerializable
 					ALLOWED_PIXEL_DENSITY = 'allowed_pixel_density',
 					ALLOWED_RESOLUTIONS = 'allowed_resolutions',
 					ALLOWED_QUALITIES = 'allowed_qualities',
-					ENCODE_QUALITY = 'encode_quality';
+					ENCODE_QUALITY = 'encode_quality',
+					CACHE_MAX_AGE = 'cache_max_age';
 
 	/** @var array  */
 	private $config = [
@@ -38,6 +39,7 @@ final class Config implements \ArrayAccess, \JsonSerializable
 		self::ALLOWED_RESOLUTIONS => [],
 		self::ALLOWED_QUALITIES => [],
 		self::ENCODE_QUALITY => 90,
+		self::CACHE_MAX_AGE => 31536000,
 	];
 
 	/**

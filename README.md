@@ -33,6 +33,7 @@ image_storage:
         allowed_resolutions: [ 50x50, 200x200, 300x300, 200x, x200 ]
         allowed_qualities: [ 50, 80, 100 ]
         encode_quality: 90
+        cache_max_age: 31536000
         modifier_separator: ','
         modifier_assigner: ':'
 

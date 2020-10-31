@@ -17,22 +17,31 @@ final class ImageResponse implements Nette\Application\IResponse
 	/** @var string  */
 	private $filePath;
 
+	/** @var int  */
+	private $maxAge;
+
 	/**
 	 * @param \League\Flysystem\FilesystemInterface $filesystem
 	 * @param string                                $filePath
+	 * @param int                                   $maxAge
 	 */
 	public function __construct(
 		League\Flysystem\FilesystemInterface $filesystem,
-		string $filePath
+		string $filePath,
+		int $maxAge
 	) {
 		$this->filesystem = $filesystem;
 		$this->filePath = $filePath;
+		$this->maxAge = $maxAge;
 	}
 
 	/************** interface \Nette\Application\IResponse **************/
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \League\Flysystem\FileNotFoundException
+	 * @throws \Exception
 	 */
 	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse): void
 	{
@@ -49,8 +58,8 @@ final class ImageResponse implements Nette\Application\IResponse
 		$httpResponse
 			->setHeader('Content-Type', $metadata['mimetype'] ?? $this->filesystem->getMimetype($this->filePath))
 			->setHeader('Content-Length', $metadata['size'] ?? $this->filesystem->getSize($this->filePath))
-			->setHeader('Cache-Control', 'max-age=31536000, public')
-			->setHeader('Expires', (new \DateTime('+1 years'))->format('D, d M Y H:i:s') .' GMT');
+			->setHeader('Cache-Control', sprintf('public, max-age=%s', $this->maxAge))
+			->setHeader('Expires', (new \DateTime(sprintf('+%s seconds', $this->maxAge), new \DateTimeZone('GMT')))->format('D, d M Y H:i:s') .' GMT');
 
 		if (0 !== ftell($stream)) {
 			rewind($stream);

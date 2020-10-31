@@ -76,6 +76,7 @@ final class ImageStorageConfigGenerator implements IImageStorageConfigGenerator
 		$parameterOverrides['BasePath'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
 		$parameterOverrides['ModifierSeparator'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_SEPARATOR];
 		$parameterOverrides['ModifierAssigner'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::MODIFIER_ASSIGNER];
+		$parameterOverrides['VersionParameterName'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::VERSION_PARAMETER_NAME];
 		$parameterOverrides['SignatureParameterName'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME];
 		$parameterOverrides['SignatureKey'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_KEY];
 		$parameterOverrides['SignatureAlgorithm'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_ALGORITHM];
@@ -85,6 +86,7 @@ final class ImageStorageConfigGenerator implements IImageStorageConfigGenerator
 		$parameterOverrides['EncodeQuality'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY];
 		$parameterOverrides['SourceBucketName'] = $sourceAdapter->getBucket();
 		$parameterOverrides['CacheBucketName'] = $cacheAdapter->getBucket();
+		$parameterOverrides['CacheMaxAge'] = $config[SixtyEightPublishers\ImageStorage\Config\Config::CACHE_MAX_AGE];
 		$parameterOverrides['NoImages'] = $noImages;
 		$parameterOverrides['NoImagePatterns'] = $noImagePatterns;
 
