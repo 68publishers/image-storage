@@ -162,6 +162,6 @@ final class LocalImageServer implements IImageServer
 			$path = $this->getFilePath($noImageInfo, $modifiers);
 		}
 
-		return new Response\ImageResponse($this->imagePersister->getFilesystem()->getCache(), $path);
+		return new Response\ImageResponse($this->imagePersister->getFilesystem()->getCache(), $path, (int) $this->config[SixtyEightPublishers\ImageStorage\Config\Config::CACHE_MAX_AGE]);
 	}
 }
