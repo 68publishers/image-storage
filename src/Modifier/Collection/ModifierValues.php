@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Collection;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
 final class ModifierValues
 {
-	use Nette\SmartObject;
-
 	/** @var array  */
 	private $values = [];
 
@@ -53,7 +50,7 @@ final class ModifierValues
 	public function get(string $name)
 	{
 		if (!$this->has($name)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Missing value for modifier %s',
 				$name
 			));

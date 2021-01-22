@@ -4,48 +4,90 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\ImageServer;
 
-use Nette;
-use SixtyEightPublishers;
+use Throwable;
+use SixtyEightPublishers\ImageStorage\Config\Config;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
+use SixtyEightPublishers\ImageStorage\Exception\ResponseException;
+use SixtyEightPublishers\ImageStorage\Exception\SignatureException;
+use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
 
-final class LocalImageServer implements IImageServer
+final class LocalImageServer implements ImageServerInterface
 {
-	use Nette\SmartObject,
-		SixtyEightPublishers\ImageStorage\Security\TSignatureStrategyAware;
+	/** @var \SixtyEightPublishers\ImageStorage\ImageStorageInterface  */
+	private $imageStorage;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
-	private $config;
-
-	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver  */
-	private $noImageResolver;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory  */
-	private $resourceFactory;
-
-	/** @var \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister  */
-	private $imagePersister;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
-	private $modifierFacade;
+	/** @var \SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface  */
+	private $responseFactory;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                   $config
-	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver        $noImageResolver
-	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory       $resourceFactory
-	 * @param \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister  $imagePersister
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
+	 * @param \SixtyEightPublishers\ImageStorage\ImageStorageInterface                         $imageStorage
+	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface $responseFactory
 	 */
-	public function __construct(
-		SixtyEightPublishers\ImageStorage\Config\Config $config,
-		SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver $noImageResolver,
-		SixtyEightPublishers\ImageStorage\Resource\IResourceFactory $resourceFactory,
-		SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister $imagePersister,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	) {
-		$this->config = $config;
-		$this->noImageResolver = $noImageResolver;
-		$this->resourceFactory = $resourceFactory;
-		$this->imagePersister = $imagePersister;
-		$this->modifierFacade = $modifierFacade;
+	public function __construct(ImageStorageInterface $imageStorage, ResponseFactoryInterface $responseFactory)
+	{
+		$this->imageStorage = $imageStorage;
+		$this->responseFactory = $responseFactory;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getImageResponse(RequestInterface $request)
+	{
+		try {
+			return $this->processRequest($request);
+		} catch (FileNotFoundException $e) {
+			$e = new ResponseException('Source file not found.', 404, $e);
+		} catch (SignatureException $e) {
+			$e = new ResponseException($e->getMessage(), 403, $e);
+		} catch (Throwable $e) {
+			$e = new ResponseException('Internal server error. ' . $e->getMessage(), 500, $e);
+		}
+
+		return $this->responseFactory->createErrorResponse($e, $this->imageStorage->getConfig());
+	}
+
+	/**
+	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface $request
+	 *
+	 * @return object
+	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
+	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
+	 */
+	public function processRequest(RequestInterface $request)
+	{
+		$path = $this->stripBasePath($request->getUrlPath());
+
+		$this->validateSignature($request, $path);
+
+		$pathInfo = $this->createPathInfo($path);
+
+		try {
+			$path = $this->getFilePath($pathInfo);
+		} catch (FileNotFoundException $e) {
+			$modifiers = $pathInfo->getModifiers();
+
+			try {
+				$noImageInfo = $this->imageStorage->resolveNoImage($pathInfo->withModifiers(NULL)->getPath());
+			} catch (InvalidArgumentException $_) {
+				throw $e;
+			}
+
+			$noImageInfo->setExtension($pathInfo->getExtension());
+
+			$path = $this->getFilePath($noImageInfo->withModifiers($modifiers));
+		}
+
+		return $this->responseFactory->createImageResponse(
+			$this->imageStorage->getFilesystem(),
+			ImagePersisterInterface::FILESYSTEM_PREFIX_CACHE . $path,
+			$this->imageStorage->getConfig()
+		);
 	}
 
 	/**
@@ -56,10 +98,10 @@ final class LocalImageServer implements IImageServer
 	private function stripBasePath(string $path): string
 	{
 		$path = ltrim($path, '/');
-		$basePath = $this->config[SixtyEightPublishers\ImageStorage\Config\Config::BASE_PATH];
+		$basePath = $this->imageStorage->getConfig()[Config::BASE_PATH];
 
-		if (!empty($basePath) && Nette\Utils\Strings::startsWith($path, $basePath)) {
-			$path = ltrim(Nette\Utils\Strings::substring($path, Nette\Utils\Strings::length($basePath)), '/');
+		if (!empty($basePath) && 0 === strncmp($path, $basePath, $basePathLength = strlen($basePath))) {
+			$path = ltrim(substr($path, $basePathLength), '/');
 		}
 
 		return $path;
@@ -68,100 +110,69 @@ final class LocalImageServer implements IImageServer
 	/**
 	 * @param string $path
 	 *
-	 * @return array
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ImageInfoException
+	 * @return \SixtyEightPublishers\ImageStorage\PathInfoInterface
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
-	private function parseImageInfoAndModifiers(string $path): array
+	private function createPathInfo(string $path): PathInfoInterface
 	{
 		$parts = explode('/', $path);
 
 		if (2 > ($pathCount = count($parts))) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Missing modifier in requested path.');
+			throw new InvalidArgumentException('Missing modifier in requested path.');
 		}
 
 		$modifiers = $parts[$pathCount -2];
 		unset($parts[$pathCount - 2]);
 
-		$info = new SixtyEightPublishers\ImageStorage\ImageInfo($path = implode('/', $parts));
+		/** @var \SixtyEightPublishers\ImageStorage\PathInfoInterface $pathInfo */
+		$pathInfo = $this->imageStorage->createPathInfo(implode('/', $parts));
 
-		if (NULL === $info->getExtension()) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException('Missing file extension in requested path.');
+		if (NULL === $pathInfo->getExtension()) {
+			throw new InvalidArgumentException('Missing file extension in requested path.');
 		}
 
-		return [$info, $this->modifierFacade->getCodec()->decode($modifiers)];
+		return $pathInfo->withEncodedModifiers($modifiers);
 	}
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
-	 * @param array                                        $modifiers
+	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface $pathInfo
 	 *
 	 * @return string
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\FilesystemException
+	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
+	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
 	 */
-	private function getFilePath(SixtyEightPublishers\ImageStorage\ImageInfo $info, array $modifiers): string
+	private function getFilePath(PathInfoInterface $pathInfo): string
 	{
-		if (TRUE === $this->imagePersister->exists($info, $modifiers)) {
-			return $info->createCachedPath($this->modifierFacade->getCodec()->encode($modifiers));
+		if (TRUE === $this->imageStorage->exists($pathInfo)) {
+			return $pathInfo->getPath();
 		}
 
-		return $this->imagePersister->save(
-			$this->resourceFactory->createResource($info),
-			$modifiers
+		return $this->imageStorage->save(
+			$this->imageStorage->createResource($pathInfo)
 		);
 	}
 
 	/**
-	 * @param \Nette\Http\IRequest $request
-	 * @param string               $path
+	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface $request
+	 * @param string                                                                  $path
 	 *
 	 * @return void
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\SignatureException
 	 */
-	private function validateSignature(Nette\Http\IRequest $request, string $path): void
+	private function validateSignature(RequestInterface $request, string $path): void
 	{
-		if (NULL === $this->signatureStrategy) {
+		if (NULL === $this->imageStorage->getSignatureStrategy()) {
 			return;
 		}
 
-		$token = $request->getQuery($this->config[SixtyEightPublishers\ImageStorage\Config\Config::SIGNATURE_PARAMETER_NAME], '');
+		$token = $request->getQueryParameter($this->imageStorage->getConfig()[Config::SIGNATURE_PARAMETER_NAME]) ?? '';
 
 		if (empty($token)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\SignatureException('Missing signature in request.');
+			throw new SignatureException('Missing signature in request.');
 		}
 
-		if (!$this->signatureStrategy->verifyToken($token, $path)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\SignatureException('Request contains invalid signature.');
+		if (!$this->imageStorage->getSignatureStrategy()->verifyToken($token, $path)) {
+			throw new SignatureException('Request contains invalid signature.');
 		}
-	}
-
-	/************** interface \SixtyEightPublishers\ImageStorage\ImageServer\IImageServer **************/
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getImageResponse(Nette\Http\IRequest $request): Nette\Application\IResponse
-	{
-		$path = $this->stripBasePath($request->getUrl()->getPath());
-
-		$this->validateSignature($request, $path);
-
-		[$info, $modifiers] = $this->parseImageInfoAndModifiers($path);
-
-		try {
-			$path = $this->getFilePath($info, $modifiers);
-		} catch (SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException $e) {
-			try {
-				$noImageInfo = $this->noImageResolver->resolveNoImage((string) $info);
-			} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidStateException $_) {
-				throw $e;
-			}
-
-			$noImageInfo->setExtension($info->getExtension());
-
-			$path = $this->getFilePath($noImageInfo, $modifiers);
-		}
-
-		return new Response\ImageResponse($this->imagePersister->getFilesystem()->getCache(), $path, (int) $this->config[SixtyEightPublishers\ImageStorage\Config\Config::CACHE_MAX_AGE]);
 	}
 }

@@ -4,57 +4,24 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Applicator;
 
-use Nette;
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\Image;
+use SixtyEightPublishers\ImageStorage\Config\Config;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Quality;
+use SixtyEightPublishers\ImageStorage\Helper\SupportedType;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 
-final class Format implements IModifierApplicator
+final class Format implements ModifierApplicatorInterface
 {
-	use Nette\SmartObject;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
-	private $config;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Config $config
-	 */
-	public function __construct(SixtyEightPublishers\ImageStorage\Config\Config $config)
-	{
-		$this->config = $config;
-	}
-
-	/**
-	 * @param \Intervention\Image\Image                    $image
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo $info
-	 *
-	 * @return string
-	 */
-	private function getFileExtension(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info): string
-	{
-		$extension = $info->getExtension();
-
-		if (NULL !== $extension && SixtyEightPublishers\ImageStorage\Helper\SupportedType::isExtensionSupported($extension)) {
-			return $extension;
-		}
-
-		try {
-			$extension = SixtyEightPublishers\ImageStorage\Helper\SupportedType::getExtensionByType($image->mime());
-		} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException $e) {
-			$extension = SixtyEightPublishers\ImageStorage\Helper\SupportedType::getDefaultExtension();
-		}
-
-		return $extension;
-	}
-
-	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator **************/
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function apply(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): Intervention\Image\Image
+	public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
 	{
-		$extension = $this->getFileExtension($image, $info);
-		$quality = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Quality::class, $this->config[SixtyEightPublishers\ImageStorage\Config\Config::ENCODE_QUALITY]);
+		$extension = $this->getFileExtension($image, $pathInfo);
+		$quality = $values->getOptional(Quality::class, $config[Config::ENCODE_QUALITY]);
 
 		if (in_array($extension, ['jpg', 'pjpg'], TRUE)) {
 			$image = $image->getDriver()
@@ -68,5 +35,28 @@ final class Format implements IModifierApplicator
 		}
 
 		return $image->encode($extension, $quality);
+	}
+
+	/**
+	 * @param \Intervention\Image\Image                           $image
+	 * @param \SixtyEightPublishers\FileStorage\PathInfoInterface $pathInfo
+	 *
+	 * @return string
+	 */
+	private function getFileExtension(Image $image, PathInfoInterface $pathInfo): string
+	{
+		$extension = $pathInfo->getExtension();
+
+		if (NULL !== $extension && SupportedType::isExtensionSupported($extension)) {
+			return $extension;
+		}
+
+		try {
+			$extension = SupportedType::getExtensionByType($image->mime());
+		} catch (InvalidArgumentException $e) {
+			$extension = SupportedType::getDefaultExtension();
+		}
+
+		return $extension;
 	}
 }

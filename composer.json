@@ -1,6 +1,6 @@
 {
 	"name": "68publishers/image-storage",
-	"description": "Image storage for Nette Framework generating images on-the-fly.",
+	"description": "Extension for 68publishers/file-storage that can generate images on-the-fly and more!",
 	"keywords": [ "68publishers", "nette", "image", "images", "image-storage" ],
 	"license": "MIT",
 	"authors": [
@@ -10,34 +10,69 @@
 		}
 	],
 	"require": {
-		"php": "~7.1",
+		"php": "^7.3",
 		"ext-json": "*",
-		"nette/di": "~2.4",
-		"nette/http": "~2.4",
-		"nette/utils": "~2.4",
-		"nette/finder": "~2.4",
-		"nette/application": "~2.4",
-		"latte/latte": "~2.4",
-		"tracy/tracy": "~2.4",
-		"symfony/console": "^4.0",
-		"league/flysystem": "^1.0",
-		"intervention/image": "^2.4"
+		"68publishers/file-storage": "^0.1",
+		"intervention/image": "^2.5"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^2.0",
-		"nette/tester": "^1.7",
 		"doctrine/dbal": "^2.9",
+		"friendsofphp/php-cs-fixer": "^2.0",
+		"league/flysystem-aws-s3-v3": "^2.0",
+		"nette/tester": "^2.3.4",
+		"roave/security-advisories": "dev-master",
 		"yosymfony/toml": "^1.0",
-		"league/flysystem-aws-s3-v3": "^1.0"
+		"nette/di": "^3.0.3",
+		"latte/latte": "^2.7",
+		"nette/application": "^3.0.6",
+		"symfony/console": "^4.0 | ^5.0",
+		"tracy/tracy": "^2.6"
 	},
 	"suggest": {
-		"doctrine/dbal": "If you want to use custom Doctrine type.",
-		"yosymfony/toml": "If you want to an extension ImageStorageAwsExtension for an integration with 68publishers/image-storage-lambda."
+		"nette/di": "For an integration with Nette Framework.",
+		"latte/latte": "For usage with Latte templates.",
+		"symfony/console": "If you want to use a console commands.",
+		"league/flysystem-aws-s3-v3": "For generation of SAM configuration files when you're using AWS S3 and 68publishers/image-storage-lambda.",
+		"yosymfony/toml": "For generation of SAM configuration files when you're using AWS S3 and 68publishers/image-storage-lambda."
 	},
+	"conflict": {
+		"nette/di": "<3.0",
+		"nette/schema": "<1.1",
+		"latte/latte": "<2.7",
+		"68publishers/doctrine-bridge": "<0.1.1",
+		"symfony/console": "<4.0"
+	},
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/68publishers/file-storage"
+		}
+	],
 	"autoload": {
-		"classmap": ["src/"],
-		"files": [
-			"src/descriptor_functions.php"
+		"psr-4": {
+			"SixtyEightPublishers\\ImageStorage\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"SixtyEightPublishers\\ImageStorage\\Tests\\": "tests/"
+		}
+	},
+	"config": {
+		"sort-packages": true
+	},
+	"scripts": {
+		"tests": [
+			"@tests:lowest",
+			"@tests:highest"
+		],
+		"tests:lowest" : [
+			"@composer update --no-progress --prefer-dist --prefer-lowest --prefer-stable",
+			"vendor/bin/tester ./tests"
+		],
+		"tests:highest" : [
+			"@composer update --no-progress --prefer-dist --prefer-stable",
+			"vendor/bin/tester ./tests"
 		]
 	}
 }

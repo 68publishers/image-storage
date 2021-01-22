@@ -4,53 +4,43 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\Image;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
 final class TmpFileResource extends Resource
 {
-	/** @var string  */
-	private $tmpFilename;
-
-	/** @var bool  */
-	private $unlinked = FALSE;
+	/** @var \SixtyEightPublishers\ImageStorage\Resource\TmpFile  */
+	private $tmpFile;
 
 	/**
-	 * @param \Intervention\Image\Image                                          $image
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo                       $info
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	 * @param string                                                             $tmpFilename
+	 * @param \SixtyEightPublishers\FileStorage\PathInfoInterface                        $pathInfo
+	 * @param \Intervention\Image\Image                                                  $image
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
+	 * @param \SixtyEightPublishers\ImageStorage\Resource\TmpFile                        $tmpFile
 	 */
-	public function __construct(
-		Intervention\Image\Image $image,
-		SixtyEightPublishers\ImageStorage\ImageInfo $info,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade,
-		string $tmpFilename
-	) {
-		parent::__construct($image, $info, $modifierFacade);
+	public function __construct(PathInfoInterface $pathInfo, Image $image, ModifierFacadeInterface $modifierFacade, TmpFile $tmpFile)
+	{
+		parent::__construct($pathInfo, $image, $modifierFacade);
 
-		$this->tmpFilename = $tmpFilename;
+		$this->tmpFile = $tmpFile;
 	}
 
 	/**
-	 * Destroy tmp file
+	 * {@inheritdoc}
+	 */
+	public function withPathInfo(PathInfoInterface $pathInfo): self
+	{
+		return new static($pathInfo, $this->getSource(), $this->modifierFacade, $this->tmpFile);
+	}
+
+	/**
+	 * Destroy a tmp file
 	 *
 	 * @return void
 	 */
 	public function unlink(): void
 	{
-		if (FALSE === $this->unlinked) {
-			@unlink($this->tmpFilename);
-
-			$this->unlinked = TRUE;
-		}
-	}
-
-	/**
-	 * @return void
-	 */
-	public function __destruct()
-	{
-		$this->unlink();
+		$this->tmpFile->unlink();
 	}
 }

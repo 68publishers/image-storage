@@ -4,52 +4,45 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
-use Nette;
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\Image;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
-class Resource implements IResource
+class Resource implements ResourceInterface
 {
-	use Nette\SmartObject;
-
-	/** @var \SixtyEightPublishers\ImageStorage\ImageInfo  */
-	private $info;
+	/** @var \SixtyEightPublishers\FileStorage\PathInfoInterface  */
+	private $pathInfo;
 
 	/** @var \Intervention\Image\Image  */
 	private $image;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
-	private $modifierFacade;
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface  */
+	protected $modifierFacade;
 
 	/**
-	 * @param \Intervention\Image\Image                                          $image
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo                       $info
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
+	 * @param \SixtyEightPublishers\FileStorage\PathInfoInterface                        $pathInfo
+	 * @param \Intervention\Image\Image                                                  $image
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
 	 */
-	public function __construct(
-		Intervention\Image\Image $image,
-		SixtyEightPublishers\ImageStorage\ImageInfo $info,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	) {
-		$this->info = $info;
+	public function __construct(PathInfoInterface $pathInfo, Image $image, ModifierFacadeInterface $modifierFacade)
+	{
+		$this->pathInfo = $pathInfo;
 		$this->image = $image;
 		$this->modifierFacade = $modifierFacade;
 	}
 
-	/************** interface \SixtyEightPublishers\ImageStorage\Resource\IResource **************/
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getInfo(): SixtyEightPublishers\ImageStorage\ImageInfo
+	public function getPathInfo(): PathInfoInterface
 	{
-		return $this->info;
+		return $this->pathInfo;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getImage(): Intervention\Image\Image
+	public function getSource(): Image
 	{
 		return $this->image;
 	}
@@ -57,8 +50,16 @@ class Resource implements IResource
 	/**
 	 * {@inheritdoc}
 	 */
-	public function modifyImage($modifier): void
+	public function withPathInfo(PathInfoInterface $pathInfo)
 	{
-		$this->image = $this->modifierFacade->modifyImage($this->image, $this->info, $modifier);
+		return new static($pathInfo, $this->image, $this->modifierFacade);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function modifyImage($modifiers): void
+	{
+		$this->image = $this->modifierFacade->modifyImage($this->image, $this->pathInfo, $modifiers);
 	}
 }

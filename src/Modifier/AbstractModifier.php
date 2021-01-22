@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
 
-abstract class AbstractModifier implements IModifier
+abstract class AbstractModifier implements ModifierInterface
 {
-	use Nette\SmartObject;
-
 	/** @var string  */
 	protected $alias;
 
@@ -24,14 +21,12 @@ abstract class AbstractModifier implements IModifier
 		}
 
 		if (NULL === $this->alias) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidStateException(sprintf(
+			throw new InvalidStateException(sprintf(
 				'Default value for %s::$alias is not set!',
 				static::class
 			));
 		}
 	}
-
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IModifier ******************/
 
 	/**
 	 * {@inheritdoc}

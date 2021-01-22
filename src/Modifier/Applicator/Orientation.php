@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Applicator;
 
-use Nette;
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\Image;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
+use SixtyEightPublishers\ImageStorage\Modifier\Orientation as OrientationModifier;
 
-final class Orientation implements IModifierApplicator
+final class Orientation implements ModifierApplicatorInterface
 {
-	use Nette\SmartObject;
-
-	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator **************/
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function apply(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues $values): Intervention\Image\Image
+	public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
 	{
-		$orientation = $values->getOptional(SixtyEightPublishers\ImageStorage\Modifier\Orientation::class);
+		$orientation = $values->getOptional(OrientationModifier::class);
 
 		if (NULL === $orientation) {
 			return $image;
