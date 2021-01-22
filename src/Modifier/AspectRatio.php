@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
 
-final class AspectRatio extends AbstractModifier implements IParsableModifier
+final class AspectRatio extends AbstractModifier implements ParsableModifierInterface
 {
-	public const    KEY_WIDTH = 'w',
-					KEY_HEIGHT = 'h';
+	public const KEY_WIDTH = 'w';
+	public const KEY_HEIGHT = 'h';
 
 	/** @var string  */
 	protected $alias = 'ar';
-
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}
@@ -26,7 +24,7 @@ final class AspectRatio extends AbstractModifier implements IParsableModifier
 		$ratio = explode('x', $value);
 
 		if (2 !== count($ratio) || !is_numeric($ratio[0]) || !is_numeric($ratio[1])) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\ModifierException(sprintf(
+			throw new ModifierException(sprintf(
 				'A value "%s" is not a valid aspect ratio.',
 				$value
 			));

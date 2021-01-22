@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
 
-final class Height extends AbstractModifier implements IParsableModifier
+final class Height extends AbstractModifier implements ParsableModifierInterface
 {
 	/** @var string  */
 	protected $alias = 'h';
-
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
 
 	/**
 	 * {@inheritdoc}
@@ -19,7 +17,7 @@ final class Height extends AbstractModifier implements IParsableModifier
 	public function parseValue(string $value): int
 	{
 		if (!is_numeric($value)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\ModifierException(sprintf(
+			throw new ModifierException(sprintf(
 				'Height must be numeric value.'
 			));
 		}

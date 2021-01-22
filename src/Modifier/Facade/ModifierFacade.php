@@ -4,45 +4,51 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Facade;
 
-use Nette;
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\Image;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Applicator\ModifierApplicatorInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 
-final class ModifierFacade implements IModifierFacade
+final class ModifierFacade implements ModifierFacadeInterface
 {
-	use Nette\SmartObject;
+	/** @var \SixtyEightPublishers\FileStorage\Config\ConfigInterface  */
+	private $config;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodec  */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface  */
 	private $codec;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollection  */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface  */
 	private $presetCollection;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection  */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface  */
 	private $modifierCollection;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator[] */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Applicator\ModifierApplicatorInterface[] */
 	private $applicators = [];
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Validator\IValidator[] */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface[] */
 	private $validators = [];
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodecFactory                   $codecFactory
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollectionFactory       $presetCollectionFactory
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollectionFactory $modifierCollectionFactory
+	 * @param \SixtyEightPublishers\FileStorage\Config\ConfigInterface                           $config
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface                   $codec
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface       $presetCollection
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface $modifierCollection
 	 */
-	public function __construct(
-		SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodecFactory $codecFactory,
-		SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollectionFactory $presetCollectionFactory,
-		SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollectionFactory $modifierCollectionFactory
-	) {
-		$this->presetCollection = $presetCollectionFactory->create();
-		$this->modifierCollection = $modifierCollectionFactory->create();
-		$this->codec = $codecFactory->create($this->modifierCollection);
+	public function __construct(ConfigInterface $config, CodecInterface $codec, PresetCollectionInterface $presetCollection, ModifierCollectionInterface $modifierCollection)
+	{
+		$this->config = $config;
+		$this->codec = $codec;
+		$this->presetCollection = $presetCollection;
+		$this->modifierCollection = $modifierCollection;
 	}
-
-	/***************** interface \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade *****************/
 
 	/**
 	 * {@inheritdoc}
@@ -50,11 +56,11 @@ final class ModifierFacade implements IModifierFacade
 	public function setModifiers(array $modifiers): void
 	{
 		foreach ($modifiers as $modifier) {
-			if (!$modifier instanceof SixtyEightPublishers\ImageStorage\Modifier\IModifier) {
-				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			if (!$modifier instanceof ModifierInterface) {
+				throw new InvalidArgumentException(sprintf(
 					'Argument passed into method %s must be array of %s.',
 					__METHOD__,
-					SixtyEightPublishers\ImageStorage\Modifier\IModifier::class
+					ModifierInterface::class
 				));
 			}
 
@@ -69,7 +75,7 @@ final class ModifierFacade implements IModifierFacade
 	{
 		foreach ($presets as $name => $preset) {
 			if (!is_array($preset)) {
-				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+				throw new InvalidArgumentException(sprintf(
 					'Argument passed into method %s must be array of arrays (preset name => array of modifier aliases).',
 					__METHOD__
 				));
@@ -85,11 +91,11 @@ final class ModifierFacade implements IModifierFacade
 	public function setApplicators(array $applicators): void
 	{
 		foreach ($applicators as $applicator) {
-			if (!$applicator instanceof SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator) {
-				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			if (!$applicator instanceof ModifierApplicatorInterface) {
+				throw new InvalidArgumentException(sprintf(
 					'Argument passed into method %s must be array of %s.',
 					__METHOD__,
-					SixtyEightPublishers\ImageStorage\Modifier\Applicator\IModifierApplicator::class
+					ModifierApplicatorInterface::class
 				));
 			}
 
@@ -103,11 +109,11 @@ final class ModifierFacade implements IModifierFacade
 	public function setValidators(array $validators): void
 	{
 		foreach ($validators as $validator) {
-			if (!$validator instanceof SixtyEightPublishers\ImageStorage\Modifier\Validator\IValidator) {
-				throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			if (!$validator instanceof ValidatorInterface) {
+				throw new InvalidArgumentException(sprintf(
 					'Argument passed into method %s must be array of %s.',
 					__METHOD__,
-					SixtyEightPublishers\ImageStorage\Modifier\Validator\IValidator::class
+					ValidatorInterface::class
 				));
 			}
 
@@ -118,7 +124,7 @@ final class ModifierFacade implements IModifierFacade
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getModifierCollection(): SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection
+	public function getModifierCollection(): ModifierCollectionInterface
 	{
 		return $this->modifierCollection;
 	}
@@ -126,54 +132,34 @@ final class ModifierFacade implements IModifierFacade
 	/**
 	 * {@inheritdoc}
 	 */
-	public function modifyImage(Intervention\Image\Image $image, SixtyEightPublishers\ImageStorage\ImageInfo $info, $modifiers): Intervention\Image\Image
+	public function getCodec(): CodecInterface
 	{
-		$modifiers = $this->formatAsArray($modifiers);
+		return $this->codec;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function modifyImage(Image $image, PathInfoInterface $info, $modifiers): Image
+	{
+		if (!(is_array($modifiers))) {
+			$modifiers = $this->getCodec()->decode(new PresetValue($modifiers));
+		}
 
 		if (empty($modifiers)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
-				'Can not modify image, modifiers are empty.'
-			));
+			throw new InvalidArgumentException('Can\'t modify an image, modifiers are empty.');
 		}
 
 		$values = $this->modifierCollection->parseValues($modifiers);
 
 		foreach ($this->validators as $validator) {
-			$validator->validate($values);
+			$validator->validate($values, $this->config);
 		}
 
 		foreach ($this->applicators as $applicator) {
-			$image = $applicator->apply($image, $info, $values);
+			$image = $applicator->apply($image, $info, $values, $this->config);
 		}
 
 		return $image;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function formatAsArray($modifiers): array
-	{
-		return $this->codec->decode($this->formatAsString($modifiers));
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function formatAsString($modifiers): string
-	{
-		if (!empty($modifiers) && !is_array($modifiers)) {
-			$modifiers = $this->presetCollection->get((string) $modifiers);
-		}
-
-		return $this->codec->encode($modifiers ?? []);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getCodec(): SixtyEightPublishers\ImageStorage\Modifier\Codec\ICodec
-	{
-		return $this->codec;
 	}
 }

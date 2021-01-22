@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
 
-final class Fit extends AbstractModifier implements IParsableModifier
+final class Fit extends AbstractModifier implements ParsableModifierInterface
 {
-	public const    FILL = 'fill',
-					STRETCH = 'stretch',
-					CONTAIN = 'contain',
-					CROP_CENTER = 'crop-center',
-					CROP_LEFT = 'crop-left',
-					CROP_RIGHT = 'crop-right',
-					CROP_TOP = 'crop-top',
-					CROP_TOP_LEFT = 'crop-top-left',
-					CROP_TOP_RIGHT = 'crop-top-right',
-					CROP_BOTTOM = 'crop-bottom',
-					CROP_BOTTOM_LEFT = 'crop-bottom-left',
-					CROP_BOTTOM_RIGHT = 'crop-bottom-right';
+	public const FILL = 'fill';
+	public const STRETCH = 'stretch';
+	public const CONTAIN = 'contain';
+	public const CROP_CENTER = 'crop-center';
+	public const CROP_LEFT = 'crop-left';
+	public const CROP_RIGHT = 'crop-right';
+	public const CROP_TOP = 'crop-top';
+	public const CROP_TOP_LEFT = 'crop-top-left';
+	public const CROP_TOP_RIGHT = 'crop-top-right';
+	public const CROP_BOTTOM = 'crop-bottom';
+	public const CROP_BOTTOM_LEFT = 'crop-bottom-left';
+	public const CROP_BOTTOM_RIGHT = 'crop-bottom-right';
 
 	public const VALUES = [
 		self::FILL,
@@ -39,15 +39,13 @@ final class Fit extends AbstractModifier implements IParsableModifier
 	/** @var string  */
 	protected $alias = 'f';
 
-	/****************** interface \SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier ******************/
-
 	/**
 	 * {@inheritdoc}
 	 */
 	public function parseValue(string $value): string
 	{
 		if (!in_array($value, self::VALUES, TRUE)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\ModifierException(sprintf(
+			throw new ModifierException(sprintf(
 				'Value "%s" is not a valid fit',
 				$value
 			));

@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Helper;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
 final class SupportedType
 {
-	use Nette\StaticClass;
-
 	/** @var array */
 	private static $supportedTypes = [
 		'gif' => 'image/gif',
@@ -23,6 +20,10 @@ final class SupportedType
 
 	/** @var array  */
 	private static $default = ['jpg', 'image/jpeg'];
+
+	private function __construct()
+	{
+	}
 
 	/**
 	 * @return array
@@ -85,7 +86,7 @@ final class SupportedType
 	public static function getTypeByExtension(string $extension): string
 	{
 		if (!self::isExtensionSupported($extension)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Extension .%s is not supported.',
 				$extension
 			));
@@ -103,7 +104,7 @@ final class SupportedType
 	public static function getExtensionByType(string $type): string
 	{
 		if (!self::isTypeSupported($type)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Mime type %s is not supported.',
 				$type
 			));

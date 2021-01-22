@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Collection;
 
-use Nette;
-use SixtyEightPublishers;
+use ArrayIterator;
+use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\ParsableModifierInterface;
 
-final class ModifierCollection implements IModifierCollection
+final class ModifierCollection implements ModifierCollectionInterface
 {
-	use Nette\SmartObject;
-
 	/**
 	 * (string) name => (object) Modifier
 	 *
-	 * @var \SixtyEightPublishers\ImageStorage\Modifier\IModifier[]
+	 * @var \SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface[]
 	 */
 	private $modifiers = [];
 
@@ -25,18 +25,16 @@ final class ModifierCollection implements IModifierCollection
 	 */
 	private $aliases = [];
 
-	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Collection\IModifierCollection **************/
-
 	/**
 	 * {@inheritdoc}
 	 */
-	public function add(SixtyEightPublishers\ImageStorage\Modifier\IModifier $modifier): void
+	public function add(ModifierInterface $modifier): void
 	{
 		$name = $modifier->getName();
 		$alias = $modifier->getAlias();
 
 		if ($this->hasByName($name) || $this->hasByAlias($alias)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Duplicate modifier with name "%s" and alias "%s" passed into %s. Name and alias must be unique.',
 				$name,
 				$alias,
@@ -67,10 +65,10 @@ final class ModifierCollection implements IModifierCollection
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getByName(string $name): SixtyEightPublishers\ImageStorage\Modifier\IModifier
+	public function getByName(string $name): ModifierInterface
 	{
 		if (!$this->hasByName($name)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Modifier with name "%s" is not defined in collection.',
 				$name
 			));
@@ -82,10 +80,10 @@ final class ModifierCollection implements IModifierCollection
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getByAlias(string $alias): SixtyEightPublishers\ImageStorage\Modifier\IModifier
+	public function getByAlias(string $alias): ModifierInterface
 	{
 		if (!$this->hasByAlias($alias)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Modifier with alias "%s" is not defined in collection.',
 				$alias
 			));
@@ -104,8 +102,8 @@ final class ModifierCollection implements IModifierCollection
 		foreach ($parameters as $k => $v) {
 			$modifier = $this->getByAlias($k);
 
-			if ($modifier instanceof SixtyEightPublishers\ImageStorage\Modifier\IParsableModifier) {
-				if (NULL !== ($value = $modifier->parseValue($v))) {
+			if ($modifier instanceof ParsableModifierInterface) {
+				if (NULL !== ($value = $modifier->parseValue((string) $v))) {
 					$values[$modifier->getName()] = $value;
 				}
 
@@ -123,8 +121,8 @@ final class ModifierCollection implements IModifierCollection
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getIterator(): \ArrayIterator
+	public function getIterator(): ArrayIterator
 	{
-		return new \ArrayIterator($this->modifiers);
+		return new ArrayIterator($this->modifiers);
 	}
 }

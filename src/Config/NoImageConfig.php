@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Config;
 
-use Nette;
-
-final class NoImageConfig
+final class NoImageConfig implements NoImageConfigInterface
 {
-	use Nette\SmartObject;
-
 	/** @var string|NULL  */
 	private $defaultPath;
 
@@ -32,7 +28,7 @@ final class NoImageConfig
 	}
 
 	/**
-	 * @return NULL|string
+	 * {@inheritDoc}
 	 */
 	public function getDefaultPath(): ?string
 	{
@@ -40,7 +36,7 @@ final class NoImageConfig
 	}
 
 	/**
-	 * @return string[]
+	 * {@inheritDoc}
 	 */
 	public function getPaths(): array
 	{
@@ -48,7 +44,7 @@ final class NoImageConfig
 	}
 
 	/**
-	 * @return string[]
+	 * {@inheritDoc}
 	 */
 	public function getPatterns(): array
 	{

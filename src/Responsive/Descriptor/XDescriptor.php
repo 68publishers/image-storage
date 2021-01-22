@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
 
-final class XDescriptor implements IDescriptor
+final class XDescriptor implements DescriptorInterface
 {
-	use Nette\SmartObject;
-
 	/** @var float[]  */
 	private $pixelDensities;
 
@@ -35,8 +32,6 @@ final class XDescriptor implements IDescriptor
 	{
 		return new static(1, 2, 3);
 	}
-
-	/************** interface \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor **************/
 
 	/**
 	 * {@inheritDoc}
@@ -63,13 +58,12 @@ final class XDescriptor implements IDescriptor
 	 */
 	public function createSrcSet(ArgsFacade $args): string
 	{
-		$pdAlias = $args->getModifierAlias(SixtyEightPublishers\ImageStorage\Modifier\PixelDensity::class);
+		$pdAlias = $args->getModifierAlias(PixelDensity::class);
+		$modifiers = $args->getDefaultModifiers() ?? [];
 
 		if (NULL === $pdAlias) {
-			return $args->createLink($args->getDefaultModifiers());
+			return empty($modifiers) ? '' : $args->createLink($modifiers);
 		}
-
-		$modifiers = $args->getDefaultModifiers() ?? [];
 
 		$links = array_map(static function (float $pd) use ($args, $pdAlias, $modifiers) {
 			$modifiers[$pdAlias] = $pd;

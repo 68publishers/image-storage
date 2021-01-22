@@ -4,51 +4,42 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
 final class ArgsFacade
 {
-	use Nette\SmartObject;
-
-	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator  */
+	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface  */
 	private $linkGenerator;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface  */
 	private $modifierFacade;
 
-	/** @var \SixtyEightPublishers\ImageStorage\ImageInfo  */
-	private $imageInfo;
+	/** @var \SixtyEightPublishers\ImageStorage\PathInfoInterface  */
+	private $pathInfo;
 
-	/** @var array|NULL  */
-	private $modifiers;
+	/** @var array|NULL */
+	private $defaultModifiers;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator    $linkGenerator
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	 * @param \SixtyEightPublishers\ImageStorage\ImageInfo                       $imageInfo
-	 * @param array|NULL                                                         $modifiers
+	 * @param \SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface     $linkGenerator
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
+	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface                       $pathInfo
 	 */
-	public function __construct(
-		SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator $linkGenerator,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade,
-		SixtyEightPublishers\ImageStorage\ImageInfo $imageInfo,
-		?array $modifiers
-	) {
+	public function __construct(LinkGeneratorInterface $linkGenerator, ModifierFacadeInterface $modifierFacade, PathInfoInterface $pathInfo)
+	{
 		$this->linkGenerator = $linkGenerator;
 		$this->modifierFacade = $modifierFacade;
-		$this->imageInfo = $imageInfo;
-		$this->modifiers = $modifiers;
-	}
+		$this->pathInfo = $pathInfo;
 
-	/**
-	 * @param array|NULL $modifiers
-	 *
-	 * @return string
-	 */
-	public function createLink(?array $modifiers): string
-	{
-		return $this->linkGenerator->link($this->imageInfo, $modifiers);
+		$modifiers = $pathInfo->getModifiers();
+
+		if (NULL !== $modifiers) {
+			$this->defaultModifiers = is_array($modifiers) ? $modifiers : $modifierFacade->getCodec()->decode(new PresetValue($modifiers));
+		}
 	}
 
 	/**
@@ -56,7 +47,17 @@ final class ArgsFacade
 	 */
 	public function getDefaultModifiers(): ?array
 	{
-		return $this->modifiers;
+		return $this->defaultModifiers;
+	}
+
+	/**
+	 * @param array $modifiers
+	 *
+	 * @return string
+	 */
+	public function createLink(array $modifiers): string
+	{
+		return $this->linkGenerator->link($this->pathInfo->withModifiers($modifiers));
 	}
 
 	/**
@@ -71,7 +72,7 @@ final class ArgsFacade
 				->getModifierCollection()
 				->getByName($modifierClassName)
 				->getAlias();
-		} catch (SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			trigger_error($e->getMessage(), E_USER_WARNING);
 		}
 

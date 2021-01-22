@@ -4,80 +4,88 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
-use Nette;
-use Intervention;
-use SixtyEightPublishers;
+use Intervention\Image\ImageManager;
+use League\Flysystem\FilesystemReader;
+use League\Flysystem\UnableToReadFile;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
+use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
+use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
+use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
+use League\Flysystem\FilesystemException as LeagueFilesystemException;
+use SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface;
+use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 
-final class ResourceFactory implements IResourceFactory
+final class ResourceFactory implements ResourceFactoryInterface
 {
-	use Nette\SmartObject;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Filesystem  */
-	private $filesystem;
+	/** @var \League\Flysystem\FilesystemReader  */
+	private $filesystemReader;
 
 	/** @var \Intervention\Image\ImageManager  */
 	private $imageManager;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade  */
+	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface  */
 	private $modifierFacade;
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Filesystem                      $filesystem
-	 * @param \Intervention\Image\ImageManager                                   $imageManager
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
+	 * @param \League\Flysystem\FilesystemReader                                         $filesystemReader
+	 * @param \Intervention\Image\ImageManager                                           $imageManager
+	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
 	 */
-	public function __construct(
-		SixtyEightPublishers\ImageStorage\Filesystem $filesystem,
-		Intervention\Image\ImageManager $imageManager,
-		SixtyEightPublishers\ImageStorage\Modifier\Facade\IModifierFacade $modifierFacade
-	) {
-		$this->filesystem = $filesystem;
+	public function __construct(FilesystemReader $filesystemReader, ImageManager $imageManager, ModifierFacadeInterface $modifierFacade)
+	{
+		$this->filesystemReader = $filesystemReader;
 		$this->imageManager = $imageManager;
 		$this->modifierFacade = $modifierFacade;
 	}
 
-	/************** interface \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory **************/
-
 	/**
 	 * {@inheritdoc}
 	 *
-	 * @throws \League\Flysystem\FileNotFoundException
+	 * @throws \League\Flysystem\FilesystemException
 	 */
-	public function createResource(SixtyEightPublishers\ImageStorage\ImageInfo $info): IResource
+	public function createResource(PathInfoInterface $pathInfo): ResourceInterface
 	{
-		$path = $info->createSourcePath();
-		$filesystem = $this->filesystem->getSource();
-
-		if (FALSE === $filesystem->has($path)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\FileNotFoundException($path);
+		if ($pathInfo instanceof ImagePathInfoInterface && NULL !== $pathInfo->getModifiers()) {
+			$sourcePathInfo = $pathInfo->withModifiers(NULL);
 		}
 
-		$source = $filesystem->read($path);
+		$path = isset($sourcePathInfo) ? $sourcePathInfo->getPath() : $pathInfo->getPath();
+		$filesystemPath = ImagePersisterInterface::FILESYSTEM_PREFIX_SOURCE . $path;
 
-		if (FALSE === $source) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException(sprintf(
+		if (FALSE === $this->filesystemReader->fileExists($filesystemPath)) {
+			throw new FileNotFoundException($path);
+		}
+
+		try {
+			$source = $this->filesystemReader->read($filesystemPath);
+		} catch (UnableToReadFile $e) {
+			throw new FilesystemException(sprintf(
 				'Unable to read file "%s"',
 				$path
-			));
+			), 0, $e);
+		} catch (LeagueFilesystemException $e) {
+			throw new FilesystemException($e->getMessage(), 0, $e);
 		}
 
 		$tmpFilename = tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
 
 		if (FALSE === file_put_contents($tmpFilename, $source)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\FilesystemException(sprintf(
+			throw new FilesystemException(sprintf(
 				'Unable to write tmp file for "%s"',
 				$path
 			));
 		}
 
-		return new TmpFileResource($this->imageManager->make($tmpFilename), $info, $this->modifierFacade, $tmpFilename);
+		return new TmpFileResource($pathInfo, $this->imageManager->make($tmpFilename), $this->modifierFacade, new TmpFile($tmpFilename));
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function createResourceFromLocalFile(SixtyEightPublishers\ImageStorage\ImageInfo $info, string $filename): IResource
+	public function createResourceFromLocalFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
 	{
-		return new Resource($this->imageManager->make($filename), $info, $this->modifierFacade);
+		return new Resource($pathInfo, $this->imageManager->make($filename), $this->modifierFacade);
 	}
 }

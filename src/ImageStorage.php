@@ -4,129 +4,114 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage;
 
-use Nette;
+use SixtyEightPublishers\FileStorage\FileStorage;
+use SixtyEightPublishers\FileStorage\FileInfoInterface;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface;
+use SixtyEightPublishers\ImageStorage\Config\NoImageConfigInterface;
+use SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface;
+use SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface;
+use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
+use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
+use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\ImageServerFactoryInterface;
+use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 
-final class ImageStorage implements IImageStorage
+final class ImageStorage extends FileStorage implements ImageStorageInterface
 {
-	use Nette\SmartObject;
-
-	/** @var string  */
-	private $name;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Config\Config  */
-	private $config;
-
-	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator  */
-	private $linkGenerator;
-
-	/** @var \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver  */
+	/** @var \SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface  */
 	private $noImageResolver;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory  */
-	private $resourceFactory;
+	/** @var \SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface  */
+	private $infoFactory;
 
-	/** @var \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister  */
-	private $imagePersister;
+	/** @var \SixtyEightPublishers\ImageStorage\ImageServer\ImageServerFactoryInterface  */
+	private $imageServerFactory;
 
-	/** @var \SixtyEightPublishers\ImageStorage\ImageServer\IImageServer  */
+	/** @var \SixtyEightPublishers\ImageStorage\ImageServer\ImageServerInterface|NULL */
 	private $imageServer;
 
 	/**
-	 * @param string                                                            $name
-	 * @param \SixtyEightPublishers\ImageStorage\Config\Config                  $config
-	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\ILinkGenerator   $linkGenerator
-	 * @param \SixtyEightPublishers\ImageStorage\NoImage\INoImageResolver       $noImageResolver
-	 * @param \SixtyEightPublishers\ImageStorage\Resource\IResourceFactory      $resourceFactory
-	 * @param \SixtyEightPublishers\ImageStorage\ImagePersister\IImagePersister $imagePersister
-	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\IImageServer       $imageServer
+	 * @param string                                                                     $name
+	 * @param \SixtyEightPublishers\FileStorage\Config\ConfigInterface                   $config
+	 * @param \SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface        $resourceFactory
+	 * @param \SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface    $linkGenerator
+	 * @param \SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface     $imagePersister
+	 * @param \SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface        $noImageResolver
+	 * @param \SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface               $infoFactory
+	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\ImageServerFactoryInterface $imageServerFactory
 	 */
 	public function __construct(
 		string $name,
-		Config\Config $config,
-		LinkGenerator\ILinkGenerator $linkGenerator,
-		NoImage\INoImageResolver $noImageResolver,
-		Resource\IResourceFactory $resourceFactory,
-		ImagePersister\IImagePersister $imagePersister,
-		ImageServer\IImageServer $imageServer
+		ConfigInterface $config,
+		ResourceFactoryInterface $resourceFactory,
+		LinkGeneratorInterface $linkGenerator,
+		ImagePersisterInterface $imagePersister,
+		NoImageResolverInterface $noImageResolver,
+		InfoFactoryInterface $infoFactory,
+		ImageServerFactoryInterface $imageServerFactory
 	) {
-		$this->name = $name;
-		$this->config = $config;
-		$this->linkGenerator = $linkGenerator;
+		parent::__construct($name, $config, $resourceFactory, $linkGenerator, $imagePersister);
+
 		$this->noImageResolver = $noImageResolver;
-		$this->resourceFactory = $resourceFactory;
-		$this->imagePersister = $imagePersister;
-		$this->imageServer = $imageServer;
+		$this->infoFactory = $infoFactory;
+		$this->imageServerFactory = $imageServerFactory;
 	}
 
-	/**************** interface \SixtyEightPublishers\ImageStorage\IImageStorage ****************/
-
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function getName(): string
+	public function createPathInfo(string $path, $modifier = NULL): FilePathInfoInterface
 	{
-		return $this->name;
+		return $this->infoFactory->createPathInfo($path, $modifier);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
+	 *
+	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
 	 */
-	public function getConfig(): Config\Config
+	public function createFileInfo(FilePathInfoInterface $pathInfo): FileInfoInterface
 	{
-		return $this->config;
+		if (!$pathInfo instanceof PathInfoInterface) {
+			$pathInfo = $this->createPathInfo($pathInfo->getPath());
+		}
+
+		return $this->infoFactory->createFileInfo($pathInfo);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function createImageInfo(string $path): ImageInfo
+	public function getImageResponse(RequestInterface $request)
 	{
-		return new ImageInfo($path);
+		if (NULL === $this->imageServer) {
+			$this->imageServer = $this->imageServerFactory->create($this);
+		}
+
+		return $this->imageServer->getImageResponse($request);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function setSignatureStrategy(?Security\ISignatureStrategy $signatureStrategy): void
-	{
-		$this->linkGenerator->setSignatureStrategy($signatureStrategy);
-		$this->imageServer->setSignatureStrategy($signatureStrategy);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function link(ImageInfo $info, $modifiers): string
-	{
-		return $this->linkGenerator->link($info, $modifiers);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function srcSet(ImageInfo $info, Responsive\Descriptor\IDescriptor $descriptor, $modifiers = NULL): string
-	{
-		return $this->linkGenerator->srcSet($info, $descriptor, $modifiers);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getNoImageConfig(): Config\NoImageConfig
+	public function getNoImageConfig(): NoImageConfigInterface
 	{
 		return $this->noImageResolver->getNoImageConfig();
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function getNoImage(?string $name = NULL): ImageInfo
+	public function getNoImage(?string $name = NULL): PathInfoInterface
 	{
 		return $this->noImageResolver->getNoImage($name);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
 	public function isNoImage(string $path): bool
 	{
@@ -134,74 +119,26 @@ final class ImageStorage implements IImageStorage
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function resolveNoImage(string $path): ImageInfo
+	public function resolveNoImage(string $path): PathInfoInterface
 	{
 		return $this->noImageResolver->resolveNoImage($path);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function createResource(ImageInfo $info, $modifier = NULL): Resource\IResource
+	public function srcSet(PathInfoInterface $info, DescriptorInterface $descriptor): string
 	{
-		return $this->resourceFactory->createResource($info);
+		return $this->linkGenerator->srcSet($info, $descriptor);
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * {@inheritDoc}
 	 */
-	public function createResourceFromLocalFile(ImageInfo $info, string $filename, $modifier = NULL): Resource\IResource
+	public function getSignatureStrategy(): ?SignatureStrategyInterface
 	{
-		return $this->resourceFactory->createResourceFromLocalFile($info, $filename);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getFilesystem(): Filesystem
-	{
-		return $this->imagePersister->getFilesystem();
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function exists(ImageInfo $info, $modifiers = NULL): bool
-	{
-		return $this->imagePersister->exists($info, $modifiers);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function save(Resource\IResource $resource, $modifiers = NULL, array $config = []): string
-	{
-		return $this->imagePersister->save($resource, $modifiers, $config);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function update(Resource\IResource $resource, array $config = []): string
-	{
-		return $this->imagePersister->update($resource, $config);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function delete(ImageInfo $info, bool $cacheOnly = FALSE): void
-	{
-		$this->imagePersister->delete($info, $cacheOnly);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getImageResponse(Nette\Http\IRequest $request): Nette\Application\IResponse
-	{
-		return $this->imageServer->getImageResponse($request);
+		return $this->linkGenerator->getSignatureStrategy();
 	}
 }

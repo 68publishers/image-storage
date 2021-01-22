@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Preset;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
-final class PresetCollection implements IPresetCollection
+final class PresetCollection implements PresetCollectionInterface
 {
-	use Nette\SmartObject;
-
 	/** @var array[]  */
 	private $presets = [];
-
-	/************** interface \SixtyEightPublishers\ImageStorage\Modifier\Preset\IPresetCollection **************/
 
 	/**
 	 * {@inheritdoc}
@@ -34,11 +29,13 @@ final class PresetCollection implements IPresetCollection
 
 	/**
 	 * {@inheritdoc}
+	 *
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
 	public function get(string $presetAlias): array
 	{
 		if (!$this->has($presetAlias)) {
-			throw new SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException(sprintf(
+			throw new InvalidArgumentException(sprintf(
 				'Preset with alias "%s" is not defined in collection, please check your configuration.',
 				$presetAlias
 			));

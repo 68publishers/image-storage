@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
-use Nette;
-use SixtyEightPublishers;
+use SixtyEightPublishers\ImageStorage\Modifier\Width;
 
-final class WDescriptor implements IDescriptor
+final class WDescriptor implements DescriptorInterface
 {
-	use Nette\SmartObject;
-
 	/** @var int[]  */
 	private $widths;
 
@@ -43,8 +40,6 @@ final class WDescriptor implements IDescriptor
 		return new static(...array_values(array_unique($range)));
 	}
 
-	/************** interface \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\IDescriptor **************/
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -70,13 +65,12 @@ final class WDescriptor implements IDescriptor
 	 */
 	public function createSrcSet(ArgsFacade $args): string
 	{
-		$wAlias = $args->getModifierAlias(SixtyEightPublishers\ImageStorage\Modifier\Width::class);
+		$wAlias = $args->getModifierAlias(Width::class);
+		$modifiers = $args->getDefaultModifiers() ?? [];
 
 		if (NULL === $wAlias) {
-			return $args->createLink($args->getDefaultModifiers());
+			return empty($modifiers) ? '' : $args->createLink($modifiers);
 		}
-
-		$modifiers = $args->getDefaultModifiers() ?? [];
 
 		$links = array_map(static function (int $w) use ($args, $wAlias, $modifiers) {
 			$modifiers[$wAlias] = $w;
