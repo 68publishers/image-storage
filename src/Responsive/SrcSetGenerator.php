@@ -39,7 +39,7 @@ final class SrcSetGenerator
 	 */
 	public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo): string
 	{
-		$key = $descriptor . '::' . $pathInfo;
+		$key = $descriptor . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => TRUE]) : $pathInfo);
 
 		if (array_key_exists($key, $this->results)) {
 			return $this->results[$key];
