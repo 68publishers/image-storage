@@ -67,7 +67,7 @@ extensions:
     68publishers.image_storage: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension
 
 68publishers.image_storage:
-    driver: gd # "gd" or "imagick", default is "gd"
+    driver: gd # "gd" or "imagick" or "68publishers.imagick", default is "gd"
     storages:
         local:
             source_filesystem:
@@ -82,6 +82,11 @@ extensions:
             presets:
                 my_preset: {w: 150, ar: '2x1.5'}
 ```
+
+### Animated GIFs
+
+Animated GIFs are not supported by [intervention/image](https://github.com/Intervention/image) but this package comes with a custom `imagick` driver that supports it.
+The driver is used when you pass a value `68publishers.imagick` into a `driver` option.
 
 ### Basic usage
 
