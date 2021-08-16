@@ -57,11 +57,13 @@ use SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageDefinitionFactor
 use SixtyEightPublishers\ImageStorage\Bridge\Console\Configurator\CleanCommandConfiguration;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface;
 use SixtyEightPublishers\FileStorage\Bridge\Console\Configurator\CleanCommandConfiguratorInterface;
+use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick\Driver as SixtyEightPublishersImagickDriver;
 
 final class ImageStorageExtension extends CompilerExtension implements FileStorageDefinitionFactoryInterface
 {
 	public const DRIVER_GD = 'gd';
 	public const DRIVER_IMAGICK = 'imagick';
+	public const DRIVER_68PUBLISHERS_IMAGICK = '68publishers.imagick';
 
 	public const IMAGE_SERVER_LOCAL = 'local';
 	public const IMAGE_SERVER_EXTERNAL = 'external';
@@ -75,7 +77,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
-			'driver' => Expect::anyOf(self::DRIVER_GD, self::DRIVER_IMAGICK)->default(self::DRIVER_GD),
+			'driver' => Expect::anyOf(self::DRIVER_GD, self::DRIVER_IMAGICK, self::DRIVER_68PUBLISHERS_IMAGICK)->default(self::DRIVER_GD),
 			'storages' => Expect::arrayOf(Expect::structure([
 				'source_filesystem' => Expect::structure([
 					'adapter' => Expect::anyOf(Expect::string(), Expect::type(Statement::class))->required()->before(static function ($factory) {
@@ -161,7 +163,9 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		# Image manager
 		$builder->addDefinition($this->prefix('image_manager'))
 			->setType(ImageManager::class)
-			->setArguments([['driver' => $this->config->driver]]);
+			->setArguments([
+				['driver' => self::DRIVER_68PUBLISHERS_IMAGICK === $this->config->driver ? new Statement(SixtyEightPublishersImagickDriver::class) : $this->config->driver]
+			]);
 
 		# Modifier collection factory
 		$builder->addFactoryDefinition($this->prefix('modifiers.modifier_collection_factory'))
