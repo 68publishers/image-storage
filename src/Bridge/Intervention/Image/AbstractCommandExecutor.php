@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image;
 
@@ -20,12 +21,12 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 	}
 
 	/**
-	 * @param \Intervention\Image\Image $image
+	 * @param \Intervention\Image\Image                    $image
 	 * @param \Intervention\Image\Commands\AbstractCommand $command
 	 *
 	 * @return void
 	 */
-	abstract protected function doExecute(Image $image, AbstractCommand $command) : void;
+	abstract protected function doExecute(Image $image, AbstractCommand $command): void;
 
 	/**
 	 * {@inheritDoc}
@@ -51,7 +52,7 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 	 *
 	 * @return string
 	 */
-	protected function getCommandClassName(string $name) : string
+	protected function getCommandClassName(string $name): string
 	{
 		$name = mb_convert_case($name[0], MB_CASE_UPPER, 'utf-8') . mb_substr($name, 1, mb_strlen($name));
 
@@ -75,11 +76,11 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 
 	/**
 	 * @param string $className
-	 * @param array $arguments
+	 * @param array  $arguments
 	 *
 	 * @return \Intervention\Image\Commands\AbstractCommand
 	 */
-	protected function createCommand(string $className, array $arguments) : AbstractCommand
+	protected function createCommand(string $className, array $arguments): AbstractCommand
 	{
 		return new $className($arguments);
 	}

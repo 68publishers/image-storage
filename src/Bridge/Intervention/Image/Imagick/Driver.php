@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick;
 
 use Intervention\Image\Imagick\Driver as ImagickDriver;

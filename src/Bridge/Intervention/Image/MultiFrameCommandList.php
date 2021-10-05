@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image;
 
 final class MultiFrameCommandList
