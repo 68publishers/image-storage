@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick;
 
 use Imagick;
@@ -12,7 +14,7 @@ final class CommandExecutor extends AbstractCommandExecutor
 	private $decoder;
 
 	/**
-	 * @param string $driverName
+	 * @param string                                                                       $driverName
 	 * @param \SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick\Decoder $decoder
 	 */
 	public function __construct(string $driverName, Decoder $decoder)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick;
 
 use Imagick;
@@ -11,7 +13,7 @@ final class Decoder extends ImagickDecoder
 	/**
 	 * {@inheritDoc}
 	 */
-	public function initFromImagick(Imagick $object) : Image
+	public function initFromImagick(Imagick $object): Image
 	{
 		// reset image orientation
 		$object->setImageOrientation(Imagick::ORIENTATION_UNDEFINED);

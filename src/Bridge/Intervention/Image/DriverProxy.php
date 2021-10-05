@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image;
 
 use Intervention\Image\Image;
@@ -14,7 +16,7 @@ class DriverProxy extends AbstractDriver
 	private $commandExecutor;
 
 	/**
-	 * @param \Intervention\Image\AbstractDriver $driver
+	 * @param \Intervention\Image\AbstractDriver                                                    $driver
 	 * @param \SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\CommandExecutorInterface $commandExecutor
 	 */
 	public function __construct(AbstractDriver $driver, CommandExecutorInterface $commandExecutor)
@@ -26,7 +28,7 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	public function executeCommand($image, $name, $arguments) : AbstractCommand
+	public function executeCommand($image, $name, $arguments): AbstractCommand
 	{
 		return $this->commandExecutor->execute($image, $name, $arguments);
 	}
@@ -34,7 +36,7 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	public function newImage($width, $height, $background) : Image
+	public function newImage($width, $height, $background): Image
 	{
 		return $this->driver->newImage($width, $height, $background);
 	}
@@ -42,7 +44,7 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	public function parseColor($value) : AbstractColor
+	public function parseColor($value): AbstractColor
 	{
 		return $this->driver->parseColor($value);
 	}
@@ -50,7 +52,7 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function coreAvailable() : bool
+	protected function coreAvailable(): bool
 	{
 		return $this->driver->coreAvailable();
 	}
@@ -58,19 +60,19 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	public function init($data) : Image
+	public function init($data): Image
 	{
 		return $this->driver->init($data);
 	}
 
 	/**
 	 * @param \Intervention\Image\Image $image
-	 * @param string $format
-	 * @param int $quality
+	 * @param string                    $format
+	 * @param int                       $quality
 	 *
 	 * @return \Intervention\Image\Image
 	 */
-	public function encode($image, $format, $quality) : Image
+	public function encode($image, $format, $quality): Image
 	{
 		return $this->driver->encode($image, $format, $quality);
 	}
@@ -78,7 +80,7 @@ class DriverProxy extends AbstractDriver
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getDriverName() : string
+	public function getDriverName(): string
 	{
 		return $this->driver->getDriverName();
 	}

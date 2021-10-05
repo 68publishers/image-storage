@@ -56,8 +56,9 @@ use SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\Response\Response
 use SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageDefinitionFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Console\Configurator\CleanCommandConfiguration;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface;
+use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\ImageManager\ImageManagerFactory;
 use SixtyEightPublishers\FileStorage\Bridge\Console\Configurator\CleanCommandConfiguratorInterface;
-use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick\Driver as SixtyEightPublishersImagickDriver;
+use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\ImageManager\ImageManagerFactoryInterface;
 
 final class ImageStorageExtension extends CompilerExtension implements FileStorageDefinitionFactoryInterface
 {
@@ -77,7 +78,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 	public function getConfigSchema(): Schema
 	{
 		return Expect::structure([
-			'driver' => Expect::anyOf(self::DRIVER_GD, self::DRIVER_IMAGICK, self::DRIVER_68PUBLISHERS_IMAGICK)->default(self::DRIVER_GD),
+			'driver' => Expect::anyOf(Statement::class, self::DRIVER_GD, self::DRIVER_IMAGICK, self::DRIVER_68PUBLISHERS_IMAGICK)->default(self::DRIVER_GD)->dynamic(),
 			'storages' => Expect::arrayOf(Expect::structure([
 				'source_filesystem' => Expect::structure([
 					'adapter' => Expect::anyOf(Expect::string(), Expect::type(Statement::class))->required()->before(static function ($factory) {
@@ -161,10 +162,15 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		$builder = $this->getContainerBuilder();
 
 		# Image manager
+		$builder->addDefinition($this->prefix('image_manager_factory'))
+			->setAutowired(FALSE)
+			->setType(ImageManagerFactoryInterface::class)
+			->setFactory(ImageManagerFactory::class);
+
 		$builder->addDefinition($this->prefix('image_manager'))
 			->setType(ImageManager::class)
-			->setArguments([
-				['driver' => self::DRIVER_68PUBLISHERS_IMAGICK === $this->config->driver ? new Statement(SixtyEightPublishersImagickDriver::class) : $this->config->driver]
+			->setFactory([$this->prefix('@image_manager_factory'), 'create'], [
+				['driver' => $this->config->driver],
 			]);
 
 		# Modifier collection factory
