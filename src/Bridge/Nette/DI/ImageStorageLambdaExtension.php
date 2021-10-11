@@ -30,13 +30,13 @@ final class ImageStorageLambdaExtension extends CompilerExtension
 	public function getConfigSchema(): Schema
 	{
 		$stack = Expect::structure([
-			'stack_name' => Expect::string()->required(),
-			's3_bucket' => Expect::string()->required(),
-			'region' => Expect::string()->required(),
-			'version' => Expect::float(1.0),
-			's3_prefix' => Expect::string()->nullable(), # an option "stack_name" is used by default
-			'confirm_changeset' => Expect::bool(FALSE),
-			'capabilities' => Expect::anyOf(self::CAPABILITY_IAM, self::CAPABILITY_NAMED_IAM)->default(self::CAPABILITY_IAM),
+			'stack_name' => Expect::string()->required()->dynamic(),
+			's3_bucket' => Expect::string()->required()->dynamic(),
+			'region' => Expect::string()->required()->dynamic(),
+			'version' => Expect::float(1.0)->dynamic(),
+			's3_prefix' => Expect::string()->nullable()->dynamic(), # an option "stack_name" is used by default
+			'confirm_changeset' => Expect::bool(FALSE)->dynamic(),
+			'capabilities' => Expect::anyOf(self::CAPABILITY_IAM, self::CAPABILITY_NAMED_IAM)->default(self::CAPABILITY_IAM)->dynamic(),
 
 			'source_bucket_name' => Expect::string()->nullable()->dynamic(), # detected automatically from AwsS3V3Adapter by default
 			'cache_bucket_name' => Expect::string()->nullable()->dynamic(), # detected automatically from AwsS3V3Adapter by default
