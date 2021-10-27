@@ -65,6 +65,10 @@ final class ImageStorage extends FileStorage implements ImageStorageInterface
 	 */
 	public function createPathInfo(string $path, $modifier = NULL): FilePathInfoInterface
 	{
+		if (empty($path)) {
+			return $this->getNoImage()->withModifiers($modifier);
+		}
+
 		return $this->infoFactory->createPathInfo($path, $modifier);
 	}
 
