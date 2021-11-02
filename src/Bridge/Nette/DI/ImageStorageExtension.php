@@ -301,6 +301,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@config.' . $name),
 			]))
 			->addSetup('setModifiers', [$imageStorageConfig->modifiers])
+			->addSetup('setPresets', [$imageStorageConfig->presets])
 			->addSetup('setApplicators', [$imageStorageConfig->applicators])
 			->addSetup('setValidators', [$imageStorageConfig->validators])
 			->setAutowired(FALSE);

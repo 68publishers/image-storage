@@ -11,7 +11,7 @@ interface PathInfoInterface extends BasePathInfoInterface
 	/**
 	 * @return NULL|string|array
 	 */
-	public function getModifiers(): ?array;
+	public function getModifiers();
 
 	/**
 	 * @param NULL|string|array $modifiers
