@@ -33,7 +33,7 @@ final class FileInfo extends BaseFileInfo implements FileInfoInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getModifiers(): ?array
+	public function getModifiers()
 	{
 		return $this->pathInfo instanceof PathInfoInterface ? $this->pathInfo->getModifiers() : NULL;
 	}

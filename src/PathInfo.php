@@ -65,7 +65,7 @@ final class PathInfo extends BasePathInfo implements PathInfoInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function getModifiers(): ?array
+	public function getModifiers()
 	{
 		return $this->modifiers;
 	}
