@@ -11,19 +11,6 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\AbstractCommandE
 
 final class CommandExecutor extends AbstractCommandExecutor
 {
-	private $decoder;
-
-	/**
-	 * @param string                                                                       $driverName
-	 * @param \SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick\Decoder $decoder
-	 */
-	public function __construct(string $driverName, Decoder $decoder)
-	{
-		parent::__construct($driverName);
-
-		$this->decoder = $decoder;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -34,19 +21,19 @@ final class CommandExecutor extends AbstractCommandExecutor
 		assert($core instanceof Imagick);
 
 		if ('GIF' !== $core->getImageFormat()) {
-			$command->execute($this->decoder->initFromImagick($core));
+			$command->execute($image);
 
 			return;
 		}
 
 		$core = $core->coalesceImages();
 
+		$image->setCore($core);
+
 		do {
-			$command->execute($this->decoder->initFromImagick($core));
+			$command->execute($image);
 		} while ($core->nextImage());
 
-		$core = $core->deconstructImages();
-
-		$image->setCore($core);
+		$image->setCore($core->deconstructImages());
 	}
 }
