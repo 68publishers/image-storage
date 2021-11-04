@@ -11,9 +11,8 @@ final class Driver extends DriverProxy
 {
 	public function __construct()
 	{
-		$decoder = new Decoder();
-		$driver = new ImagickDriver($decoder);
-		$executor = new CommandExecutor($driver->getDriverName(), $decoder);
+		$driver = new ImagickDriver(new Decoder());
+		$executor = new CommandExecutor($driver->getDriverName());
 
 		parent::__construct($driver, $executor);
 	}

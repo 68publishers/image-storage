@@ -17,6 +17,7 @@ final class Decoder extends ImagickDecoder
 	{
 		// reset image orientation
 		$object->setImageOrientation(Imagick::ORIENTATION_UNDEFINED);
+		$object->setFirstIterator();
 
 		return new Image(new Driver(), $object);
 	}
