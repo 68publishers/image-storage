@@ -245,6 +245,7 @@ extensions:
         create_w_descriptor: w_descriptor # default
         create_x_descriptor: x_descriptor # default
         create_w_descriptor_from_range: w_descriptor_range # default
+        create_no_image: no_image # default
 ```
 
 The extension adds these functions into the Latte:
@@ -252,6 +253,7 @@ The extension adds these functions into the Latte:
 - `w_descriptor(...)` - a shortcut for `new SixtyEightPublishers\ImageStorage\Responsive\Descriptor\XDescriptor(...)`
 - `x_descriptor(...)` - a shortcut for `new SixtyEightPublishers\ImageStorage\Responsive\Descriptor\WDescriptor(...)`
 - `w_descriptor_range($min, $max, $step)` - a shortcut for `SixtyEightPublishers\ImageStorage\Responsive\Descriptor\WDescriptor::fromRange($min, $max, $step)`
+- `no_image(?string $noImageName = NULL, ?string $storageName = NULL)`
 
 Basic usage:
 
@@ -265,6 +267,11 @@ Basic usage:
 
 {* Create FileInfo from string *}
 {var $fileInfo = file_info('test/my-image.png')->withModifiers(['o' => 90, 'ar' => '2x1'])}
+
+<img srcset="{$fileInfo->srcSet(w_descriptor(400, 800, 1200))}" src="{$fileInfo}" alt="">
+
+{* Create default NoImage if the variable doesn't exists *}
+{var $fileInfo = ($fileInfo ?? no_image())->withModifiers(['o' => 90, 'ar' => '2x1'])}
 
 <img srcset="{$fileInfo->srcSet(w_descriptor(400, 800, 1200))}" src="{$fileInfo}" alt="">
 ```
