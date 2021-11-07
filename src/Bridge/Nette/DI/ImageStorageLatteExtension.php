@@ -11,6 +11,7 @@ use Nette\DI\CompilerExtension;
 use Nette\PhpGenerator\PhpLiteral;
 use Nette\DI\Definitions\FactoryDefinition;
 use SixtyEightPublishers\FileStorage\Exception\RuntimeException;
+use SixtyEightPublishers\FileStorage\FileStorageProviderInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Latte\ImageStorageFunctions;
 
 final class ImageStorageLatteExtension extends CompilerExtension
@@ -31,6 +32,7 @@ final class ImageStorageLatteExtension extends CompilerExtension
 			#   create_w_descriptor: w_descriptor
 			#   create_x_descriptor: x_descriptor
 			#   create_w_descriptor_from_range: w_descriptor_range
+			#   create_no_image: no_image
 		]);
 	}
 
@@ -62,8 +64,9 @@ final class ImageStorageLatteExtension extends CompilerExtension
 			$latteFactory = $latteFactory->getResultDefinition();
 		}
 
-		$latteFactory->addSetup('?::register(?, ?)', [
+		$latteFactory->addSetup('?::register(?, ?, ?)', [
 			new PhpLiteral(ImageStorageFunctions::class),
+			'@' . FileStorageProviderInterface::class,
 			'@self',
 			(array) $this->config->function_names,
 		]);
