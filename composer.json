@@ -17,7 +17,7 @@
 	},
 	"require-dev": {
 		"ext-imagick": "*",
-		"doctrine/dbal": "^2.9",
+		"doctrine/dbal": "^3.3",
 		"friendsofphp/php-cs-fixer": "^2.0",
 		"league/flysystem-aws-s3-v3": "^2.0",
 		"nette/tester": "^2.3.4",
