@@ -13,25 +13,12 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFact
 
 final class ModifierFacadeFactory implements ModifierFacadeFactoryInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionFactoryInterface  */
-	private $presetCollectionFactory;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface  */
-	private $modifierCollectionFactory;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionFactoryInterface       $presetCollectionFactory
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface $modifierCollectionFactory
-	 */
-	public function __construct(PresetCollectionFactoryInterface $presetCollectionFactory, ModifierCollectionFactoryInterface $modifierCollectionFactory)
-	{
-		$this->presetCollectionFactory = $presetCollectionFactory;
-		$this->modifierCollectionFactory = $modifierCollectionFactory;
+	public function __construct(
+		private readonly PresetCollectionFactoryInterface $presetCollectionFactory,
+		private readonly ModifierCollectionFactoryInterface $modifierCollectionFactory,
+	) {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function create(ConfigInterface $config): ModifierFacadeInterface
 	{
 		$presetCollection = $this->presetCollectionFactory->create();

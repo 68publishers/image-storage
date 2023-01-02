@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier\Collection;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use function sprintf;
 
 final class ModifierValues
 {
-	/** @var array  */
-	private $values = [];
+	/** @var array<string, mixed>  */
+	private array $values = [];
 
 	/**
-	 * @param array $values
+	 * @param array<string, mixed> $values
 	 */
 	public function __construct(array $values = [])
 	{
@@ -21,37 +22,16 @@ final class ModifierValues
 		}
 	}
 
-	/**
-	 * @param string $name
-	 * @param mixed  $value
-	 *
-	 * @return void
-	 */
-	private function add(string $name, $value): void
-	{
-		$this->values[$name] = $value;
-	}
-
-	/**
-	 * @param string $name
-	 *
-	 * @return bool
-	 */
 	public function has(string $name): bool
 	{
 		return isset($this->values[$name]);
 	}
 
-	/**
-	 * @param string $name
-	 *
-	 * @return mixed
-	 */
-	public function get(string $name)
+	public function get(string $name): mixed
 	{
 		if (!$this->has($name)) {
 			throw new InvalidArgumentException(sprintf(
-				'Missing value for modifier %s',
+				'Missing value for the modifier %s.',
 				$name
 			));
 		}
@@ -59,14 +39,13 @@ final class ModifierValues
 		return $this->values[$name];
 	}
 
-	/**
-	 * @param string $name
-	 * @param mixed  $default
-	 *
-	 * @return mixed
-	 */
-	public function getOptional(string $name, $default = NULL)
+	public function getOptional(string $name, mixed $default = null): mixed
 	{
 		return $this->has($name) ? $this->values[$name] : $default;
+	}
+
+	private function add(string $name, mixed $value): void
+	{
+		$this->values[$name] = $value;
 	}
 }

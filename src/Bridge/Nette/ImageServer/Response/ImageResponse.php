@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\Response;
 
 use DateTime;
+use Exception;
 use DateTimeZone;
 use Nette\Http\IRequest;
 use Nette\Http\IResponse;
@@ -40,7 +41,7 @@ final class ImageResponse implements ApplicationResponse
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function send(IRequest $httpRequest, IResponse $httpResponse): void
 	{
@@ -51,7 +52,7 @@ final class ImageResponse implements ApplicationResponse
 				->setHeader('Content-Type', $this->filesystemReader->mimeType($this->filePath))
 				->setHeader('Content-Length', (string) $this->filesystemReader->fileSize($this->filePath))
 				->setHeader('Cache-Control', sprintf('public, max-age=%s', $this->maxAge))
-				->setHeader('Expires', (new DateTime(sprintf('+%s seconds', $this->maxAge), new DateTimeZone('GMT')))->format('D, d M Y H:i:s') .' GMT');
+				->setHeader('Expires', (new DateTime(sprintf('+%s seconds', $this->maxAge), new DateTimeZone('GMT')))->format('D, d M Y H:i:s') . ' GMT');
 		} catch (UnableToReadFile $e) {
 			$errorResponse = new ErrorResponse(new ResponseException('Unable to read file.', IResponse::S404_NOT_FOUND, $e));
 		} catch (FilesystemException $e) {

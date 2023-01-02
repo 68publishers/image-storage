@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
+use function count;
+use function explode;
+use function sprintf;
+use function is_numeric;
 
 final class AspectRatio extends AbstractModifier implements ParsableModifierInterface
 {
 	public const KEY_WIDTH = 'w';
 	public const KEY_HEIGHT = 'h';
 
-	/** @var string  */
-	protected $alias = 'ar';
+	protected ?string $alias = 'ar';
 
 	/**
-	 * {@inheritdoc}
-	 *
-	 * @return float[]
+	 * @return array{w: float, h: float}
 	 */
 	public function parseValue(string $value): array
 	{
@@ -25,7 +26,7 @@ final class AspectRatio extends AbstractModifier implements ParsableModifierInte
 
 		if (2 !== count($ratio) || !is_numeric($ratio[0]) || !is_numeric($ratio[1])) {
 			throw new ModifierException(sprintf(
-				'A value "%s" is not a valid aspect ratio.',
+				'Value "%s" is not a valid aspect ratio.',
 				$value
 			));
 		}

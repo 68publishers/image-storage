@@ -7,32 +7,33 @@ namespace SixtyEightPublishers\ImageStorage\Filesystem;
 use League\Flysystem\PathNormalizer;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Filesystem as LeagueFilesystem;
+use League\Flysystem\UrlGeneration\PublicUrlGenerator;
+use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
 final class Filesystem extends LeagueFilesystem implements AdapterProviderInterface
 {
-	/** @var \League\Flysystem\FilesystemAdapter  */
-	private $adapter;
+	private FilesystemAdapter $adapter;
 
 	/**
-	 * {@inheritDoc}
+	 * @param array<string, mixed> $config
 	 */
-	public function __construct(FilesystemAdapter $adapter, array $config = [], PathNormalizer $pathNormalizer = NULL)
-	{
-		parent::__construct($adapter, $config, $pathNormalizer);
+	public function __construct(
+		FilesystemAdapter $adapter,
+		array $config = [],
+		PathNormalizer $pathNormalizer = null,
+		?PublicUrlGenerator $publicUrlGenerator = null,
+		?TemporaryUrlGenerator $temporaryUrlGenerator = null,
+	) {
+		parent::__construct($adapter, $config, $pathNormalizer, $publicUrlGenerator, $temporaryUrlGenerator);
 
 		$this->adapter = $adapter;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
-	 */
-	public function getAdapter(?string $name = NULL): FilesystemAdapter
+	public function getAdapter(?string $name = null): FilesystemAdapter
 	{
-		if (NULL !== $name) {
-			throw new InvalidArgumentException('This filesystem is non-prefixed.');
+		if (null !== $name) {
+			throw new InvalidArgumentException('The filesystem is non-prefixed.');
 		}
 
 		return $this->adapter;

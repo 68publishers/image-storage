@@ -6,40 +6,25 @@ namespace SixtyEightPublishers\ImageStorage\Responsive;
 
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
-use SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use function array_key_exists;
 
 final class SrcSetGenerator
 {
-	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface  */
-	private $linkGenerator;
+	/** @var array<string, string> */
+	private array $results = [];
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface  */
-	private $modifierFacade;
-
-	/** @var array  */
-	private $results = [];
-
-	/**
-	 * @param \SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface     $linkGenerator
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
-	 */
-	public function __construct(LinkGeneratorInterface $linkGenerator, ModifierFacadeInterface $modifierFacade)
-	{
-		$this->linkGenerator = $linkGenerator;
-		$this->modifierFacade = $modifierFacade;
+	public function __construct(
+		private readonly LinkGeneratorInterface $linkGenerator,
+		private readonly ModifierFacadeInterface $modifierFacade,
+	) {
 	}
 
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface $descriptor
-	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface                         $pathInfo
-	 *
-	 * @return string
-	 */
 	public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo): string
 	{
-		$key = $descriptor . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => TRUE]) : $pathInfo);
+		$key = $descriptor . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => true]) : $pathInfo);
 
 		if (array_key_exists($key, $this->results)) {
 			return $this->results[$key];

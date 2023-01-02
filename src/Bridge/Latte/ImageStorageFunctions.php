@@ -103,7 +103,7 @@ final class ImageStorageFunctions
 	 *
 	 * @return \SixtyEightPublishers\ImageStorage\FileInfoInterface
 	 */
-	public function createNoImage(?string $noImageName = NULL, ?string $storageName = NULL): ImageFileInfoInterface
+	public function createNoImage(?string $noImageName = null, ?string $storageName = null): ImageFileInfoInterface
 	{
 		$storage = $this->fileStorageProvider->get($storageName);
 

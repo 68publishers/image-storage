@@ -14,20 +14,11 @@ final class StorageCleaner implements StorageCleanerInterface
 {
 	public const OPTION_CACHE_ONLY = 'cache-only';
 
-	/** @var \SixtyEightPublishers\FileStorage\Cleaner\StorageCleanerInterface  */
-	private $storageCleaner;
-
-	/**
-	 * @param \SixtyEightPublishers\FileStorage\Cleaner\StorageCleanerInterface $storageCleaner
-	 */
-	public function __construct(StorageCleanerInterface $storageCleaner)
-	{
-		$this->storageCleaner = $storageCleaner;
+	public function __construct(
+		private readonly StorageCleanerInterface $storageCleaner,
+	) {
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getCount(FilesystemOperator $filesystemOperator, array $options = []): int
 	{
 		if (!$filesystemOperator instanceof ImageStorageFilesystem && !$filesystemOperator instanceof ImageStorageMountManager) {
@@ -37,7 +28,7 @@ final class StorageCleaner implements StorageCleanerInterface
 		$options[self::OPTION_FILESYSTEM_PREFIX] = ImagePersisterInterface::FILESYSTEM_PREFIX_CACHE;
 		$count = $this->storageCleaner->getCount($filesystemOperator, $options);
 
-		if (FALSE === ($options[self::OPTION_CACHE_ONLY] ?? FALSE)) {
+		if (false === ($options[self::OPTION_CACHE_ONLY] ?? false)) {
 			$options[self::OPTION_FILESYSTEM_PREFIX] = ImagePersisterInterface::FILESYSTEM_PREFIX_SOURCE;
 			$count += $this->storageCleaner->getCount($filesystemOperator, $options);
 		}
@@ -45,9 +36,6 @@ final class StorageCleaner implements StorageCleanerInterface
 		return $count;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function clean(FilesystemOperator $filesystemOperator, array $options = []): void
 	{
 		if (!$filesystemOperator instanceof ImageStorageFilesystem && !$filesystemOperator instanceof ImageStorageMountManager) {
@@ -60,7 +48,7 @@ final class StorageCleaner implements StorageCleanerInterface
 
 		$this->storageCleaner->clean($filesystemOperator, $options);
 
-		if (TRUE === ($options[self::OPTION_CACHE_ONLY] ?? FALSE)) {
+		if (true === ($options[self::OPTION_CACHE_ONLY] ?? false)) {
 			return;
 		}
 

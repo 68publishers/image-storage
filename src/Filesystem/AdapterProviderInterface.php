@@ -9,9 +9,7 @@ use League\Flysystem\FilesystemAdapter;
 interface AdapterProviderInterface
 {
 	/**
-	 * @param string|NULL $name
-	 *
-	 * @return \League\Flysystem\FilesystemAdapter
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
-	public function getAdapter(?string $name = NULL): FilesystemAdapter;
+	public function getAdapter(?string $name = null): FilesystemAdapter;
 }

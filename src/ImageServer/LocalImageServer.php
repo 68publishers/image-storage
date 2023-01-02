@@ -7,6 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\ImageServer;
 use Throwable;
 use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 use SixtyEightPublishers\ImageStorage\Exception\ResponseException;
 use SixtyEightPublishers\ImageStorage\Exception\SignatureException;
@@ -15,29 +16,25 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
+use function count;
+use function ltrim;
+use function assert;
+use function strlen;
+use function substr;
+use function explode;
+use function implode;
+use function strncmp;
+use function is_string;
 
 final class LocalImageServer implements ImageServerInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\ImageStorageInterface  */
-	private $imageStorage;
-
-	/** @var \SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface  */
-	private $responseFactory;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageStorageInterface                         $imageStorage
-	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface $responseFactory
-	 */
-	public function __construct(ImageStorageInterface $imageStorage, ResponseFactoryInterface $responseFactory)
-	{
-		$this->imageStorage = $imageStorage;
-		$this->responseFactory = $responseFactory;
+	public function __construct(
+		private readonly ImageStorageInterface $imageStorage,
+		private readonly ResponseFactoryInterface $responseFactory,
+	) {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getImageResponse(RequestInterface $request)
+	public function getImageResponse(RequestInterface $request): object
 	{
 		try {
 			return $this->processRequest($request);
@@ -53,13 +50,10 @@ final class LocalImageServer implements ImageServerInterface
 	}
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface $request
-	 *
-	 * @return object
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
 	 */
-	public function processRequest(RequestInterface $request)
+	private function processRequest(RequestInterface $request): object
 	{
 		$path = $this->stripBasePath($request->getUrlPath());
 
@@ -73,13 +67,14 @@ final class LocalImageServer implements ImageServerInterface
 			$modifiers = $pathInfo->getModifiers();
 
 			try {
-				$noImageInfo = $this->imageStorage->resolveNoImage($pathInfo->withModifiers(NULL)->getPath());
+				$noImageInfo = $this->imageStorage->resolveNoImage(
+					$pathInfo->withModifiers(null)->getPath()
+				);
 			} catch (InvalidArgumentException $_) {
 				throw $e;
 			}
 
-			$noImageInfo->setExtension($pathInfo->getExtension());
-
+			$noImageInfo = $noImageInfo->withExtension($pathInfo->getExtension());
 			$path = $this->getFilePath($noImageInfo->withModifiers($modifiers));
 		}
 
@@ -90,15 +85,11 @@ final class LocalImageServer implements ImageServerInterface
 		);
 	}
 
-	/**
-	 * @param string $path
-	 *
-	 * @return string
-	 */
 	private function stripBasePath(string $path): string
 	{
 		$path = ltrim($path, '/');
-		$basePath = $this->imageStorage->getConfig()[Config::BASE_PATH];
+		$basePath = $this->imageStorage->getConfig()[ConfigInterface::BASE_PATH];
+		assert(is_string($basePath));
 
 		if (!empty($basePath) && 0 === strncmp($path, $basePath, $basePathLength = strlen($basePath))) {
 			$path = ltrim(substr($path, $basePathLength), '/');
@@ -108,9 +99,6 @@ final class LocalImageServer implements ImageServerInterface
 	}
 
 	/**
-	 * @param string $path
-	 *
-	 * @return \SixtyEightPublishers\ImageStorage\PathInfoInterface
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
 	private function createPathInfo(string $path): PathInfoInterface
@@ -124,10 +112,9 @@ final class LocalImageServer implements ImageServerInterface
 		$modifiers = $parts[$pathCount -2];
 		unset($parts[$pathCount - 2]);
 
-		/** @var \SixtyEightPublishers\ImageStorage\PathInfoInterface $pathInfo */
 		$pathInfo = $this->imageStorage->createPathInfo(implode('/', $parts));
 
-		if (NULL === $pathInfo->getExtension()) {
+		if (null === $pathInfo->getExtension()) {
 			throw new InvalidArgumentException('Missing file extension in requested path.');
 		}
 
@@ -135,15 +122,12 @@ final class LocalImageServer implements ImageServerInterface
 	}
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface $pathInfo
-	 *
-	 * @return string
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
 	 */
 	private function getFilePath(PathInfoInterface $pathInfo): string
 	{
-		if (TRUE === $this->imageStorage->exists($pathInfo)) {
+		if (true === $this->imageStorage->exists($pathInfo)) {
 			return $pathInfo->getPath();
 		}
 
@@ -153,25 +137,26 @@ final class LocalImageServer implements ImageServerInterface
 	}
 
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface $request
-	 * @param string                                                                  $path
-	 *
-	 * @return void
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\SignatureException
 	 */
 	private function validateSignature(RequestInterface $request, string $path): void
 	{
-		if (NULL === $this->imageStorage->getSignatureStrategy()) {
+		$signatureStrategy = $this->imageStorage->getSignatureStrategy();
+
+		if (null === $signatureStrategy) {
 			return;
 		}
 
-		$token = $request->getQueryParameter($this->imageStorage->getConfig()[Config::SIGNATURE_PARAMETER_NAME]) ?? '';
+		$signatureParameterName = $this->imageStorage->getConfig()[Config::SIGNATURE_PARAMETER_NAME];
+		assert(is_string($signatureParameterName));
+
+		$token = $request->getQueryParameter($signatureParameterName) ?? '';
 
 		if (empty($token)) {
 			throw new SignatureException('Missing signature in request.');
 		}
 
-		if (!$this->imageStorage->getSignatureStrategy()->verifyToken($token, $path)) {
+		if (!$signatureStrategy->verifyToken($token, $path)) {
 			throw new SignatureException('Request contains invalid signature.');
 		}
 	}

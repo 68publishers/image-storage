@@ -20,16 +20,7 @@ interface TomlConfigBuilderInterface
 	public const CAPABILITY_IAM = 'CAPABILITY_IAM';
 	public const CAPABILITY_NAMED_IAM = 'CAPABILITY_NAMED_IAM';
 
-	/**
-	 * @return \Yosymfony\Toml\TomlBuilder
-	 */
 	public function buildToml(): TomlBuilder;
 
-	/**
-	 * @param string $name
-	 * @param mixed  $value
-	 *
-	 * @return static
-	 */
-	public function setProperty(string $name, $value): self;
+	public function withProperty(string $name, mixed $value): static;
 }

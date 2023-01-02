@@ -11,7 +11,7 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
 final class ParameterOverrides implements ArrayAccess, Countable
 {
 	/** @var array  */
-	private $parameters = [];
+	private array $parameters = [];
 
 	/**
 	 * @return string

@@ -9,21 +9,11 @@ use Throwable;
 
 final class ResponseException extends Exception implements ExceptionInterface
 {
-	/**
-	 * @param string          $message
-	 * @param int             $code
-	 * @param \Throwable|NULL $previous
-	 */
-	public function __construct(string $message, int $code = 500, Throwable $previous = NULL)
+	public function __construct(string $message, int $code = 500, Throwable $previous = null)
 	{
 		parent::__construct($message, $code, $previous);
 	}
 
-	/**
-	 * Alias
-	 *
-	 * @return int
-	 */
 	public function getHttpCode(): int
 	{
 		return $this->getCode();

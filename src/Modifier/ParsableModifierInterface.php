@@ -7,11 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 interface ParsableModifierInterface extends ModifierInterface
 {
 	/**
-	 * Returns NULL if value is not valid, otherwise returns original passed or modified value
-	 *
-	 * @param string $value
-	 *
-	 * @return mixed
+	 * Returns NULL if value is not valid, otherwise returns original passed or modified value.
 	 */
-	public function parseValue(string $value);
+	public function parseValue(string $value): mixed;
 }

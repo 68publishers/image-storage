@@ -10,11 +10,6 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick\Driver a
 
 final class ImageManagerFactory implements ImageManagerFactoryInterface
 {
-	/**
-	 * @param array $config
-	 *
-	 * @return \Intervention\Image\ImageManager
-	 */
 	public function create(array $config = []): ImageManager
 	{
 		if (isset($config['driver']) && ImageStorageExtension::DRIVER_68PUBLISHERS_IMAGICK === $config['driver']) {

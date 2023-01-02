@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda;
 
 use ReflectionProperty;
+use ReflectionException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use SixtyEightPublishers\ImageStorage\Config\Config;
@@ -54,13 +55,13 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \ReflectionException
+	 * @throws ReflectionException
 	 */
 	public function generateForStorage(ImageStorageInterface $imageStorage): string
 	{
-		$stack = $this->stacks[$imageStorage->getName()] ?? NULL;
+		$stack = $this->stacks[$imageStorage->getName()] ?? null;
 
-		if (NULL === $stack) {
+		if (null === $stack) {
 			throw new InvalidArgumentException(sprintf(
 				'Missing stack with name "%s".',
 				$imageStorage->getName()
@@ -85,7 +86,7 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 		$builder = $this->tomlConfigBuilderFactory->create();
 
 		foreach ($stack->getValues() as $k => $v) {
-			$builder->setProperty((string) $k, $v);
+			$builder->withProperty((string) $k, $v);
 		}
 
 		# Create a "parameter_overrides" property
@@ -94,7 +95,7 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 		$noImageConfig = $imageStorage->getNoImageConfig();
 		$noImages = $noImagePatterns = [];
 
-		if (NULL !== $noImageConfig->getDefaultPath()) {
+		if (null !== $noImageConfig->getDefaultPath()) {
 			$noImages[] = 'default::' . $noImageConfig->getDefaultPath();
 		}
 
@@ -157,14 +158,14 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 
 		$dir = dirname($filename);
 
-		if (!is_dir($dir) && !@mkdir($dir, 0777, TRUE) && !is_dir($dir)) {
+		if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
 			throw new InvalidStateException(sprintf(
 				'Unable to create directory "%s".',
 				$dir
 			));
 		}
 
-		if (FALSE === @file_put_contents($filename, $content)) {
+		if (false === @file_put_contents($filename, $content)) {
 			throw new InvalidStateException(sprintf(
 				'Unable to write file "%s". ',
 				$filename
@@ -179,7 +180,7 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 	 * @param array                                $prefixes
 	 *
 	 * @return array
-	 * @throws \ReflectionException
+	 * @throws ReflectionException
 	 */
 	private function detectBucketNamesFromFilesystem(FilesystemOperator $filesystemOperator, array $prefixes): array
 	{
@@ -208,7 +209,7 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 
 			$reflectionProperty = new ReflectionProperty(AwsS3V3Adapter::class, 'bucket');
 
-			$reflectionProperty->setAccessible(TRUE);
+			$reflectionProperty->setAccessible(true);
 
 			$buckets[$prefix] = $reflectionProperty->getValue($adapter);
 		}

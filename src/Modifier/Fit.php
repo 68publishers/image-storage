@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
+use function sprintf;
+use function in_array;
 
 final class Fit extends AbstractModifier implements ParsableModifierInterface
 {
@@ -36,17 +38,13 @@ final class Fit extends AbstractModifier implements ParsableModifierInterface
 		self::CROP_BOTTOM_RIGHT,
 	];
 
-	/** @var string  */
-	protected $alias = 'f';
+	protected ?string $alias = 'f';
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function parseValue(string $value): string
 	{
-		if (!in_array($value, self::VALUES, TRUE)) {
+		if (!in_array($value, self::VALUES, true)) {
 			throw new ModifierException(sprintf(
-				'Value "%s" is not a valid fit',
+				'Value "%s" is not a valid fit.',
 				$value
 			));
 		}

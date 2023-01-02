@@ -6,35 +6,30 @@ namespace SixtyEightPublishers\ImageStorage\Security;
 
 use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use function ltrim;
+use function hash_hmac;
+use function is_string;
+use function hash_equals;
 
 final class SignatureStrategy implements SignatureStrategyInterface
 {
-	/** @var \SixtyEightPublishers\FileStorage\Config\ConfigInterface  */
-	private $config;
-
-	/**
-	 * @param \SixtyEightPublishers\FileStorage\Config\ConfigInterface $config
-	 */
-	public function __construct(ConfigInterface $config)
-	{
-		$this->config = $config;
+	public function __construct(
+		private readonly ConfigInterface $config,
+	) {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function createToken(string $path): string
 	{
+		$algo = $this->config[Config::SIGNATURE_ALGORITHM];
+		$key = $this->config[Config::SIGNATURE_KEY];
+
 		return hash_hmac(
-			$this->config[Config::SIGNATURE_ALGORITHM],
+			is_string($algo) ? $algo : 'sha256',
 			ltrim($path, '/'),
-			(string) $this->config[Config::SIGNATURE_KEY]
+			is_string($key) ? $key : ''
 		);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function verifyToken(string $token, string $path): bool
 	{
 		return hash_equals($token, $this->createToken($path));

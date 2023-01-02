@@ -4,47 +4,36 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Collection;
 
+use IteratorAggregate;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
-interface ModifierCollectionInterface extends \IteratorAggregate
+/**
+ * @extends IteratorAggregate<string, ModifierInterface>
+ */
+interface ModifierCollectionInterface extends IteratorAggregate
 {
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface $modifier
+	 * @throws InvalidArgumentException
 	 */
 	public function add(ModifierInterface $modifier): void;
 
-	/**
-	 * @param string $name
-	 *
-	 * @return bool
-	 */
 	public function hasByName(string $name): bool;
 
-	/**
-	 * @param string $alias
-	 *
-	 * @return bool
-	 */
 	public function hasByAlias(string $alias): bool;
 
 	/**
-	 * @param string $name
-	 *
-	 * @return \SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface
+	 * @throws InvalidArgumentException
 	 */
 	public function getByName(string $name): ModifierInterface;
 
 	/**
-	 * @param string $alias
-	 *
-	 * @return \SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface
+	 * @throws InvalidArgumentException
 	 */
 	public function getByAlias(string $alias): ModifierInterface;
 
 	/**
-	 * @param array $parameters
-	 *
-	 * @return \SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues
+	 * @param array<string, mixed> $parameters
 	 */
 	public function parseValues(array $parameters): ModifierValues;
 }

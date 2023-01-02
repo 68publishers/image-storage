@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
+use function implode;
+use function sprintf;
+use function in_array;
+use function array_map;
+use function array_unshift;
+use function number_format;
 
 final class XDescriptor implements DescriptorInterface
 {
-	/** @var float[]  */
-	private $pixelDensities;
+	/** @var array<float> */
+	private array $pixelDensities;
 
 	/**
 	 * @param int|float|string ...$pixelDensities
@@ -18,50 +24,29 @@ final class XDescriptor implements DescriptorInterface
 	{
 		$pixelDensities = array_map('floatval', $pixelDensities);
 
-		if (!in_array(1.0, $pixelDensities, TRUE)) {
+		if (!in_array(1.0, $pixelDensities, true)) {
 			array_unshift($pixelDensities, 1.0);
 		}
 
 		$this->pixelDensities = $pixelDensities;
 	}
 
-	/**
-	 * @return \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\XDescriptor
-	 */
 	public static function default(): self
 	{
-		return new static(1, 2, 3);
+		return new self(1, 2, 3);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function __toString(): string
 	{
 		return sprintf('X(%s)', implode(',', $this->pixelDensities));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getDefaultModifiers(): array
-	{
-		return [
-			'pd' => min($this->pixelDensities),
-		];
-	}
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade $args
-	 *
-	 * @return string
-	 */
 	public function createSrcSet(ArgsFacade $args): string
 	{
 		$pdAlias = $args->getModifierAlias(PixelDensity::class);
 		$modifiers = $args->getDefaultModifiers() ?? [];
 
-		if (NULL === $pdAlias) {
+		if (null === $pdAlias) {
 			return empty($modifiers) ? '' : $args->createLink($modifiers);
 		}
 
@@ -69,9 +54,9 @@ final class XDescriptor implements DescriptorInterface
 			$modifiers[$pdAlias] = $pd;
 
 			return sprintf(
-				'%s %s',
+				'%s%s',
 				$args->createLink($modifiers),
-				1.0 === $pd ? '' : number_format($pd, 1, '.', '') . 'x'
+				1.0 === $pd ? '' : (' ' . number_format($pd, 1, '.', '') . 'x')
 			);
 		}, $this->pixelDensities);
 

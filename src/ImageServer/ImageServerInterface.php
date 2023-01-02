@@ -8,12 +8,5 @@ use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
 
 interface ImageServerInterface
 {
-	/**
-	 * Returns response object
-	 *
-	 * @param \SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface $request
-	 *
-	 * @return mixed|object
-	 */
-	public function getImageResponse(RequestInterface $request);
+	public function getImageResponse(RequestInterface $request): object;
 }

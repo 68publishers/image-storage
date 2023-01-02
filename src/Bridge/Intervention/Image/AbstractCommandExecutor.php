@@ -7,36 +7,31 @@ namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image;
 use Intervention\Image\Image;
 use Intervention\Image\Commands\AbstractCommand;
 use Intervention\Image\Exception\NotSupportedException;
+use function substr;
+use function sprintf;
+use function ucfirst;
+use function in_array;
+use function mb_substr;
+use function strtoupper;
+use function class_exists;
+use function mb_strtoupper;
+use function extension_loaded;
 
 abstract class AbstractCommandExecutor implements CommandExecutorInterface
 {
-	private $driverName;
-
-	/**
-	 * @param string $driverName
-	 */
-	public function __construct(string $driverName)
-	{
-		$this->driverName = $driverName;
+	public function __construct(
+		private readonly string $driverName,
+	) {
 	}
 
-	/**
-	 * @param \Intervention\Image\Image                    $image
-	 * @param \Intervention\Image\Commands\AbstractCommand $command
-	 *
-	 * @return void
-	 */
 	abstract protected function doExecute(Image $image, AbstractCommand $command): void;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function execute(Image $image, string $name, array $arguments): AbstractCommand
 	{
 		$commandClassName = $this->getCommandClassName($name);
 		$command = $this->createCommand($commandClassName, $arguments);
 
-		if (!in_array(ucfirst($name), MultiFrameCommandList::LIST, TRUE)) {
+		if (!in_array(ucfirst($name), MultiFrameCommandList::LIST, true)) {
 			$command->execute($image);
 
 			return $command;
@@ -48,13 +43,15 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 	}
 
 	/**
-	 * @param string $name
-	 *
-	 * @return string
+	 * @return class-string
 	 */
 	protected function getCommandClassName(string $name): string
 	{
-		$name = mb_convert_case($name[0], MB_CASE_UPPER, 'utf-8') . mb_substr($name, 1, mb_strlen($name));
+		if (extension_loaded('mbstring')) {
+			$name = mb_strtoupper(mb_substr($name, 0, 1)) . mb_substr($name, 1);
+		} else {
+			$name = strtoupper(substr($name, 0, 1)) . substr($name, 1);
+		}
 
 		$classnameLocal = sprintf('\Intervention\Image\%s\Commands\%sCommand', $this->driverName, ucfirst($name));
 		$classnameGlobal = sprintf('\Intervention\Image\Commands\%sCommand', ucfirst($name));
@@ -75,10 +72,8 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 	}
 
 	/**
-	 * @param string $className
-	 * @param array  $arguments
-	 *
-	 * @return \Intervention\Image\Commands\AbstractCommand
+	 * @param class-string      $className
+	 * @param array<int, mixed> $arguments
 	 */
 	protected function createCommand(string $className, array $arguments): AbstractCommand
 	{

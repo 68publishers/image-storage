@@ -7,11 +7,12 @@ namespace SixtyEightPublishers\ImageStorage\Filesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\MountManager as LeagueMountManager;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use function sprintf;
 
 final class MountManager extends LeagueMountManager implements AdapterProviderInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Filesystem\AdapterProviderInterface[] */
-	private $filesystems = [];
+	/** @var array<string, AdapterProviderInterface> */
+	private array $filesystems = [];
 
 	/**
 	 * {@inheritDoc}
@@ -27,12 +28,7 @@ final class MountManager extends LeagueMountManager implements AdapterProviderIn
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
-	 */
-	public function getAdapter(?string $name = NULL): FilesystemAdapter
+	public function getAdapter(?string $name = null): FilesystemAdapter
 	{
 		if (!isset($this->filesystems[$name])) {
 			throw new InvalidArgumentException(sprintf(

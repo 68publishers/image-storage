@@ -11,16 +11,7 @@ use SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface as Bas
 
 interface LinkGeneratorInterface extends BaseLinkGeneratorInterface
 {
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface                         $info
-	 * @param \SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface $descriptor
-	 *
-	 * @return string
-	 */
 	public function srcSet(PathInfoInterface $info, DescriptorInterface $descriptor): string;
 
-	/**
-	 * @return \SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface|NULL
-	 */
 	public function getSignatureStrategy(): ?SignatureStrategyInterface;
 }

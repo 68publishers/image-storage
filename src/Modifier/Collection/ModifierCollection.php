@@ -8,26 +8,16 @@ use ArrayIterator;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\ParsableModifierInterface;
+use function sprintf;
 
 final class ModifierCollection implements ModifierCollectionInterface
 {
-	/**
-	 * (string) name => (object) Modifier
-	 *
-	 * @var \SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface[]
-	 */
-	private $modifiers = [];
+	/** @var array<string, ModifierInterface> */
+	private array $modifiers = [];
 
-	/**
-	 * (string) alias => (string) name
-	 *
-	 * @var string[]
-	 */
-	private $aliases = [];
+	/** @var array<string, string> */
+	private array $aliases = [];
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function add(ModifierInterface $modifier): void
 	{
 		$name = $modifier->getName();
@@ -35,7 +25,7 @@ final class ModifierCollection implements ModifierCollectionInterface
 
 		if ($this->hasByName($name) || $this->hasByAlias($alias)) {
 			throw new InvalidArgumentException(sprintf(
-				'Duplicate modifier with name "%s" and alias "%s" passed into %s. Name and alias must be unique.',
+				'Duplicated modifier with the name "%s" and the alias "%s" passed into %s(). Names and the aliases must be unique.',
 				$name,
 				$alias,
 				__METHOD__
@@ -46,30 +36,21 @@ final class ModifierCollection implements ModifierCollectionInterface
 		$this->aliases[$alias] = $name;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function hasByName(string $name): bool
 	{
 		return isset($this->modifiers[$name]);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function hasByAlias(string $alias): bool
 	{
 		return isset($this->aliases[$alias]) && $this->hasByName($this->aliases[$alias]);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getByName(string $name): ModifierInterface
 	{
 		if (!$this->hasByName($name)) {
 			throw new InvalidArgumentException(sprintf(
-				'Modifier with name "%s" is not defined in collection.',
+				'Modifier with the name "%s" is not defined in the collection.',
 				$name
 			));
 		}
@@ -77,14 +58,11 @@ final class ModifierCollection implements ModifierCollectionInterface
 		return $this->modifiers[$name];
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getByAlias(string $alias): ModifierInterface
 	{
 		if (!$this->hasByAlias($alias)) {
 			throw new InvalidArgumentException(sprintf(
-				'Modifier with alias "%s" is not defined in collection.',
+				'Modifier with the alias "%s" is not defined in the collection.',
 				$alias
 			));
 		}
@@ -92,9 +70,6 @@ final class ModifierCollection implements ModifierCollectionInterface
 		return $this->modifiers[$this->aliases[$alias]];
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function parseValues(array $parameters): ModifierValues
 	{
 		$values = [];
@@ -103,15 +78,15 @@ final class ModifierCollection implements ModifierCollectionInterface
 			$modifier = $this->getByAlias($k);
 
 			if ($modifier instanceof ParsableModifierInterface) {
-				if (NULL !== ($value = $modifier->parseValue((string) $v))) {
+				if (null !== ($value = $modifier->parseValue((string) $v))) {
 					$values[$modifier->getName()] = $value;
 				}
 
 				continue;
 			}
 
-			if (TRUE === (bool) $v) {
-				$values[$modifier->getName()] = TRUE;
+			if (true === (bool) $v) {
+				$values[$modifier->getName()] = true;
 			}
 		}
 
@@ -119,7 +94,7 @@ final class ModifierCollection implements ModifierCollectionInterface
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @return ArrayIterator<string, ModifierInterface>
 	 */
 	public function getIterator(): ArrayIterator
 	{
