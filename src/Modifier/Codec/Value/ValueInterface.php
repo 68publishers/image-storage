@@ -6,8 +6,5 @@ namespace SixtyEightPublishers\ImageStorage\Modifier\Codec\Value;
 
 interface ValueInterface
 {
-	/**
-	 * @return mixed
-	 */
-	public function getValue();
+	public function getValue(): mixed;
 }

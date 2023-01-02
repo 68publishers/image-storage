@@ -14,9 +14,9 @@ use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use SixtyEightPublishers\FileStorage\Exception\RuntimeException;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Stack\Stack;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGenerator;
-use SixtyEightPublishers\ImageStorage\Bridge\Console\Command\DumpLambdaConfigCommand;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilder;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Command\DumpLambdaConfigCommand;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilderFactoryInterface;
 
 final class ImageStorageLambdaExtension extends CompilerExtension
@@ -35,7 +35,7 @@ final class ImageStorageLambdaExtension extends CompilerExtension
 			'region' => Expect::string()->required()->dynamic(),
 			'version' => Expect::float(1.0)->dynamic(),
 			's3_prefix' => Expect::string()->nullable()->dynamic(), # an option "stack_name" is used by default
-			'confirm_changeset' => Expect::bool(FALSE)->dynamic(),
+			'confirm_changeset' => Expect::bool(false)->dynamic(),
 			'capabilities' => Expect::anyOf(self::CAPABILITY_IAM, self::CAPABILITY_NAMED_IAM)->default(self::CAPABILITY_IAM)->dynamic(),
 
 			'source_bucket_name' => Expect::string()->nullable()->dynamic(), # detected automatically from AwsS3V3Adapter by default
@@ -84,7 +84,7 @@ final class ImageStorageLambdaExtension extends CompilerExtension
 		$builder = $this->getContainerBuilder();
 
 		$builder->addFactoryDefinition($this->prefix('toml_config_builder_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setImplement(TomlConfigBuilderFactoryInterface::class)
 			->getResultDefinition()
 			->setFactory(TomlConfigBuilder::class);
@@ -110,8 +110,8 @@ final class ImageStorageLambdaExtension extends CompilerExtension
 
 		foreach ($this->config->stacks as $stackName => $stackConfig) {
 			$stackConfig = (array) $stackConfig;
-			$sourceBucketName = $stackConfig['source_bucket_name'] ?? NULL;
-			$cacheBucketName = $stackConfig['cache_bucket_name'] ?? NULL;
+			$sourceBucketName = $stackConfig['source_bucket_name'] ?? null;
+			$cacheBucketName = $stackConfig['cache_bucket_name'] ?? null;
 
 			if (array_key_exists('source_bucket_name', $stackConfig)) {
 				unset($stackConfig['source_bucket_name']);

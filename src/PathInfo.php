@@ -10,95 +10,73 @@ use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
-use SixtyEightPublishers\FileStorage\PathInfoInterface as BasePathInfoInterface;
+use function sprintf;
+use function is_string;
 
 final class PathInfo extends BasePathInfo implements PathInfoInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface  */
-	private $codec;
-
-	/** @var mixed|NULL  */
-	private $modifiers;
-
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface $codec
-	 * @param string                                                           $namespace
-	 * @param string                                                           $name
-	 * @param string|NULL                                                      $extension
-	 * @param string|array|NULL                                                $modifiers
-	 * @param string|NULL                                                      $version
+	 * @param string|array<string, string|numeric|bool>|null $modifiers
 	 *
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
 	 */
-	public function __construct(CodecInterface $codec, string $namespace, string $name, ?string $extension, $modifiers = NULL, ?string $version = NULL)
-	{
+	public function __construct(
+		private readonly CodecInterface $codec,
+		string $namespace,
+		string $name,
+		?string $extension,
+		private string|array|null $modifiers = null,
+		?string $version = null,
+	) {
+		$this->validateExtension($extension);
+
 		parent::__construct($namespace, $name, $extension, $version);
-
-		$this->codec = $codec;
-		$this->modifiers = $modifiers;
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
 	 */
-	public function setExtension(?string $extension): BasePathInfoInterface
+	public function withExtension(?string $extension): static
 	{
 		$this->validateExtension($extension);
 
-		return parent::setExtension($extension);
+		return parent::withExtension($extension);
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
 	 */
-	public function withExt(string $extension): self
+	public function withExt(?string $extension): static
 	{
 		$this->validateExtension($extension);
 
-		return new static($this->codec, $this->getNamespace(), $this->getName(), $extension, $this->getModifiers(), $this->getVersion());
+		return parent::withExt($extension);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getModifiers()
+	public function getModifiers(): string|array|null
 	{
 		return $this->modifiers;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
-	 */
-	public function withModifiers($modifiers): self
+	public function withModifiers(string|array|null $modifiers): static
 	{
-		return new static($this->codec, $this->getNamespace(), $this->getName(), $this->getExtension(), $modifiers, $this->getVersion());
+		$info = clone $this;
+		$info->modifiers = $modifiers;
+
+		return $info;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
-	 */
-	public function withEncodedModifiers(string $modifiers): self
+	public function withEncodedModifiers(string $modifiers): static
 	{
 		return $this->withModifiers($this->codec->decode(new Value($modifiers)));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getPath(): string
 	{
 		$namespace = $this->getNamespace();
 		$modifiers = $this->getModifiers();
 
-		if (NULL === $modifiers) {
+		if (null === $modifiers) {
 			return $namespace === ''
 				? $this->getName()
 				: sprintf('%s/%s', $namespace, $this->getName());
@@ -113,14 +91,11 @@ final class PathInfo extends BasePathInfo implements PathInfoInterface
 	}
 
 	/**
-	 * @param string|NULL $extension
-	 *
-	 * @return void
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
 	 */
 	private function validateExtension(?string $extension): void
 	{
-		if (NULL !== $extension && !SupportedType::isExtensionSupported($extension)) {
+		if (null !== $extension && !SupportedType::isExtensionSupported($extension)) {
 			throw PathInfoException::unsupportedExtension($extension);
 		}
 	}

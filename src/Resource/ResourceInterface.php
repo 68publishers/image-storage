@@ -15,9 +15,7 @@ interface ResourceInterface extends FileResourceInterface
 	public function getSource(): Image;
 
 	/**
-	 * @param string|array $modifiers
-	 *
-	 * @return void
+	 * @param string|array<string, string|numeric|bool> $modifiers
 	 */
-	public function modifyImage($modifiers): void;
+	public function modifyImage(string|array $modifiers): static;
 }

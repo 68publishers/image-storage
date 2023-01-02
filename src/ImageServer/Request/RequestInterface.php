@@ -6,20 +6,9 @@ namespace SixtyEightPublishers\ImageStorage\ImageServer\Request;
 
 interface RequestInterface
 {
-	/**
-	 * @return string
-	 */
 	public function getUrlPath(): string;
 
-	/**
-	 * @param string $name
-	 *
-	 * @return mixed|NULL
-	 */
-	public function getQueryParameter(string $name);
+	public function getQueryParameter(string $name): array|string|null;
 
-	/**
-	 * @return mixed|object
-	 */
-	public function getOriginalRequest();
+	public function getOriginalRequest(): object;
 }

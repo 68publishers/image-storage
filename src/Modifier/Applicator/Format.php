@@ -12,18 +12,19 @@ use SixtyEightPublishers\ImageStorage\Helper\SupportedType;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
+use function assert;
+use function is_int;
+use function in_array;
 
 final class Format implements ModifierApplicatorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
 	public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
 	{
 		$extension = $this->getFileExtension($image, $pathInfo);
 		$quality = $values->getOptional(Quality::class, $config[Config::ENCODE_QUALITY]);
+		assert(is_int($quality));
 
-		if (in_array($extension, ['jpg', 'pjpg'], TRUE)) {
+		if (in_array($extension, ['jpg', 'pjpg'], true)) {
 			$image = $image->getDriver()
 				->newImage($image->width(), $image->height(), '#fff')
 				->insert($image, 'top-left', 0, 0);
@@ -37,22 +38,16 @@ final class Format implements ModifierApplicatorInterface
 		return $image->encode($extension, $quality);
 	}
 
-	/**
-	 * @param \Intervention\Image\Image                           $image
-	 * @param \SixtyEightPublishers\FileStorage\PathInfoInterface $pathInfo
-	 *
-	 * @return string
-	 */
 	private function getFileExtension(Image $image, PathInfoInterface $pathInfo): string
 	{
 		$extension = $pathInfo->getExtension();
 
-		if (NULL !== $extension && SupportedType::isExtensionSupported($extension)) {
+		if (null !== $extension && SupportedType::isExtensionSupported($extension)) {
 			return $extension;
 		}
 
 		try {
-			$extension = SupportedType::getExtensionByType($image->mime());
+			$extension = SupportedType::getExtensionByType((string) $image->mime());
 		} catch (InvalidArgumentException $e) {
 			$extension = SupportedType::getDefaultExtension();
 		}

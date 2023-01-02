@@ -15,12 +15,18 @@ use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
+use function assert;
+use function is_int;
+use function substr;
+use function implode;
+use function sprintf;
+use function strncmp;
+use function is_array;
+use function is_float;
+use function is_string;
 
 final class Resize implements ModifierApplicatorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
 	public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
 	{
 		$width = $values->getOptional(Width::class);
@@ -29,29 +35,33 @@ final class Resize implements ModifierApplicatorInterface
 		$pd = $values->getOptional(PixelDensity::class, 1.0);
 		$fit = $values->getOptional(Fit::class, Fit::CROP_CENTER);
 
-		if (!empty($aspectRatio) && ((NULL === $width && NULL === $height) || (NULL !== $width && NULL !== $height))) {
+		assert(
+			(null === $width || is_int($width))
+			&& (null === $height || is_int($height))
+			&& is_array($aspectRatio)
+			&& is_float($pd)
+			&& is_string($fit)
+		);
+
+		if (!empty($aspectRatio) && ((null === $width && null === $height) || (null !== $width && null !== $height))) {
 			throw new ModifierException(sprintf(
-				'The only one dimension (width or height) must be defined if an aspect ratio is used. Passed values: w=%s, h=%s, ar=%s',
+				'The only one dimension (width or height) must be defined if an aspect ratio is used. Passed values: w=%s, h=%s, ar=%s.',
 				$width ?? 'null',
 				$height ?? 'null',
-				implode(':', $aspectRatio)
+				implode('x', $aspectRatio)
 			));
 		}
 
-		if (NULL === $width && NULL === $height && 1.0 === $pd) {
-			return $image;
-		}
-
-		$imageWidth = (int) $image->width();
-		$imageHeight = (int) $image->height();
+		$imageWidth = $image->width();
+		$imageHeight = $image->height();
 
 		// calculate width & height
-		if (NULL === $width && NULL === $height) {
+		if (null === $width && null === $height) {
 			$width = $imageWidth;
 			$height = $imageHeight;
-		} elseif (NULL === $width) {
+		} elseif (null === $width) {
 			$width = $height * (($aspectRatio[AspectRatio::KEY_WIDTH] ?? $imageWidth) / ($aspectRatio[AspectRatio::KEY_HEIGHT] ?? $imageHeight));
-		} elseif (NULL === $height) {
+		} elseif (null === $height) {
 			$height = $width / (($aspectRatio[AspectRatio::KEY_WIDTH] ?? $imageWidth) / ($aspectRatio[AspectRatio::KEY_HEIGHT] ?? $imageHeight));
 		}
 
@@ -83,6 +93,6 @@ final class Resize implements ModifierApplicatorInterface
 			$fit = substr($fit, 5);
 		}
 
-		return $image->fit($width, $height, NULL, $fit);
+		return $image->fit($width, $height, null, $fit);
 	}
 }

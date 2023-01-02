@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SixtyEightPublishers\ImageStorage\Bridge\Console\Command;
+namespace SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -40,7 +40,7 @@ final class DumpLambdaConfigCommand extends Command
 	{
 		$this->setName('image-storage:lambda:dump-config')
 			->setDescription('Dumps AWS SAM configuration files for defined storages')
-			->addArgument('storage', InputArgument::OPTIONAL, 'Generate config for specific storage only.', NULL);
+			->addArgument('storage', InputArgument::OPTIONAL, 'Generate config for specific storage only.', null);
 	}
 
 	/**
@@ -50,7 +50,7 @@ final class DumpLambdaConfigCommand extends Command
 	{
 		$storageName = $input->getArgument('storage');
 
-		$storages = NULL !== $storageName ? [$this->fileStorageProvider->get($storageName)] : array_filter(iterator_to_array($this->fileStorageProvider), function (FileStorageInterface $fileStorage) {
+		$storages = null !== $storageName ? [$this->fileStorageProvider->get($storageName)] : array_filter(iterator_to_array($this->fileStorageProvider), function (FileStorageInterface $fileStorage) {
 			return $fileStorage instanceof ImageStorageInterface && $this->samConfigGenerator->hasStackForStorage($fileStorage);
 		});
 

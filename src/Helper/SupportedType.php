@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Helper;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use function in_array;
+use function array_keys;
+use function array_search;
+use function array_unique;
+use function array_values;
+use function array_key_exists;
 
 final class SupportedType
 {
-	/** @var array */
-	private static $supportedTypes = [
+	/** @var array<string, string> */
+	private static array $supportedTypes = [
 		'gif' => 'image/gif',
 		'jpg' => 'image/jpeg',
 		'jpeg' => 'image/jpeg',
@@ -18,15 +24,15 @@ final class SupportedType
 		'webp' => 'image/webp',
 	];
 
-	/** @var array  */
-	private static $default = ['jpg', 'image/jpeg'];
+	/** @var array{0: string, 1:string} */
+	private static array $default = ['jpg', 'image/jpeg'];
 
 	private function __construct()
 	{
 	}
 
 	/**
-	 * @return array
+	 * @return array<string>
 	 */
 	public static function getSupportedTypes(): array
 	{
@@ -34,53 +40,34 @@ final class SupportedType
 	}
 
 	/**
-	 * @return array
+	 * @return array<string>
 	 */
 	public static function getSupportedExtensions(): array
 	{
 		return array_keys(self::$supportedTypes);
 	}
 
-	/**
-	 * @return string
-	 */
 	public static function getDefaultExtension(): string
 	{
 		return self::$default[0];
 	}
 
-	/**
-	 * @return string
-	 */
 	public static function getDefaultType(): string
 	{
 		return self::$default[1];
 	}
 
-	/**
-	 * @param string $type
-	 *
-	 * @return bool
-	 */
 	public static function isTypeSupported(string $type): bool
 	{
-		return in_array($type, self::$supportedTypes, TRUE);
+		return in_array($type, self::$supportedTypes, true);
 	}
 
-	/**
-	 * @param string $extension
-	 *
-	 * @return bool
-	 */
 	public static function isExtensionSupported(string $extension): bool
 	{
 		return array_key_exists($extension, self::$supportedTypes);
 	}
 
 	/**
-	 * @param string $extension
-	 *
-	 * @return string
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
 	public static function getTypeByExtension(string $extension): string
@@ -96,9 +83,6 @@ final class SupportedType
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return string
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
 	public static function getExtensionByType(string $type): string
@@ -110,7 +94,7 @@ final class SupportedType
 			));
 		}
 
-		return array_search($type, self::$supportedTypes, TRUE);
+		return array_search($type, self::$supportedTypes, true);
 	}
 
 	/**

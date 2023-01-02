@@ -62,7 +62,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function setProperty(string $name, $value): TomlConfigBuilderInterface
+	public function withProperty(string $name, $value): TomlConfigBuilderInterface
 	{
 		$this->properties[$name] = $value;
 
@@ -76,7 +76,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setVersion(float $version): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('version', $version);
+		return $this->withProperty('version', $version);
 	}
 
 	/**
@@ -86,7 +86,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setStackName(string $stackName): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('stack_name', $stackName);
+		return $this->withProperty('stack_name', $stackName);
 	}
 
 	/**
@@ -96,7 +96,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setS3Bucket(string $s3Bucket): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('s3_bucket', $s3Bucket);
+		return $this->withProperty('s3_bucket', $s3Bucket);
 	}
 
 	/**
@@ -106,7 +106,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setS3Prefix(string $s3Prefix): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('s3_prefix', $s3Prefix);
+		return $this->withProperty('s3_prefix', $s3Prefix);
 	}
 
 	/**
@@ -116,7 +116,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setRegion(string $region): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('region', $region);
+		return $this->withProperty('region', $region);
 	}
 
 	/**
@@ -126,7 +126,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setConfirmChangeSet(bool $confirmChangeSet): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('confirm_changeset', $confirmChangeSet);
+		return $this->withProperty('confirm_changeset', $confirmChangeSet);
 	}
 
 	/**
@@ -136,7 +136,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setCapabilities(string $capabilities): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('capabilities', $capabilities);
+		return $this->withProperty('capabilities', $capabilities);
 	}
 
 	/**
@@ -146,7 +146,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 	 */
 	public function setParameterOverrides($parameterOverrides): TomlConfigBuilderInterface
 	{
-		return $this->setProperty('parameter_overrides', $parameterOverrides);
+		return $this->withProperty('parameter_overrides', $parameterOverrides);
 	}
 
 	/**
@@ -161,7 +161,7 @@ final class TomlConfigBuilder implements TomlConfigBuilderInterface
 			's3_bucket' => Expect::string()->required(),
 			's3_prefix' => Expect::string()->required(),
 			'region' => Expect::string()->required(),
-			'confirm_changeset' => Expect::bool(FALSE),
+			'confirm_changeset' => Expect::bool(false),
 			'capabilities' => Expect::anyOf(self::CAPABILITY_IAM, self::CAPABILITY_NAMED_IAM)->default(self::CAPABILITY_IAM),
 			'parameter_overrides' => Expect::type('string|' . ParameterOverrides::class)->castTo('string'),
 		]);

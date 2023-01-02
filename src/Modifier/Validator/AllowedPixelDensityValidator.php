@@ -9,12 +9,14 @@ use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
+use function assert;
+use function sprintf;
+use function in_array;
+use function is_array;
+use function is_float;
 
 final class AllowedPixelDensityValidator implements ValidatorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
 	public function validate(ModifierValues $values, ConfigInterface $config): void
 	{
 		$allowedPixelDensities = $config[Config::ALLOWED_PIXEL_DENSITY];
@@ -24,10 +26,11 @@ final class AllowedPixelDensityValidator implements ValidatorInterface
 		}
 
 		$pd = $values->getOptional(PixelDensity::class);
+		assert(null === $pd || is_float($pd));
 
-		if (NULL !== $pd && !in_array($pd, $allowedPixelDensities, FALSE)) {
+		if (null !== $pd && !in_array($pd, $allowedPixelDensities, false)) {
 			throw new ModifierException(sprintf(
-				'Invalid pixel density modifier, %s is not supported.',
+				'Invalid pixel density modifier, %.1f is not supported.',
 				$pd
 			));
 		}

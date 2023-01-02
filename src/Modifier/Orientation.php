@@ -5,26 +5,24 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
+use function sprintf;
+use function in_array;
 
 final class Orientation extends AbstractModifier implements ParsableModifierInterface
 {
 	private const VALUES = [ 'auto', '0', '90', '-90', '180', '-180', '270', '-270' ];
 
-	/** @var string  */
-	protected $alias = 'o';
+	protected ?string $alias = 'o';
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function parseValue(string $value): string
+	public function parseValue(string $value): string|int
 	{
-		if (!in_array($value, self::VALUES, TRUE)) {
+		if (!in_array($value, self::VALUES, true)) {
 			throw new ModifierException(sprintf(
-				'Value "%s" is not valid orientation',
+				'Value "%s" is not a valid orientation.',
 				$value
 			));
 		}
 
-		return $value;
+		return 'auto' === $value ? $value : (int) $value;
 	}
 }

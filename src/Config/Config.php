@@ -20,14 +20,14 @@ final class Config extends FileStorageConfig
 	public const CACHE_MAX_AGE = 'cache_max_age';
 
 	/** @var array  */
-	protected $config = [
+	protected array $config = [
 		self::BASE_PATH => '',
-		self::HOST => NULL,
+		self::HOST => null,
 		self::MODIFIER_SEPARATOR => ',',
 		self::MODIFIER_ASSIGNER => ':',
 		self::VERSION_PARAMETER_NAME => '_v',
 		self::SIGNATURE_PARAMETER_NAME => '_s',
-		self::SIGNATURE_KEY => NULL,
+		self::SIGNATURE_KEY => null,
 		self::SIGNATURE_ALGORITHM => 'sha256',
 		self::ALLOWED_PIXEL_DENSITY => [],
 		self::ALLOWED_RESOLUTIONS => [],

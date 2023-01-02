@@ -8,41 +8,29 @@ use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Config\NoImageConfigInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use function sprintf;
+use function in_array;
+use function preg_match;
 
 final class NoImageResolver implements NoImageResolverInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface  */
-	private $infoFactory;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Config\NoImageConfigInterface  */
-	private $noImageConfig;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface     $infoFactory
-	 * @param \SixtyEightPublishers\ImageStorage\Config\NoImageConfigInterface $noImageConfig
-	 */
-	public function __construct(InfoFactoryInterface $infoFactory, NoImageConfigInterface $noImageConfig)
-	{
-		$this->infoFactory = $infoFactory;
-		$this->noImageConfig = $noImageConfig;
+	public function __construct(
+		private readonly InfoFactoryInterface $infoFactory,
+		private readonly NoImageConfigInterface $noImageConfig
+	) {
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getNoImageConfig(): NoImageConfigInterface
 	{
 		return $this->noImageConfig;
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidStateException
 	 */
-	public function getNoImage(?string $name = NULL): PathInfoInterface
+	public function getNoImage(?string $name = null): PathInfoInterface
 	{
-		if (NULL === $name) {
+		if (null === $name) {
 			return $this->getDefaultPathInfo();
 		}
 
@@ -58,17 +46,11 @@ final class NoImageResolver implements NoImageResolverInterface
 		return $this->infoFactory->createPathInfo($paths[$name]);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function isNoImage(string $path): bool
 	{
-		return $path === $this->noImageConfig->getDefaultPath() || in_array($path, $this->noImageConfig->getPaths(), TRUE);
+		return $path === $this->noImageConfig->getDefaultPath() || in_array($path, $this->noImageConfig->getPaths(), true);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function resolveNoImage(string $path): PathInfoInterface
 	{
 		foreach ($this->noImageConfig->getPatterns() as $name => $regex) {
@@ -81,12 +63,11 @@ final class NoImageResolver implements NoImageResolverInterface
 	}
 
 	/**
-	 * @return \SixtyEightPublishers\ImageStorage\PathInfoInterface
 	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
 	private function getDefaultPathInfo(): PathInfoInterface
 	{
-		if (NULL === $this->noImageConfig->getDefaultPath()) {
+		if (null === $this->noImageConfig->getDefaultPath()) {
 			throw new InvalidArgumentException('Default no-image path is not defined.');
 		}
 

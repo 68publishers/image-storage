@@ -9,17 +9,16 @@ use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 use SixtyEightPublishers\ImageStorage\Modifier\Orientation as OrientationModifier;
+use function is_string;
+use function is_numeric;
 
 final class Orientation implements ModifierApplicatorInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
 	public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
 	{
 		$orientation = $values->getOptional(OrientationModifier::class);
 
-		if (NULL === $orientation) {
+		if (!is_string($orientation) && !is_numeric($orientation)) {
 			return $image;
 		}
 

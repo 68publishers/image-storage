@@ -54,10 +54,10 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeFactoryInter
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\Response\ResponseFactory;
 use SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageDefinitionFactoryInterface;
-use SixtyEightPublishers\ImageStorage\Bridge\Console\Configurator\CleanCommandConfiguration;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\ImageManager\ImageManagerFactory;
 use SixtyEightPublishers\FileStorage\Bridge\Console\Configurator\CleanCommandConfiguratorInterface;
+use SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Configurator\CleanCommandConfigurator;
 use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\ImageManager\ImageManagerFactoryInterface;
 
 final class ImageStorageExtension extends CompilerExtension implements FileStorageDefinitionFactoryInterface
@@ -87,18 +87,18 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 					'config' => Expect::array([
 						FlysystemConfig::OPTION_VISIBILITY => Visibility::PRIVATE,
 						FlysystemConfig::OPTION_DIRECTORY_VISIBILITY => Visibility::PRIVATE,
-					])->mergeDefaults(TRUE),
+					])->mergeDefaults(true),
 				]),
 				'server' => Expect::anyOf(self::IMAGE_SERVER_LOCAL, self::IMAGE_SERVER_EXTERNAL)->default(self::IMAGE_SERVER_LOCAL),
 
 				'no_image' => Expect::arrayOf('string|null')->default([
-					'default' => NULL,
-				])->mergeDefaults(TRUE),
+					'default' => null,
+				])->mergeDefaults(true),
 				'no_image_patterns' => Expect::arrayOf('string'),
 				'presets' => Expect::arrayOf('array'),
 
 				'modifiers' => Expect::listOf('string|' . Statement::class)
-					->mergeDefaults(FALSE)
+					->mergeDefaults(false)
 					->before(static function (array $items) {
 						return array_map(static function ($item) {
 							return $item instanceof Statement ? $item : new Statement($item);
@@ -116,7 +116,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 					]),
 
 				'applicators' => Expect::listOf('string|' . Statement::class)
-					->mergeDefaults(FALSE)
+					->mergeDefaults(false)
 					->before(static function (array $items) {
 						return array_map(static function ($item) {
 							return $item instanceof Statement ? $item : new Statement($item);
@@ -129,7 +129,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 					]),
 
 				'validators' => Expect::listOf('string|' . Statement::class)
-					->mergeDefaults(FALSE)
+					->mergeDefaults(false)
 					->before(static function (array $items) {
 						return array_map(static function ($item) {
 							return $item instanceof Statement ? $item : new Statement($item);
@@ -163,7 +163,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 
 		# Image manager
 		$builder->addDefinition($this->prefix('image_manager_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setType(ImageManagerFactoryInterface::class)
 			->setFactory(ImageManagerFactory::class);
 
@@ -175,21 +175,21 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 
 		# Modifier collection factory
 		$builder->addFactoryDefinition($this->prefix('modifiers.modifier_collection_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setImplement(ModifierCollectionFactoryInterface::class)
 			->getResultDefinition()
 			->setFactory(ModifierCollection::class);
 
 		# Preset collection factory
 		$builder->addFactoryDefinition($this->prefix('modifiers.preset_collection_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setImplement(PresetCollectionFactoryInterface::class)
 			->getResultDefinition()
 			->setFactory(PresetCollection::class);
 
 		# Modifier facade factory
 		$builder->addDefinition($this->prefix('modifiers.modifier_facade_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setType(ModifierFacadeFactoryInterface::class)
 			->setFactory(ModifierFacadeFactory::class, [
 				$this->prefix('@modifiers.preset_collection_factory'),
@@ -198,18 +198,18 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 
 		# Responsive - srcset generator factory
 		$builder->addFactoryDefinition($this->prefix('responsive.srcset_generator_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setImplement(SrcSetGeneratorFactoryInterface::class);
 
 		# Image server - response factory
 		$builder->addDefinition($this->prefix('image_server_response_factory'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setType(ResponseFactoryInterface::class)
 			->setFactory(ResponseFactory::class);
 
 		# Custom storage cleaner
 		$builder->addDefinition($this->prefix('storage_cleaner'))
-			->setAutowired(FALSE)
+			->setAutowired(false)
 			->setType(StorageCleanerInterface::class)
 			->setFactory(StorageCleaner::class);
 
@@ -217,9 +217,9 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		if (0 < count($this->compiler->getExtensions(FileStorageConsoleExtension::class))) {
 			$builder->addDefinition($this->prefix('configurator.clean_command'))
 				->setType(CleanCommandConfiguratorInterface::class)
-				->setFactory(CleanCommandConfiguration::class)
+				->setFactory(CleanCommandConfigurator::class)
 				->addTag(FileStorageConsoleExtension::TAG_CLEAN_COMMAND_CONFIGURATOR)
-				->setAutowired(FALSE);
+				->setAutowired(false);
 		}
 	}
 
@@ -246,8 +246,8 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		$defaultStorageCleaner = $builder->getDefinitionByType(StorageCleanerInterface::class);
 
 		$storageCleanerDecorator->setArguments([$defaultStorageCleaner]);
-		$storageCleanerDecorator->setAutowired(TRUE);
-		$defaultStorageCleaner->setAutowired(FALSE);
+		$storageCleanerDecorator->setAutowired(true);
+		$defaultStorageCleaner->setAutowired(false);
 	}
 
 	/**
@@ -288,12 +288,12 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 					]),
 				],
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('config.' . $name))
 			->setType(ConfigInterface::class)
 			->setFactory(Config::class, [$config->config])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('modifier_facade.' . $name))
 			->setType(ModifierFacadeInterface::class)
@@ -304,7 +304,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 			->addSetup('setPresets', [$imageStorageConfig->presets])
 			->addSetup('setApplicators', [$imageStorageConfig->applicators])
 			->addSetup('setValidators', [$imageStorageConfig->validators])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('resource_factory.' . $name))
 			->setType(ResourceFactoryInterface::class)
@@ -313,7 +313,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@image_manager'),
 				$this->prefix('@modifier_facade.' . $name),
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		# signature enabled
 		if (!empty($config->config[Config::SIGNATURE_KEY] ?? '')) {
@@ -322,7 +322,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				->setFactory(SignatureStrategy::class, [
 					$this->prefix('@config.' . $name),
 				])
-				->setAutowired(FALSE);
+				->setAutowired(false);
 		}
 
 		$builder->addDefinition($this->prefix('link_generator.' . $name))
@@ -331,9 +331,9 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@config.' . $name),
 				$this->prefix('@modifier_facade.' . $name),
 				$this->prefix('@responsive.srcset_generator_factory'),
-				$signatureStrategyDefinition ?? NULL,
+				$signatureStrategyDefinition ?? null,
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('image_persister.' . $name))
 			->setType(ImagePersisterInterface::class)
@@ -342,7 +342,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@config.' . $name),
 				$this->prefix('@modifier_facade.' . $name),
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('info_factory.' . $name))
 			->setType(InfoFactoryInterface::class)
@@ -351,7 +351,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@link_generator.' . $name),
 				$name,
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$defaultNoImage = $imageStorageConfig->no_image['default'];
 		unset($imageStorageConfig->no_image['default']);
@@ -363,7 +363,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$imageStorageConfig->no_image,
 				$imageStorageConfig->no_image_patterns,
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$builder->addDefinition($this->prefix('no_image_resolver.' . $name))
 			->setType(NoImageResolverInterface::class)
@@ -371,11 +371,11 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@info_factory.' . $name),
 				$this->prefix('@no_image_config.' . $name),
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		$imageServerDefinition = $builder->addDefinition($this->prefix('image_server_factory.' . $name))
 			->setType(ImageServerFactoryInterface::class)
-			->setAutowired(FALSE);
+			->setAutowired(false);
 
 		switch ($imageStorageConfig->server) {
 			case self::IMAGE_SERVER_LOCAL:
@@ -400,6 +400,6 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 				$this->prefix('@info_factory.' . $name),
 				$imageServerDefinition,
 			])
-			->setAutowired(FALSE);
+			->setAutowired(false);
 	}
 }

@@ -9,9 +9,7 @@ use Intervention\Image\ImageManager;
 interface ImageManagerFactoryInterface
 {
 	/**
-	 * @param array $config
-	 *
-	 * @return \Intervention\Image\ImageManager
+	 * @param array<string, mixed> $config
 	 */
 	public function create(array $config = []): ImageManager;
 }

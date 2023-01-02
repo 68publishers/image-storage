@@ -6,21 +6,18 @@ namespace SixtyEightPublishers\ImageStorage\Modifier\Codec\Value;
 
 final class Value implements ValueInterface
 {
-	/** @var mixed */
-	private $value;
-
 	/**
-	 * @param mixed $value
+	 * @param string|array<string, string|numeric|bool> $value
 	 */
-	public function __construct($value)
-	{
-		$this->value = $value;
+	public function __construct(
+		private readonly array|string $value,
+	) {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @return string|array<string, string|numeric|bool>
 	 */
-	public function getValue()
+	public function getValue(): array|string
 	{
 		return $this->value;
 	}

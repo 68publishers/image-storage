@@ -10,11 +10,7 @@ use Intervention\Image\Commands\AbstractCommand;
 interface CommandExecutorInterface
 {
 	/**
-	 * @param \Intervention\Image\Image $image
-	 * @param string                    $name
-	 * @param array                     $arguments
-	 *
-	 * @return \Intervention\Image\Commands\AbstractCommand
+	 * @param array<string, mixed> $arguments
 	 */
 	public function execute(Image $image, string $name, array $arguments): AbstractCommand;
 }

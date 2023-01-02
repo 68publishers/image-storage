@@ -4,39 +4,29 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
+use function unlink;
+
 final class TmpFile
 {
-	/** @var string  */
-	private $filename;
+	private bool $unlinked = false;
 
-	/** @var bool  */
-	private $unlinked = FALSE;
-
-	/**
-	 * @param string $filename
-	 */
-	public function __construct(string $filename)
-	{
-		$this->filename = $filename;
+	public function __construct(
+		private readonly string $filename,
+	) {
 	}
 
 	/**
 	 * Destroy a tmp file
-	 *
-	 * @return void
 	 */
 	public function unlink(): void
 	{
-		if (FALSE === $this->unlinked) {
+		if (false === $this->unlinked) {
 			@unlink($this->filename);
 
-			$this->unlinked = TRUE;
+			$this->unlinked = true;
 		}
 	}
 
-	/**
-	 * @return void
-	 */
 	public function __destruct()
 	{
 		$this->unlink();

@@ -7,43 +7,30 @@ namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
-use SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use function is_array;
+use function trigger_error;
 
 final class ArgsFacade
 {
-	/** @var \SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface  */
-	private $linkGenerator;
+	/** @var array<string, string|numeric|bool>|null */
+	private ?array $defaultModifiers = null;
 
-	/** @var \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface  */
-	private $modifierFacade;
+	public function __construct(
+		private readonly LinkGeneratorInterface $linkGenerator,
+		private readonly ModifierFacadeInterface $modifierFacade,
+		private readonly PathInfoInterface $pathInfo,
+	) {
+		$modifiers = $this->pathInfo->getModifiers();
 
-	/** @var \SixtyEightPublishers\ImageStorage\PathInfoInterface  */
-	private $pathInfo;
-
-	/** @var array|NULL */
-	private $defaultModifiers;
-
-	/**
-	 * @param \SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface     $linkGenerator
-	 * @param \SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface $modifierFacade
-	 * @param \SixtyEightPublishers\ImageStorage\PathInfoInterface                       $pathInfo
-	 */
-	public function __construct(LinkGeneratorInterface $linkGenerator, ModifierFacadeInterface $modifierFacade, PathInfoInterface $pathInfo)
-	{
-		$this->linkGenerator = $linkGenerator;
-		$this->modifierFacade = $modifierFacade;
-		$this->pathInfo = $pathInfo;
-
-		$modifiers = $pathInfo->getModifiers();
-
-		if (NULL !== $modifiers) {
-			$this->defaultModifiers = is_array($modifiers) ? $modifiers : $modifierFacade->getCodec()->decode(new PresetValue($modifiers));
+		if (null !== $modifiers) {
+			$this->defaultModifiers = is_array($modifiers) ? $modifiers : $this->modifierFacade->getCodec()->decode(new PresetValue($modifiers));
 		}
 	}
 
 	/**
-	 * @return array|NULL
+	 * @return array<string, string|numeric|bool>|null
 	 */
 	public function getDefaultModifiers(): ?array
 	{
@@ -51,9 +38,7 @@ final class ArgsFacade
 	}
 
 	/**
-	 * @param array $modifiers
-	 *
-	 * @return string
+	 * @param array<string, string|numeric|bool> $modifiers
 	 */
 	public function createLink(array $modifiers): string
 	{
@@ -63,7 +48,7 @@ final class ArgsFacade
 	/**
 	 * @param string $modifierClassName
 	 *
-	 * @return string|NULL
+	 * @return string|null
 	 */
 	public function getModifierAlias(string $modifierClassName): ?string
 	{
@@ -76,6 +61,6 @@ final class ArgsFacade
 			trigger_error($e->getMessage(), E_USER_WARNING);
 		}
 
-		return NULL;
+		return null;
 	}
 }

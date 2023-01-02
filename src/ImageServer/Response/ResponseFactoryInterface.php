@@ -10,20 +10,7 @@ use SixtyEightPublishers\ImageStorage\Exception\ResponseException;
 
 interface ResponseFactoryInterface
 {
-	/**
-	 * @param \League\Flysystem\FilesystemReader                       $reader
-	 * @param string                                                   $path
-	 * @param \SixtyEightPublishers\FileStorage\Config\ConfigInterface $config
-	 *
-	 * @return object
-	 */
-	public function createImageResponse(FilesystemReader $reader, string $path, ConfigInterface $config);
+	public function createImageResponse(FilesystemReader $reader, string $path, ConfigInterface $config): object;
 
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Exception\ResponseException $e
-	 * @param \SixtyEightPublishers\FileStorage\Config\ConfigInterface       $config
-	 *
-	 * @return object
-	 */
-	public function createErrorResponse(ResponseException $e, ConfigInterface $config);
+	public function createErrorResponse(ResponseException $e, ConfigInterface $config): object;
 }

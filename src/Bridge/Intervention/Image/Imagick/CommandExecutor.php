@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick;
 
 use Imagick;
+use ImagickException;
 use Intervention\Image\Image;
 use Intervention\Image\Commands\AbstractCommand;
 use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\AbstractCommandExecutor;
@@ -12,7 +13,7 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\AbstractCommandE
 final class CommandExecutor extends AbstractCommandExecutor
 {
 	/**
-	 * {@inheritDoc}
+	 * @throws ImagickException
 	 */
 	protected function doExecute(Image $image, AbstractCommand $command): void
 	{

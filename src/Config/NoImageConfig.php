@@ -6,46 +6,27 @@ namespace SixtyEightPublishers\ImageStorage\Config;
 
 final class NoImageConfig implements NoImageConfigInterface
 {
-	/** @var string|NULL  */
-	private $defaultPath;
-
-	/** @var string[]  */
-	private $paths;
-
-	/** @var string[]  */
-	private $patterns;
-
 	/**
-	 * @param string|NULL $defaultPath
-	 * @param array       $paths
-	 * @param array       $patterns
+	 * @param array<string, string> $paths
+	 * @param array<string, string> $patterns
 	 */
-	public function __construct(?string $defaultPath, array $paths, array $patterns)
-	{
-		$this->defaultPath = $defaultPath;
-		$this->paths = $paths;
-		$this->patterns = $patterns;
+	public function __construct(
+		private readonly ?string $defaultPath,
+		private readonly array $paths,
+		private readonly array $patterns,
+	) {
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getDefaultPath(): ?string
 	{
 		return $this->defaultPath;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getPaths(): array
 	{
 		return $this->paths;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getPatterns(): array
 	{
 		return $this->patterns;

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\Imagick;
 
 use Imagick;
+use ImagickException;
 use Intervention\Image\Image;
 use Intervention\Image\Imagick\Decoder as ImagickDecoder;
 
 final class Decoder extends ImagickDecoder
 {
 	/**
-	 * {@inheritDoc}
+	 * @throws ImagickException
 	 */
 	public function initFromImagick(Imagick $object): Image
 	{

@@ -5,28 +5,23 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 use SixtyEightPublishers\ImageStorage\Exception\ModifierException;
+use function is_numeric;
 
 final class PixelDensity extends AbstractModifier implements ParsableModifierInterface
 {
-	/** @var string  */
-	protected $alias = 'pd';
+	protected ?string $alias = 'pd';
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function parseValue(string $value): float
 	{
 		if (!is_numeric($value)) {
-			throw new ModifierException(sprintf(
-				'Pixel density must be numeric.'
-			));
+			throw new ModifierException('Pixel density must be a numeric value.');
 		}
 
 		$value = (float) $value;
 
-		if (0 >= $value && 8 < $value) {
+		if (0 >= $value || 8 < $value) {
 			throw new ModifierException(sprintf(
-				'Pixel density %f is not valid, value must be between 1 and 8.',
+				'Pixel density %.1f is not valid, the value must be between 1 and 8.',
 				$value
 			));
 		}
