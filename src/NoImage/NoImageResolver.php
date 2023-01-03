@@ -25,9 +25,6 @@ final class NoImageResolver implements NoImageResolverInterface
 		return $this->noImageConfig;
 	}
 
-	/**
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidStateException
-	 */
 	public function getNoImage(?string $name = null): PathInfoInterface
 	{
 		if (null === $name) {

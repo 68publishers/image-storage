@@ -9,9 +9,13 @@ use Tester\Assert;
 use Tester\TestCase;
 use Nette\DI\Container;
 use ReflectionProperty;
+use Nette\Http\UrlScript;
+use Nette\Routing\Router;
 use League\Flysystem\Visibility;
 use Tester\CodeCoverage\Collector;
 use Intervention\Image\ImageManager;
+use Nette\Application\IPresenterFactory;
+use Nette\Http\Request as NetteHttpRequest;
 use League\Flysystem\Config as FlysystemConfig;
 use SixtyEightPublishers\ImageStorage\Modifier;
 use SixtyEightPublishers\ImageStorage\ImageStorage;
@@ -45,6 +49,7 @@ use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\ExternalImageServerFactory;
+use SixtyEightPublishers\ImageStorage\Bridge\Nette\Application\ImageServerPresenter;
 use SixtyEightPublishers\ImageStorage\Modifier\Applicator\ModifierApplicatorInterface;
 use SixtyEightPublishers\FileStorage\Bridge\Symfony\Console\Configurator\BaseCleanCommandConfigurator;
 use SixtyEightPublishers\FileStorage\Bridge\Symfony\Console\Configurator\CleanCommandConfiguratorRegistry;
@@ -79,6 +84,24 @@ final class ImageStorageExtensionTest extends TestCase
 			static fn () => ContainerFactory::create(__DIR__ . '/config/ImageStorage/config.error.missingDefinitionInFileStorageExtension.neon'),
 			RuntimeException::class,
 			'Missing definition for a storage with the name "missing_in_file_storage" in the configuration of the extension SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageExtension.'
+		);
+	}
+
+	public function testExceptionShouldBeThrownIfExternalImageServerIsConfiguredWithRoute(): void
+	{
+		Assert::exception(
+			static fn () => ContainerFactory::create(__DIR__ . '/config/ImageStorage/config.error.externalImageServerAndRouteConfigured.neon'),
+			RuntimeException::class,
+			'Unable to register a route for an image storage with the name "images" because a server is set as external.'
+		);
+	}
+
+	public function testExceptionShouldBeThrownIfRouteOptionIsEnabledButBasePathIsEmpty(): void
+	{
+		Assert::exception(
+			static fn () => ContainerFactory::create(__DIR__ . '/config/ImageStorage/config.error.emptyBasePathWithRouteOption.neon'),
+			RuntimeException::class,
+			'Unable to register a route for an image storage with the name "images". Please set a configuration option "base_path".'
 		);
 	}
 
@@ -262,6 +285,42 @@ final class ImageStorageExtensionTest extends TestCase
 				'test' => '^test\/',
 			]
 		);
+	}
+
+	public function testImageServerPresenterAndRoutesShouldBeRegistered(): void
+	{
+		$container = ContainerFactory::create(__DIR__ . '/config/ImageStorage/config.withRouteOption.neon');
+
+		$presenterFactory = $container->getByType(IPresenterFactory::class);
+		$router = $container->getByType(Router::class);
+		assert($presenterFactory instanceof IPresenterFactory && $router instanceof Router);
+
+		$presenter = $presenterFactory->createPresenter('ImageStorage:ImageServer');
+
+		Assert::type(ImageServerPresenter::class, $presenter);
+
+		$httpRequest1 = new NetteHttpRequest(
+			new UrlScript('https://www.example.com/images/test/w:500,ar:16x9/image.png?_v=123')
+		);
+		$httpRequest2 = new NetteHttpRequest(
+			new UrlScript('https://www.example.com/images2/test/w:500,ar:16x9/image.png?_v=123')
+		);
+
+		Assert::equal([
+			'presenter' => 'ImageStorage:ImageServer',
+			'action' => 'default',
+			'path' => 'test/w:500,ar:16x9/image.png',
+			'_v' => '123',
+			'__storageName' => 'images',
+		], $router->match($httpRequest1));
+
+		Assert::equal([
+			'presenter' => 'ImageStorage:ImageServer',
+			'action' => 'default',
+			'path' => 'test/w:500,ar:16x9/image.png',
+			'_v' => '123',
+			'__storageName' => 'images2',
+		], $router->match($httpRequest2));
 	}
 
 	public function testCleanCommandConfiguratorShouldBeRegisteredIfConsoleExtensionIsRegistered(): void

@@ -10,5 +10,3 @@ parameters:
 		-
 			message: '#Parameter \$object of method SixtyEightPublishers\\ImageStorage\\Bridge\\Intervention\\Image\\Imagick\\Decoder::initFromImagick\(\) has invalid type Intervention\\Image\\Imagick\\Imagick.#'
 			path: src/Bridge/Intervention/Image/Imagick/Decoder.php
-		-
-			message: '#Return type \(Intervention\\Image\\Image\) of method [a-zA-Z\\]+::getSource\(\) should be compatible with return type \(resource\|string\) of method SixtyEightPublishers\\FileStorage\\Resource\\ResourceInterface::getSource\(\)#'

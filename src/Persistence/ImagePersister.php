@@ -18,6 +18,7 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceInterface;
 use function assert;
 use function sprintf;
 use function is_scalar;
@@ -52,6 +53,7 @@ final class ImagePersister implements ImagePersisterInterface
 
 	public function save(ResourceInterface $resource, array $config = []): string
 	{
+		assert($resource instanceof ImageResourceInterface);
 		$pathInfo = $this->assertPathInfo($resource->getPathInfo(), __METHOD__);
 		$source = $resource->getSource();
 

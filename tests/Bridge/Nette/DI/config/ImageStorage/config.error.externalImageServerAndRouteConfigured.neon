@@ -1,0 +1,19 @@
+extensions:
+	file_storage: SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageExtension(%cwd%)
+	image_storage: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension
+
+file_storage:
+	storages:
+		images:
+			config:
+				host: https://www.example.com
+			filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+
+image_storage:
+	storages:
+		images:
+			source_filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+			server: external
+			route: yes

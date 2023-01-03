@@ -10,7 +10,7 @@ use SixtyEightPublishers\FileStorage\Resource\ResourceInterface as FileResourceI
 interface ResourceInterface extends FileResourceInterface
 {
 	/**
-	 * @return \Intervention\Image\Image
+	 * @phpstan-ignore-next-line
 	 */
 	public function getSource(): Image;
 

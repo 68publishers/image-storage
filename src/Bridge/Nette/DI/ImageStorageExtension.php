@@ -503,5 +503,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		$this->getContainerBuilder()
 			->addDefinition($this->prefix('presenter.image_server'))
 			->setType(ImageServerPresenter::class);
+
+		$this->imageServerPresenterRegistered = true;
 	}
 }
