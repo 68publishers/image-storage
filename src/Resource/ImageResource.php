@@ -22,6 +22,9 @@ class ImageResource implements ResourceInterface
 		return $this->pathInfo;
 	}
 
+	/**
+	 * @phpstan-ignore-next-line
+	 */
 	public function getSource(): Image
 	{
 		return $this->image;

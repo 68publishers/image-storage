@@ -33,7 +33,6 @@
 		"phpstan/phpstan-nette": "^1.1",
 		"roave/security-advisories": "dev-latest",
 		"symfony/console": "^5.0 | ^6.0",
-		"tracy/tracy": "^2.6",
 		"yosymfony/toml": "^1.0.4"
 	},
 	"suggest": {

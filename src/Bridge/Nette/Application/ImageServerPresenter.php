@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Bridge\Nette\Application;
 
-use Tracy\ILogger;
-use Tracy\Debugger;
 use Nette\Http\IRequest;
 use Psr\Log\LoggerInterface;
 use Nette\Application\IPresenter;
@@ -19,7 +17,6 @@ use SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\ErrorResponse;
 use function assert;
 use function sprintf;
 use function is_string;
-use function class_exists;
 
 class ImageServerPresenter implements IPresenter
 {
@@ -46,25 +43,14 @@ class ImageServerPresenter implements IPresenter
 		$response = $storage->getImageResponse(new Request($this->request));
 		assert($response instanceof ApplicationResponse);
 
-		if ($response instanceof ErrorResponse) {
-			$this->logErrorResponse($response);
+		if ($response instanceof ErrorResponse && null !== $this->logger) {
+			$exception = $response->getException();
+
+			$this->logger->error($exception->getMessage(), [
+				'exception' => $exception,
+			]);
 		}
 
 		return $response;
-	}
-
-	private function logErrorResponse(ErrorResponse $response): void
-	{
-		if (null !== $this->logger) {
-			$this->logger->error($response->getException()->getMessage(), [
-				'exception' => $response->getException(),
-			]);
-			
-			return;
-		}
-		
-		if (class_exists(Debugger::class)) {
-			Debugger::log($response->getException(), ILogger::ERROR);
-		}
 	}
 }
