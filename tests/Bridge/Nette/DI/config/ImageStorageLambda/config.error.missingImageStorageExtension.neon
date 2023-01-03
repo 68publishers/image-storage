@@ -1,0 +1,2 @@
+extensions:
+	image_storage.lambda: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageLambdaExtension

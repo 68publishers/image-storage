@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\ImageServer;
 
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
 
 final class LocalImageServerFactory implements ImageServerFactoryInterface
 {

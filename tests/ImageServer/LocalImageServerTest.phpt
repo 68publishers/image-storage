@@ -15,11 +15,11 @@ use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\ImageStorage\Exception\ResponseException;
 use SixtyEightPublishers\ImageStorage\ImageServer\LocalImageServer;
+use SixtyEightPublishers\ImageStorage\ImageServer\RequestInterface;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\ResponseFactoryInterface;
 
 require __DIR__ . '/../bootstrap.php';
 

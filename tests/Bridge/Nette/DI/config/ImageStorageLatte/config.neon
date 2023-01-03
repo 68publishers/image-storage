@@ -1,0 +1,32 @@
+extensions:
+	file_storage: SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageExtension(%cwd%)
+	image_storage: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension
+	image_storage.latte: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageLatteExtension
+
+file_storage:
+	storages:
+		images:
+			config:
+				base_path: images
+			filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+		images2:
+			config:
+				base_path: images2
+			filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+
+image_storage:
+	storages:
+		images:
+			source_filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+			no_image:
+				default: noimage/noimage.png
+				test: test/noimage.png
+		images2:
+			source_filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+			no_image:
+				default: noimage/noimage.png
+				test: test/noimage.png

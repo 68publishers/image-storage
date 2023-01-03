@@ -1,0 +1,34 @@
+extensions:
+	file_storage: SixtyEightPublishers\FileStorage\Bridge\Nette\DI\FileStorageExtension(%cwd%)
+	image_storage: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension
+
+file_storage:
+	storages:
+		images:
+			config:
+				base_path: images
+			filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+
+image_storage:
+	storages:
+		images:
+			source_filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+			modifiers:
+				- @default
+				- SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestModifier
+			applicators:
+				- SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestApplicator
+				- @default
+			validators:
+				- SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestValidator
+			presets:
+				small:
+					w: 100
+					ar: 2x1
+				huge:
+					w: 1000
+					ar: 16x9
+				rotated:
+					o: 180

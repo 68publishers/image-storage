@@ -11,55 +11,72 @@ use Symfony\Component\Console\Output\OutputInterface;
 use SixtyEightPublishers\FileStorage\FileStorageInterface;
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 use SixtyEightPublishers\FileStorage\FileStorageProviderInterface;
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGeneratorInterface;
+use function assert;
+use function sprintf;
+use function is_string;
+use function array_filter;
+use function iterator_to_array;
 
 final class DumpLambdaConfigCommand extends Command
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGeneratorInterface  */
-	private $samConfigGenerator;
+	protected static $defaultName = 'image-storage:lambda:dump-config';
 
-	/** @var \SixtyEightPublishers\FileStorage\FileStorageProviderInterface  */
-	private $fileStorageProvider;
-
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGeneratorInterface $samConfigGenerator
-	 * @param \SixtyEightPublishers\FileStorage\FileStorageProviderInterface                           $fileStorageProvider
-	 */
-	public function __construct(SamConfigGeneratorInterface $samConfigGenerator, FileStorageProviderInterface $fileStorageProvider)
-	{
+	public function __construct(
+		private readonly SamConfigGeneratorInterface $samConfigGenerator,
+		private readonly FileStorageProviderInterface $fileStorageProvider,
+	) {
 		parent::__construct();
-
-		$this->samConfigGenerator = $samConfigGenerator;
-		$this->fileStorageProvider = $fileStorageProvider;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	protected function configure(): void
 	{
-		$this->setName('image-storage:lambda:dump-config')
-			->setDescription('Dumps AWS SAM configuration files for defined storages')
-			->addArgument('storage', InputArgument::OPTIONAL, 'Generate config for specific storage only.', null);
+		$this->setDescription('Dumps AWS SAM configuration files for defined storages')
+			->addArgument('storage', InputArgument::OPTIONAL, 'Generate config for specific storage only.');
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$storageName = $input->getArgument('storage');
 
-		$storages = null !== $storageName ? [$this->fileStorageProvider->get($storageName)] : array_filter(iterator_to_array($this->fileStorageProvider), function (FileStorageInterface $fileStorage) {
-			return $fileStorage instanceof ImageStorageInterface && $this->samConfigGenerator->hasStackForStorage($fileStorage);
-		});
+		$storages = is_string($storageName)
+			? [$this->fileStorageProvider->get($storageName)]
+			: array_filter(
+				iterator_to_array($this->fileStorageProvider),
+				fn (FileStorageInterface $fileStorage): bool => $fileStorage instanceof ImageStorageInterface && $this->samConfigGenerator->canGenerate($fileStorage)
+			);
 
 		foreach ($storages as $storage) {
-			$filename = $this->samConfigGenerator->generateForStorage($storage);
+			assert($storage instanceof FileStorageInterface);
 
-			$output->writeln('Successfully generated file ' . $filename);
+			if (!$storage instanceof ImageStorageInterface) {
+				throw new InvalidArgumentException(sprintf(
+					'Storage "%s" is not an instance of %s.',
+					$storage->getName(),
+					ImageStorageInterface::class
+				));
+			}
 		}
 
-		return 0;
+		foreach ($storages as $storage) {
+			assert($storage instanceof ImageStorageInterface);
+
+			if (!$this->samConfigGenerator->canGenerate($storage)) {
+				throw new InvalidArgumentException(sprintf(
+					'Lambda config for storage "%s" can not be generated.',
+					$storage->getName()
+				));
+			}
+
+			$filename = $this->samConfigGenerator->generate($storage);
+
+			$output->writeln(sprintf(
+				'Successfully generated file %s',
+				$filename
+			));
+		}
+
+		return Command::SUCCESS;
 	}
 }

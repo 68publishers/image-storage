@@ -8,25 +8,22 @@ use SixtyEightPublishers\FileStorage\FileStorage;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Info\InfoFactoryInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\RequestInterface;
 use SixtyEightPublishers\ImageStorage\Config\NoImageConfigInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\ImageServerInterface;
 use SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface;
-use SixtyEightPublishers\FileStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\ImageServerFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 use SixtyEightPublishers\ImageStorage\FileInfoInterface as ImageFileInfoInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface as ImageLinkGeneratorInterface;
+use function assert;
 
 final class ImageStorage extends FileStorage implements ImageStorageInterface
 {
-	/** @var ImageLinkGeneratorInterface */
-	protected readonly LinkGeneratorInterface $linkGenerator;
-
 	private ?ImageServerInterface $imageServer = null;
 
 	public function __construct(
@@ -94,11 +91,15 @@ final class ImageStorage extends FileStorage implements ImageStorageInterface
 
 	public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): string
 	{
+		assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
+
 		return $this->linkGenerator->srcSet($info, $descriptor);
 	}
 
 	public function getSignatureStrategy(): ?SignatureStrategyInterface
 	{
+		assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
+
 		return $this->linkGenerator->getSignatureStrategy();
 	}
 }

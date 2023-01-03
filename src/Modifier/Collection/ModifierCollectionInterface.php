@@ -33,7 +33,7 @@ interface ModifierCollectionInterface extends IteratorAggregate
 	public function getByAlias(string $alias): ModifierInterface;
 
 	/**
-	 * @param array<string, mixed> $parameters
+	 * @param array<string, scalar> $parameters
 	 */
 	public function parseValues(array $parameters): ModifierValues;
 }

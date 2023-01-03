@@ -1,0 +1,8 @@
+extensions:
+	image_storage: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageExtension
+
+image_storage:
+	storages:
+		images:
+			source_filesystem:
+				adapter: League\Flysystem\InMemory\InMemoryFilesystemAdapter

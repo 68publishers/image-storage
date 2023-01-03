@@ -59,7 +59,7 @@ final class ResourceFactory implements ResourceFactoryInterface
 			throw new FilesystemException($e->getMessage(), 0, $e);
 		}
 
-		$tmpFilename = tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
+		$tmpFilename = (string) tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
 
 		if (false === file_put_contents($tmpFilename, $source)) {
 			throw new FilesystemException(sprintf(

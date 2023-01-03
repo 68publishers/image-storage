@@ -5,149 +5,91 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda;
 
 use ReflectionProperty;
-use ReflectionException;
+use Yosymfony\Toml\TomlBuilder;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use SixtyEightPublishers\ImageStorage\Config\Config;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Filesystem\AdapterProviderInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Stack\StackInterface;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\ParameterOverrides;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilderFactoryInterface;
+use function count;
+use function floor;
+use function mkdir;
+use function rtrim;
+use function assert;
+use function is_dir;
+use function dirname;
+use function sprintf;
+use function is_float;
+use function realpath;
+use function is_string;
+use function array_keys;
+use function array_merge;
+use function array_filter;
+use function file_put_contents;
 
 final class SamConfigGenerator implements SamConfigGeneratorInterface
 {
-	/** @var \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilderFactoryInterface  */
-	private $tomlConfigBuilderFactory;
-
-	/** @var string  */
-	private $outputDir;
-
-	/** @var \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Stack\StackInterface[]  */
-	private $stacks;
-
 	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilderFactoryInterface $tomlConfigBuilderFactory
-	 * @param string                                                                                                 $outputDir
-	 * @param array                                                                                                  $stacks
+	 * @param array<string, array<string, mixed>> $configs
 	 */
-	public function __construct(TomlConfigBuilderFactoryInterface $tomlConfigBuilderFactory, string $outputDir, array $stacks)
-	{
-		$this->tomlConfigBuilderFactory = $tomlConfigBuilderFactory;
-		$this->outputDir = $outputDir;
+	public function __construct(
+		private readonly string $outputDir,
+		private readonly array $configs,
+	) {
+	}
 
-		foreach ($stacks as $stack) {
-			$this->addStack($stack);
-		}
+	public function canGenerate(ImageStorageInterface $imageStorage): bool
+	{
+		return isset($this->configs[$imageStorage->getName()]);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
 	 */
-	public function hasStackForStorage(ImageStorageInterface $imageStorage): bool
+	public function generate(ImageStorageInterface $imageStorage): string
 	{
-		return isset($this->stacks[$imageStorage->getName()]);
-	}
+		$lambdaConfig = $this->configs[$imageStorage->getName()] ?? null;
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws ReflectionException
-	 */
-	public function generateForStorage(ImageStorageInterface $imageStorage): string
-	{
-		$stack = $this->stacks[$imageStorage->getName()] ?? null;
-
-		if (null === $stack) {
+		if (null === $lambdaConfig) {
 			throw new InvalidArgumentException(sprintf(
-				'Missing stack with name "%s".',
+				'Missing config with the name "%s".',
 				$imageStorage->getName()
 			));
 		}
 
-		# Bucket names
+		$lambdaConfig = LambdaConfig::fromValues($lambdaConfig);
 		$buckets = [
-			ImagePersisterInterface::FILESYSTEM_NAME_SOURCE => $stack->getSourceBucketName(),
-			ImagePersisterInterface::FILESYSTEM_NAME_CACHE => $stack->getCacheBucketName(),
+			ImagePersisterInterface::FILESYSTEM_NAME_SOURCE => $lambdaConfig->source_bucket_name,
+			ImagePersisterInterface::FILESYSTEM_NAME_CACHE => $lambdaConfig->cache_bucket_name,
 		];
-
-		$missingBuckets = array_keys(array_filter($buckets, static function ($bucketName) {
-			return empty($bucketName);
-		}));
+		$missingBuckets = array_keys(array_filter($buckets, static fn (?string $bucketName): bool => null === $bucketName));
 
 		if (0 < count($missingBuckets)) {
-			$buckets = array_merge($buckets, $this->detectBucketNamesFromFilesystem($imageStorage->getFilesystem(), $missingBuckets));
+			$buckets = array_merge(
+				$buckets,
+				$this->detectBucketNamesFromFilesystem($imageStorage->getFilesystem(), $missingBuckets)
+			);
 		}
 
-		# Create TOML builder and fill it with configured properties
-		$builder = $this->tomlConfigBuilderFactory->create();
+		assert(is_string($buckets[ImagePersisterInterface::FILESYSTEM_NAME_SOURCE]) && is_string($buckets[ImagePersisterInterface::FILESYSTEM_NAME_CACHE]));
 
-		foreach ($stack->getValues() as $k => $v) {
-			$builder->withProperty((string) $k, $v);
-		}
+		$lambdaConfig->parameter_overrides = $lambdaConfig->parameter_overrides->withMissingParameters(
+			$this->createDefaultParameterOverrides(
+				$imageStorage,
+				$buckets[ImagePersisterInterface::FILESYSTEM_NAME_SOURCE],
+				$buckets[ImagePersisterInterface::FILESYSTEM_NAME_CACHE]
+			)
+		);
 
-		# Create a "parameter_overrides" property
-		$parameterOverrides = new ParameterOverrides();
-		$config = $imageStorage->getConfig();
-		$noImageConfig = $imageStorage->getNoImageConfig();
-		$noImages = $noImagePatterns = [];
+		$toml = $this->createToml($lambdaConfig, $imageStorage->getName());
 
-		if (null !== $noImageConfig->getDefaultPath()) {
-			$noImages[] = 'default::' . $noImageConfig->getDefaultPath();
-		}
-
-		foreach ($noImageConfig->getPaths() as $noImageName => $path) {
-			$noImages[] = $noImageName . '::' . $path;
-		}
-
-		foreach ($noImageConfig->getPatterns() as $noImageName => $pattern) {
-			$noImagePatterns[] = $noImageName . '::' . $pattern;
-		}
-
-		$parameterOverrides['BasePath'] = $config[Config::BASE_PATH];
-		$parameterOverrides['ModifierSeparator'] = $config[Config::MODIFIER_SEPARATOR];
-		$parameterOverrides['ModifierAssigner'] = $config[Config::MODIFIER_ASSIGNER];
-		$parameterOverrides['VersionParameterName'] = $config[Config::VERSION_PARAMETER_NAME];
-		$parameterOverrides['SignatureParameterName'] = $config[Config::SIGNATURE_PARAMETER_NAME];
-		$parameterOverrides['SignatureKey'] = $config[Config::SIGNATURE_KEY];
-		$parameterOverrides['SignatureAlgorithm'] = $config[Config::SIGNATURE_ALGORITHM];
-		$parameterOverrides['AllowedPixelDensity'] = $config[Config::ALLOWED_PIXEL_DENSITY];
-		$parameterOverrides['AllowedResolutions'] = $config[Config::ALLOWED_RESOLUTIONS];
-		$parameterOverrides['AllowedQualities'] = $config[Config::ALLOWED_QUALITIES];
-		$parameterOverrides['EncodeQuality'] = $config[Config::ENCODE_QUALITY];
-		$parameterOverrides['SourceBucketName'] = $buckets[ImagePersisterInterface::FILESYSTEM_NAME_SOURCE];
-		$parameterOverrides['CacheBucketName'] = $buckets[ImagePersisterInterface::FILESYSTEM_NAME_CACHE];
-		$parameterOverrides['CacheMaxAge'] = $config[Config::CACHE_MAX_AGE];
-		$parameterOverrides['NoImages'] = $noImages;
-		$parameterOverrides['NoImagePatterns'] = $noImagePatterns;
-
-		$builder->setParameterOverrides($parameterOverrides);
-
-		# Build and write it!
-		$toml = $builder->buildToml();
-
-		return $this->write($toml->getTomlString(), $stack->getName());
+		return $this->write($toml, $lambdaConfig->stack_name ?? $imageStorage->getName());
 	}
 
-	/**
-	 * @param \SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Stack\StackInterface $stack
-	 *
-	 * @return void
-	 */
-	private function addStack(StackInterface $stack): void
-	{
-		$this->stacks[$stack->getName()] = $stack;
-	}
-
-	/**
-	 * @param string $content
-	 * @param string $name
-	 *
-	 * @return string
-	 */
 	private function write(string $content, string $name): string
 	{
 		$filename = sprintf(
@@ -176,21 +118,15 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 	}
 
 	/**
-	 * @param \League\Flysystem\FilesystemOperator $filesystemOperator
-	 * @param array                                $prefixes
+	 * @param array<string> $prefixes
 	 *
-	 * @return array
-	 * @throws ReflectionException
+	 * @return array<string, string>
 	 */
 	private function detectBucketNamesFromFilesystem(FilesystemOperator $filesystemOperator, array $prefixes): array
 	{
-		if (empty($prefixes)) {
-			return [];
-		}
-
 		if (!$filesystemOperator instanceof AdapterProviderInterface) {
 			throw new InvalidStateException(sprintf(
-				'Can\'t detect bucket names from a filesystem because the filesystem must be implementor of %s',
+				'Can\'t detect bucket names from a filesystem because the filesystem must be an implementor of %s.',
 				AdapterProviderInterface::class
 			));
 		}
@@ -202,18 +138,97 @@ final class SamConfigGenerator implements SamConfigGeneratorInterface
 
 			if (!$adapter instanceof AwsS3V3Adapter) {
 				throw new InvalidStateException(sprintf(
-					'Adapter must be instance of %s.',
+					'Adapter must be an instance of %s.',
 					AwsS3V3Adapter::class
 				));
 			}
 
 			$reflectionProperty = new ReflectionProperty(AwsS3V3Adapter::class, 'bucket');
+			$bucket = $reflectionProperty->getValue($adapter);
+			assert(is_string($bucket));
 
-			$reflectionProperty->setAccessible(true);
-
-			$buckets[$prefix] = $reflectionProperty->getValue($adapter);
+			$buckets[$prefix] = $bucket;
 		}
 
 		return $buckets;
+	}
+
+	/**
+	 * @return array<string, scalar|array<scalar>>
+	 */
+	private function createDefaultParameterOverrides(ImageStorageInterface $imageStorage, string $sourceBucketName, string $cacheBucketName): array
+	{
+		$imageStorageConfig = $imageStorage->getConfig();
+		$noImageConfig = $imageStorage->getNoImageConfig();
+		$noImages = $noImagePatterns = [];
+
+		if (null !== $noImageConfig->getDefaultPath()) {
+			$noImages[] = 'default::' . $noImageConfig->getDefaultPath();
+		}
+
+		foreach ($noImageConfig->getPaths() as $noImageName => $path) {
+			$noImages[] = $noImageName . '::' . $path;
+		}
+
+		foreach ($noImageConfig->getPatterns() as $noImageName => $pattern) {
+			$noImagePatterns[] = $noImageName . '::' . $pattern;
+		}
+
+		return [
+			'BasePath' => $imageStorageConfig[ConfigInterface::BASE_PATH],
+			'ModifierSeparator' => $imageStorageConfig[Config::MODIFIER_SEPARATOR],
+			'ModifierAssigner' => $imageStorageConfig[Config::MODIFIER_ASSIGNER],
+			'VersionParameterName' => $imageStorageConfig[ConfigInterface::VERSION_PARAMETER_NAME],
+			'SignatureParameterName' => $imageStorageConfig[Config::SIGNATURE_PARAMETER_NAME],
+			'SignatureKey' => $imageStorageConfig[Config::SIGNATURE_KEY],
+			'SignatureAlgorithm' => $imageStorageConfig[Config::SIGNATURE_ALGORITHM],
+			'AllowedPixelDensity' => $imageStorageConfig[Config::ALLOWED_PIXEL_DENSITY],
+			'AllowedResolutions' => $imageStorageConfig[Config::ALLOWED_RESOLUTIONS],
+			'AllowedQualities' => $imageStorageConfig[Config::ALLOWED_QUALITIES],
+			'EncodeQuality' => $imageStorageConfig[Config::ENCODE_QUALITY],
+			'SourceBucketName' => $sourceBucketName,
+			'CacheBucketName' => $cacheBucketName,
+			'CacheMaxAge' => $imageStorageConfig[Config::CACHE_MAX_AGE],
+			'NoImages' => $noImages,
+			'NoImagePatterns' => $noImagePatterns,
+		];
+	}
+
+	private function createToml(LambdaConfig $lambdaConfig, string $imageStorageName): string
+	{
+		# @todo: Workaround, related issue: https://github.com/yosymfony/toml/issues/29 ... still not released (2.1.2023)
+		$toml = new class extends TomlBuilder {
+			/**
+			 * @param string|int|bool|float|array<mixed, mixed> $val
+			 */
+			protected function dumpValue($val): string
+			{
+				if (is_float($val)) {
+					$result = (string) $val;
+
+					return $val !== floor($val) ? $result : $result . '.0';
+				}
+
+				return parent::dumpValue($val);
+			}
+		};
+
+		$toml->addComment(' Generated by 68publishers/image-storage')
+			->addValue('version', $lambdaConfig->version)
+			->addTable('default.deploy.parameters')
+			->addValue('stack_name', $lambdaConfig->stack_name ?? $imageStorageName)
+			->addValue('s3_bucket', $lambdaConfig->s3_bucket)
+			->addValue('s3_prefix', $lambdaConfig->s3_prefix ?? $imageStorageName)
+			->addValue('region', $lambdaConfig->region)
+			->addValue('confirm_changeset', $lambdaConfig->confirm_changeset)
+			->addValue('capabilities', $lambdaConfig->capabilities);
+
+		$parameterOverrides = (string) $lambdaConfig->parameter_overrides;
+
+		if (!empty($parameterOverrides)) {
+			$toml->addValue('parameter_overrides', $parameterOverrides);
+		}
+
+		return $toml->getTomlString();
 	}
 }
