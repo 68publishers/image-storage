@@ -19,7 +19,6 @@ final class Config extends FileStorageConfig
 	public const ENCODE_QUALITY = 'encode_quality';
 	public const CACHE_MAX_AGE = 'cache_max_age';
 
-	/** @var array  */
 	protected array $config = [
 		self::BASE_PATH => '',
 		self::HOST => null,

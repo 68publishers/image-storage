@@ -8,10 +8,10 @@ use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 
 interface SamConfigGeneratorInterface
 {
-	public function hasStackForStorage(ImageStorageInterface $imageStorage): bool;
+	public function canGenerate(ImageStorageInterface $imageStorage): bool;
 
 	/**
 	 * Returns path to the generated config
 	 */
-	public function generateForStorage(ImageStorageInterface $imageStorage): string;
+	public function generate(ImageStorageInterface $imageStorage): string;
 }

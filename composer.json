@@ -27,13 +27,14 @@
 		"nette/application": "^3.1.8",
 		"nette/bootstrap": "^3.1",
 		"nette/di": "^3.0.10",
+		"nette/http": "^3.2.1",
 		"nette/tester": "^2.4.3",
 		"phpstan/phpstan": "^1.9",
 		"phpstan/phpstan-nette": "^1.1",
 		"roave/security-advisories": "dev-latest",
 		"symfony/console": "^5.0 | ^6.0",
 		"tracy/tracy": "^2.6",
-		"yosymfony/toml": "^1.0"
+		"yosymfony/toml": "^1.0.4"
 	},
 	"suggest": {
 		"nette/di": "For an integration with Nette Framework.",
@@ -44,10 +45,12 @@
 	},
 	"conflict": {
 		"nette/di": "<3.0.10",
+		"nette/http": "<3.2.1",
 		"nette/schema": "<1.1",
 		"latte/latte": "<3.0",
 		"68publishers/doctrine-bridge": "<1.0.0",
-		"symfony/console": "<5.0"
+		"symfony/console": "<5.0",
+		"yosymfony/toml": "<1.0.4"
 	},
 	"autoload": {
 		"psr-4": {

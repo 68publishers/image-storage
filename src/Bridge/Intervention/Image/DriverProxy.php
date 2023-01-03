@@ -17,6 +17,9 @@ class DriverProxy extends AbstractDriver
 	) {
 	}
 
+	/**
+	 * @param array<int, mixed> $arguments
+	 */
 	public function executeCommand($image, $name, $arguments): AbstractCommand
 	{
 		return $this->commandExecutor->execute($image, $name, $arguments);

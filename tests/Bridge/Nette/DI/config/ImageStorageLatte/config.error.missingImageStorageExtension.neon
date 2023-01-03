@@ -1,0 +1,2 @@
+extensions:
+	image_storage.latte: SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\ImageStorageLatteExtension

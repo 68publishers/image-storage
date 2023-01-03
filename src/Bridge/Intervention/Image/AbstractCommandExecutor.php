@@ -7,6 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image;
 use Intervention\Image\Image;
 use Intervention\Image\Commands\AbstractCommand;
 use Intervention\Image\Exception\NotSupportedException;
+use function assert;
 use function substr;
 use function sprintf;
 use function ucfirst;
@@ -77,6 +78,9 @@ abstract class AbstractCommandExecutor implements CommandExecutorInterface
 	 */
 	protected function createCommand(string $className, array $arguments): AbstractCommand
 	{
-		return new $className($arguments);
+		$command = new $className($arguments);
+		assert($command instanceof AbstractCommand);
+
+		return $command;
 	}
 }

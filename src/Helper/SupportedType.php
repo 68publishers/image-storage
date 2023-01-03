@@ -94,13 +94,13 @@ final class SupportedType
 			));
 		}
 
-		return array_search($type, self::$supportedTypes, true);
+		return (string) array_search($type, self::$supportedTypes, true);
 	}
 
 	/**
 	 * file extensions as keys and MimeTypes as values
 	 *
-	 * @param array $types
+	 * @param array<string, string> $types
 	 *
 	 * @return void
 	 */

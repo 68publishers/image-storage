@@ -14,8 +14,6 @@ use SixtyEightPublishers\ImageStorage\Exception\SignatureException;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Request\RequestInterface;
-use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
 use function count;
 use function ltrim;
 use function assert;
@@ -52,6 +50,7 @@ final class LocalImageServer implements ImageServerInterface
 	/**
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
 	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
+	 * @throws \SixtyEightPublishers\ImageStorage\Exception\SignatureException
 	 */
 	private function processRequest(RequestInterface $request): object
 	{
@@ -151,6 +150,7 @@ final class LocalImageServer implements ImageServerInterface
 		assert(is_string($signatureParameterName));
 
 		$token = $request->getQueryParameter($signatureParameterName) ?? '';
+		assert(is_string($token));
 
 		if (empty($token)) {
 			throw new SignatureException('Missing signature in request.');

@@ -32,6 +32,6 @@ abstract class AbstractModifier implements ModifierInterface
 
 	public function getAlias(): string
 	{
-		return $this->alias;
+		return (string) $this->alias;
 	}
 }

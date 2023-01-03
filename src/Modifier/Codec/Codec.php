@@ -90,6 +90,9 @@ final class Codec implements CodecInterface
 		$separator = $this->config[Config::MODIFIER_SEPARATOR];
 		assert(\is_string($assigner) && \is_string($separator));
 
+		$assigner = empty($assigner) ? ':' : $assigner;
+		$separator = empty($separator) ? ',' : $separator;
+
 		foreach (explode($separator, $path) as $modifier) {
 			$modifier = explode($assigner, $modifier);
 			$count = count($modifier);

@@ -8,127 +8,57 @@ use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Nette\DI\CompilerExtension;
 use Yosymfony\Toml\TomlBuilder;
-use Nette\DI\Helpers as DIHelpers;
-use Nette\DI\Definitions\Statement;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use SixtyEightPublishers\FileStorage\Exception\RuntimeException;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Stack\Stack;
+use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\LambdaConfig;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGenerator;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilder;
+use SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\Config\ImageStorageLambdaConfig;
 use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Command\DumpLambdaConfigCommand;
-use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\Builder\TomlConfigBuilderFactoryInterface;
+use function assert;
 
 final class ImageStorageLambdaExtension extends CompilerExtension
 {
-	public const CAPABILITY_IAM = TomlConfigBuilder::CAPABILITY_IAM;
-	public const CAPABILITY_NAMED_IAM = TomlConfigBuilder::CAPABILITY_NAMED_IAM;
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public function getConfigSchema(): Schema
 	{
-		$stack = Expect::structure([
-			'stack_name' => Expect::string()->required()->dynamic(),
-			's3_bucket' => Expect::string()->required()->dynamic(),
-			'region' => Expect::string()->required()->dynamic(),
-			'version' => Expect::float(1.0)->dynamic(),
-			's3_prefix' => Expect::string()->nullable()->dynamic(), # an option "stack_name" is used by default
-			'confirm_changeset' => Expect::bool(false)->dynamic(),
-			'capabilities' => Expect::anyOf(self::CAPABILITY_IAM, self::CAPABILITY_NAMED_IAM)->default(self::CAPABILITY_IAM)->dynamic(),
-
-			'source_bucket_name' => Expect::string()->nullable()->dynamic(), # detected automatically from AwsS3V3Adapter by default
-			'cache_bucket_name' => Expect::string()->nullable()->dynamic(), # detected automatically from AwsS3V3Adapter by default
-		]);
-
-		$stack->before(static function (array $stack) {
-			if (empty($stack['s3_prefix'] ?? '') && !empty($stack['stack_name'] ?? '')) {
-				$stack['s3_prefix'] = $stack['stack_name'];
-			}
-
-			return $stack;
-		});
+		$appDir = $this->getContainerBuilder()->parameters['appDir'] ?? '';
 
 		return Expect::structure([
-			'output_dir' => Expect::string('%appDir%/config/image-storage-lambda')->dynamic()->before(function ($dir) {
-				return is_string($dir) ? DIHelpers::expand($dir, $this->getContainerBuilder()->parameters) : $dir;
-			}),
-			'stacks' => Expect::arrayOf($stack),
-		]);
+			'output_dir' => Expect::string($appDir . '/config/image-storage-lambda')->dynamic(),
+			'stacks' => Expect::arrayOf(LambdaConfig::createSchema(), 'string'),
+		])->castTo(ImageStorageLambdaConfig::class);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @throws \SixtyEightPublishers\FileStorage\Exception\RuntimeException
-	 */
 	public function loadConfiguration(): void
 	{
 		if (0 >= count($this->compiler->getExtensions(ImageStorageExtension::class))) {
 			throw new RuntimeException(sprintf(
 				'The extension %s can be used only with %s.',
-				static::class,
+				self::class,
 				ImageStorageExtension::class
 			));
 		}
 
 		if (!class_exists(TomlBuilder::class)) {
-			throw new RuntimeException('Please require a package yosymfony/toml in your project.');
+			throw new RuntimeException('Please require the package yosymfony/toml in your project.');
 		}
 
 		if (!class_exists(AwsS3V3Adapter::class)) {
-			throw new RuntimeException('Please require a package league/flysystem-aws-s3-v3 in your project.');
+			throw new RuntimeException('Please require the package league/flysystem-aws-s3-v3 in your project.');
 		}
 
 		$builder = $this->getContainerBuilder();
-
-		$builder->addFactoryDefinition($this->prefix('toml_config_builder_factory'))
-			->setAutowired(false)
-			->setImplement(TomlConfigBuilderFactoryInterface::class)
-			->getResultDefinition()
-			->setFactory(TomlConfigBuilder::class);
+		$config = $this->getConfig();
+		assert($config instanceof ImageStorageLambdaConfig);
 
 		$builder->addDefinition($this->prefix('sam_config_generator'))
 			->setType(SamConfigGeneratorInterface::class)
 			->setFactory(SamConfigGenerator::class, [
-				$this->prefix('@toml_config_builder_factory'),
-				$this->config->output_dir,
-				$this->createStacks(),
+				$config->output_dir,
+				array_map(static fn (LambdaConfig $lambdaConfig): array => $lambdaConfig->toArray(), $config->stacks),
 			]);
 
 		$builder->addDefinition($this->prefix('command.dump_lambda_config'))
 			->setType(DumpLambdaConfigCommand::class);
-	}
-
-	/**
-	 * @return array
-	 */
-	private function createStacks(): array
-	{
-		$stacks = [];
-
-		foreach ($this->config->stacks as $stackName => $stackConfig) {
-			$stackConfig = (array) $stackConfig;
-			$sourceBucketName = $stackConfig['source_bucket_name'] ?? null;
-			$cacheBucketName = $stackConfig['cache_bucket_name'] ?? null;
-
-			if (array_key_exists('source_bucket_name', $stackConfig)) {
-				unset($stackConfig['source_bucket_name']);
-			}
-
-			if (array_key_exists('cache_bucket_name', $stackConfig)) {
-				unset($stackConfig['cache_bucket_name']);
-			}
-
-			$stacks[] = new Statement(Stack::class, [
-				$stackName,
-				$stackConfig,
-				$sourceBucketName,
-				$cacheBucketName,
-			]);
-		}
-
-		return $stacks;
 	}
 }

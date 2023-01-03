@@ -11,7 +11,7 @@ use Tester\TestCase;
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 use SixtyEightPublishers\ImageStorage\ImageServer\LocalImageServer;
 use SixtyEightPublishers\ImageStorage\ImageServer\LocalImageServerFactory;
-use SixtyEightPublishers\ImageStorage\ImageServer\Response\ResponseFactoryInterface;
+use SixtyEightPublishers\ImageStorage\ImageServer\ResponseFactoryInterface;
 use function assert;
 use function call_user_func;
 
