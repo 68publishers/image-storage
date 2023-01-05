@@ -23,7 +23,7 @@ final class CleanCommandConfiguratorTest extends TestCase
 
 		$command->shouldReceive('addOption')
 			->once()
-			->with(StorageCleaner::OPTION_CACHE_ONLY, null, InputOption::VALUE_NONE, 'Remove only cached files (image-storage only).', false);
+			->with(StorageCleaner::OPTION_CACHE_ONLY, null, InputOption::VALUE_NONE, 'Remove only cached files (image-storage only).');
 
 		$configurator = new CleanCommandConfigurator();
 

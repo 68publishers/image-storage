@@ -14,7 +14,7 @@ final class CleanCommandConfigurator implements CleanCommandConfiguratorInterfac
 {
 	public function setupOptions(Command $command): void
 	{
-		$command->addOption(StorageCleaner::OPTION_CACHE_ONLY, null, InputOption::VALUE_NONE, 'Remove only cached files (image-storage only).', false);
+		$command->addOption(StorageCleaner::OPTION_CACHE_ONLY, null, InputOption::VALUE_NONE, 'Remove only cached files (image-storage only).');
 	}
 
 	public function getCleanerOptions(InputInterface $input): array
