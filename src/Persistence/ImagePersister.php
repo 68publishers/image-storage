@@ -53,8 +53,13 @@ final class ImagePersister implements ImagePersisterInterface
 
 	public function save(ResourceInterface $resource, array $config = []): string
 	{
-		assert($resource instanceof ImageResourceInterface);
 		$pathInfo = $this->assertPathInfo($resource->getPathInfo(), __METHOD__);
+
+		assert($resource instanceof ImageResourceInterface, new InvalidArgumentException(sprintf(
+			'A source must be instance of %s.',
+			Image::class
+		)));
+
 		$source = $resource->getSource();
 
 		if (!$source instanceof Image) {

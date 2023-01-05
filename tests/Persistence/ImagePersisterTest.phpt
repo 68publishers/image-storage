@@ -206,7 +206,7 @@ final class ImagePersisterTest extends TestCase
 		);
 	}
 
-	public function testExceptionShouldBeThrownIfSourceForSavingIsNotImage(): void
+	public function testErrorShouldBeThrownIfSourceForSavingIsNotImage(): void
 	{
 		$persister = new ImagePersister(
 			$this->createFilesystem(),
@@ -223,7 +223,6 @@ final class ImagePersisterTest extends TestCase
 			->andReturn($pathInfo);
 
 		$resource->shouldReceive('getSource')
-			->once()
 			->withNoArgs()
 			->andReturn('source');
 

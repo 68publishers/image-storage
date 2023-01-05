@@ -27,4 +27,4 @@ image_storage:
 			route: yes
 
 services:
-	router: Nette\Application\Routers\RouteList
+	- Nette\Application\Routers\RouteList

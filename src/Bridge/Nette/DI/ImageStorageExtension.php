@@ -6,6 +6,7 @@ namespace SixtyEightPublishers\ImageStorage\Bridge\Nette\DI;
 
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use Nette\Routing\Router;
 use Nette\DI\CompilerExtension;
 use League\Flysystem\Visibility;
 use Nette\DI\Definitions\Reference;
@@ -271,7 +272,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
 		}
 
 		$presenterFactory = $builder->getDefinitionByType(IPresenterFactory::class);
-		$router = $builder->getDefinition('router');
+		$router = $builder->getDefinitionByType(Router::class);
 		assert($presenterFactory instanceof ServiceDefinition && $router instanceof ServiceDefinition);
 
 		$presenterFactory->addSetup('setMapping', [
