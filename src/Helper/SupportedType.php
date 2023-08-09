@@ -22,6 +22,7 @@ final class SupportedType
 		'pjpg' => 'image/jpeg',
 		'png' => 'image/png',
 		'webp' => 'image/webp',
+		'avif' => 'image/avif',
 	];
 
 	/** @var array{0: string, 1:string} */
