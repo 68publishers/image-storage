@@ -309,6 +309,7 @@ $ bin/console file-storage:clean [<storage>] [--namespace <value>] [--cache-only
 - PNG - `.png`
 - GIF - `.gif`
 - WEBP - `.webp`
+- AVIF - `.avif`
 
 ### Modifiers
 

@@ -12,6 +12,11 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\AbstractCommandE
 
 final class CommandExecutor extends AbstractCommandExecutor
 {
+	private const ANIMATED_FORMATS = [
+		'gif',
+		'webp',
+	];
+
 	/**
 	 * @throws ImagickException
 	 */
@@ -21,7 +26,7 @@ final class CommandExecutor extends AbstractCommandExecutor
 
 		assert($core instanceof Imagick);
 
-		if ('GIF' !== $core->getImageFormat()) {
+		if (!in_array(strtolower($core->getImageFormat()), self::ANIMATED_FORMATS, true)) {
 			$command->execute($image);
 
 			return;

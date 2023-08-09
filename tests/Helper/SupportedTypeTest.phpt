@@ -20,12 +20,14 @@ final class SupportedTypeTest extends TestCase
 			'image/jpeg',
 			'image/png',
 			'image/webp',
+			'image/avif',
 		], SupportedType::getSupportedTypes());
 
 		Assert::true(SupportedType::isTypeSupported('image/gif'));
 		Assert::true(SupportedType::isTypeSupported('image/jpeg'));
 		Assert::true(SupportedType::isTypeSupported('image/png'));
 		Assert::true(SupportedType::isTypeSupported('image/webp'));
+		Assert::true(SupportedType::isTypeSupported('image/avif'));
 		Assert::false(SupportedType::isTypeSupported('image/tiff'));
 	}
 
@@ -38,6 +40,7 @@ final class SupportedTypeTest extends TestCase
 			'pjpg',
 			'png',
 			'webp',
+			'avif',
 		], SupportedType::getSupportedExtensions());
 
 		Assert::true(SupportedType::isExtensionSupported('gif'));
@@ -46,6 +49,7 @@ final class SupportedTypeTest extends TestCase
 		Assert::true(SupportedType::isExtensionSupported('pjpg'));
 		Assert::true(SupportedType::isExtensionSupported('png'));
 		Assert::true(SupportedType::isExtensionSupported('webp'));
+		Assert::true(SupportedType::isExtensionSupported('avif'));
 		Assert::false(SupportedType::isExtensionSupported('tiff'));
 	}
 
@@ -76,6 +80,7 @@ final class SupportedTypeTest extends TestCase
 		Assert::same('image/jpeg', SupportedType::getTypeByExtension('pjpg'));
 		Assert::same('image/png', SupportedType::getTypeByExtension('png'));
 		Assert::same('image/webp', SupportedType::getTypeByExtension('webp'));
+		Assert::same('image/avif', SupportedType::getTypeByExtension('avif'));
 	}
 
 	public function testExceptionShouldBeThrownOnUnsupportedType(): void
@@ -93,6 +98,7 @@ final class SupportedTypeTest extends TestCase
 		Assert::same('jpg', SupportedType::getExtensionByType('image/jpeg'));
 		Assert::same('png', SupportedType::getExtensionByType('image/png'));
 		Assert::same('webp', SupportedType::getExtensionByType('image/webp'));
+		Assert::same('avif', SupportedType::getExtensionByType('image/avif'));
 	}
 
 	public function testSupportedTypesShouldBeChanged(): void
