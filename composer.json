@@ -13,7 +13,7 @@
 		"php": "^8.1",
 		"ext-json": "*",
 		"68publishers/file-storage": "^1.0",
-		"intervention/image": "^2.7.2"
+		"intervention/image": "^3.3.1"
 	},
 	"require-dev": {
 		"ext-imagick": "*",
