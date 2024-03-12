@@ -111,8 +111,8 @@ use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 
 /** @var ImageStorageInterface $storage */
 
-# Create resource from a local file:
-$resource = $storage->createResourceFromLocalFile(
+# Create resource from local file or url:
+$resource = $storage->createResourceFromFile(
     $storage->createPathInfo('test/my-image.jpeg'),
     __DIR__ . '/path/to/my-image.jpeg'
 );

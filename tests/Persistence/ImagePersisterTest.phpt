@@ -30,8 +30,8 @@ use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
-use SixtyEightPublishers\FileStorage\Resource\ResourceInterface as FileResourceFactoryInterface;
-use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceFactoryInterface;
+use SixtyEightPublishers\FileStorage\Resource\ResourceInterface as FileResourceInterface;
+use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceInterface;
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -191,7 +191,7 @@ final class ImagePersisterTest extends TestCase
 			Mockery::mock(ModifierFacadeInterface::class)
 		);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(FilePathInfoInterface::class);
 
 		$resource->shouldReceive('getPathInfo')
@@ -214,7 +214,7 @@ final class ImagePersisterTest extends TestCase
 			Mockery::mock(ModifierFacadeInterface::class)
 		);
 
-		$resource = Mockery::mock(FileResourceFactoryInterface::class);
+		$resource = Mockery::mock(FileResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
 		$resource->shouldReceive('getPathInfo')
@@ -240,7 +240,7 @@ final class ImagePersisterTest extends TestCase
 		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
 		$persister = new ImagePersister($filesystem, $config, $modifierFacade);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 		$image = Mockery::mock(Image::class);
 
@@ -285,7 +285,7 @@ final class ImagePersisterTest extends TestCase
 		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
 		$persister = new ImagePersister($filesystem, $config, $modifierFacade);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 		$image = Mockery::mock(Image::class);
 
@@ -381,7 +381,7 @@ final class ImagePersisterTest extends TestCase
 		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
 		$persister = new ImagePersister($filesystem, $config, $modifierFacade);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 		$image = Mockery::mock(Image::class);
 		$modifiedImage = Mockery::mock(Image::class);
@@ -427,7 +427,7 @@ final class ImagePersisterTest extends TestCase
 		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
 		$persister = new ImagePersister($filesystem, $config, $modifierFacade);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 		$image = Mockery::mock(Image::class);
 
@@ -474,7 +474,7 @@ final class ImagePersisterTest extends TestCase
 		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
 		$persister = new ImagePersister($filesystem, $config, $modifierFacade);
 
-		$resource = Mockery::mock(ImageResourceFactoryInterface::class);
+		$resource = Mockery::mock(ImageResourceInterface::class);
 		$pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 		$image = Mockery::mock(Image::class);
 
