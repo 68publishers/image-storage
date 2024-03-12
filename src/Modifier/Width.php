@@ -9,14 +9,14 @@ use function is_numeric;
 
 final class Width extends AbstractModifier implements ParsableModifierInterface
 {
-	protected ?string $alias = 'w';
+    protected ?string $alias = 'w';
 
-	public function parseValue(string $value): int
-	{
-		if (!is_numeric($value)) {
-			throw new ModifierException('Width must be a numeric value.');
-		}
+    public function parseValue(string $value): int
+    {
+        if (!is_numeric($value)) {
+            throw new ModifierException('Width must be a numeric value.');
+        }
 
-		return (int) $value;
-	}
+        return (int) $value;
+    }
 }

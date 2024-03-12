@@ -8,13 +8,13 @@ use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 
 final class TestModifier implements ModifierInterface
 {
-	public function getName(): string
-	{
-		return self::class;
-	}
+    public function getName(): string
+    {
+        return self::class;
+    }
 
-	public function getAlias(): string
-	{
-		return 'test';
-	}
+    public function getAlias(): string
+    {
+        return 'test';
+    }
 }

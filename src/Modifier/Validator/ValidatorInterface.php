@@ -9,8 +9,8 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 
 interface ValidatorInterface
 {
-	/**
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\ModifierException
-	 */
-	public function validate(ModifierValues $values, ConfigInterface $config): void;
+    /**
+     * @throws \SixtyEightPublishers\ImageStorage\Exception\ModifierException
+     */
+    public function validate(ModifierValues $values, ConfigInterface $config): void;
 }

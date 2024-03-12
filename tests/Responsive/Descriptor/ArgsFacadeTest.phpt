@@ -5,174 +5,174 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Tests\Responsive\Descriptor;
 
 use Mockery;
-use Tester\Assert;
-use Tester\TestCase;
-use SixtyEightPublishers\ImageStorage\Modifier\Width;
-use SixtyEightPublishers\ImageStorage\PathInfoInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
-use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Width;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
+use Tester\Assert;
+use Tester\TestCase;
 
 require __DIR__ . '/../../bootstrap.php';
 
 final class ArgsFacadeTest extends TestCase
 {
-	public function testDefaultModifiersShouldBeNullIfPathInfoModifiersAreNull(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
+    public function testDefaultModifiersShouldBeNullIfPathInfoModifiersAreNull(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn(null);
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::null($facade->getDefaultModifiers());
-	}
+        Assert::null($facade->getDefaultModifiers());
+    }
 
-	public function testDefaultModifiersShouldBeArrayIfPathInfoModifiersAreArray(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
+    public function testDefaultModifiersShouldBeArrayIfPathInfoModifiersAreArray(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn(['w' => 150]);
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(['w' => 150]);
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::same(['w' => 150], $facade->getDefaultModifiers());
-	}
+        Assert::same(['w' => 150], $facade->getDefaultModifiers());
+    }
 
-	public function testDefaultModifiersShouldBeArrayIfPathInfoModifiersArePreset(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$codec = Mockery::mock(CodecInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
+    public function testDefaultModifiersShouldBeArrayIfPathInfoModifiersArePreset(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $codec = Mockery::mock(CodecInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn('preset');
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn('preset');
 
-		$modifierFacade->shouldReceive('getCodec')
-			->once()
-			->withNoArgs()
-			->andReturn($codec);
+        $modifierFacade->shouldReceive('getCodec')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($codec);
 
-		$codec->shouldReceive('decode')
-			->once()
-			->with(Mockery::type(PresetValue::class))
-			->andReturnUsing(static function (PresetValue $value): array {
-				Assert::same('preset', $value->presetName);
+        $codec->shouldReceive('decode')
+            ->once()
+            ->with(Mockery::type(PresetValue::class))
+            ->andReturnUsing(static function (PresetValue $value): array {
+                Assert::same('preset', $value->presetName);
 
-				return ['w' => 150];
-			});
+                return ['w' => 150];
+            });
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::same(['w' => 150], $facade->getDefaultModifiers());
-	}
+        Assert::same(['w' => 150], $facade->getDefaultModifiers());
+    }
 
-	public function testLinkShouldBeCreated(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
-		$modifiedPathInfo = Mockery::mock(PathInfoInterface::class);
+    public function testLinkShouldBeCreated(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifiedPathInfo = Mockery::mock(PathInfoInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn(null);
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
 
-		$pathInfo->shouldReceive('withModifiers')
-			->once()
-			->with(['h' => 100])
-			->andReturn($modifiedPathInfo);
+        $pathInfo->shouldReceive('withModifiers')
+            ->once()
+            ->with(['h' => 100])
+            ->andReturn($modifiedPathInfo);
 
-		$linkGenerator->shouldReceive('link')
-			->once()
-			->with($modifiedPathInfo)
-			->andReturn('/var/www/h:100/file.png');
+        $linkGenerator->shouldReceive('link')
+            ->once()
+            ->with($modifiedPathInfo)
+            ->andReturn('/var/www/h:100/file.png');
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::same('/var/www/h:100/file.png', $facade->createLink(['h' => 100]));
-	}
+        Assert::same('/var/www/h:100/file.png', $facade->createLink(['h' => 100]));
+    }
 
-	public function testErrorShouldBeTriggeredIfModifierNotFound(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
-		$modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+    public function testErrorShouldBeTriggeredIfModifierNotFound(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn(null);
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
 
-		$modifierFacade->shouldReceive('getModifierCollection')
-			->once()
-			->withNoArgs()
-			->andReturn($modifierCollection);
+        $modifierFacade->shouldReceive('getModifierCollection')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($modifierCollection);
 
-		$modifierCollection->shouldReceive('getByName')
-			->once()
-			->with(Width::class)
-			->andThrows(new InvalidArgumentException('Missing modifier.'));
+        $modifierCollection->shouldReceive('getByName')
+            ->once()
+            ->with(Width::class)
+            ->andThrows(new InvalidArgumentException('Missing modifier.'));
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::error(
-			static fn () => $facade->getModifierAlias(Width::class),
-			E_USER_WARNING,
-			'Missing modifier.'
-		);
-	}
+        Assert::error(
+            static fn () => $facade->getModifierAlias(Width::class),
+            E_USER_WARNING,
+            'Missing modifier.',
+        );
+    }
 
-	public function testModifierAliasShouldBeReturned(): void
-	{
-		$linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
-		$modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
-		$pathInfo = Mockery::mock(PathInfoInterface::class);
-		$modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+    public function testModifierAliasShouldBeReturned(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
 
-		$pathInfo->shouldReceive('getModifiers')
-			->once()
-			->withNoArgs()
-			->andReturn(null);
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
 
-		$modifierFacade->shouldReceive('getModifierCollection')
-			->once()
-			->withNoArgs()
-			->andReturn($modifierCollection);
+        $modifierFacade->shouldReceive('getModifierCollection')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($modifierCollection);
 
-		$modifierCollection->shouldReceive('getByName')
-			->once()
-			->with(Width::class)
-			->andReturn(new Width());
+        $modifierCollection->shouldReceive('getByName')
+            ->once()
+            ->with(Width::class)
+            ->andReturn(new Width());
 
-		$facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
 
-		Assert::same('w', $facade->getModifierAlias(Width::class));
-	}
+        Assert::same('w', $facade->getModifierAlias(Width::class));
+    }
 
-	protected function tearDown(): void
-	{
-		Mockery::close();
-	}
+    protected function tearDown(): void
+    {
+        Mockery::close();
+    }
 }
 
 (new ArgsFacadeTest())->run();

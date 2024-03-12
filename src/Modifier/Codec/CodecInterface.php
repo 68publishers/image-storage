@@ -8,10 +8,10 @@ use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\ValueInterface;
 
 interface CodecInterface
 {
-	public function encode(ValueInterface $value): string;
+    public function encode(ValueInterface $value): string;
 
-	/**
-	 * @return array<string, string|numeric|bool>
-	 */
-	public function decode(ValueInterface $value): array;
+    /**
+     * @return array<string, string|numeric|bool>
+     */
+    public function decode(ValueInterface $value): array;
 }

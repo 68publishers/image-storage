@@ -9,5 +9,5 @@ use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 
 interface FileInfoInterface extends BaseFileInfoInterface, PathInfoInterface
 {
-	public function srcSet(DescriptorInterface $descriptor): string;
+    public function srcSet(DescriptorInterface $descriptor): string;
 }

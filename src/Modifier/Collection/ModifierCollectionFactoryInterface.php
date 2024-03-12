@@ -6,5 +6,5 @@ namespace SixtyEightPublishers\ImageStorage\Modifier\Collection;
 
 interface ModifierCollectionFactoryInterface
 {
-	public function create(): ModifierCollectionInterface;
+    public function create(): ModifierCollectionInterface;
 }

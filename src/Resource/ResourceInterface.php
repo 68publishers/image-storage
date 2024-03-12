@@ -9,10 +9,10 @@ use SixtyEightPublishers\FileStorage\Resource\ResourceInterface as FileResourceI
 
 interface ResourceInterface extends FileResourceInterface
 {
-	public function getSource(): Image;
+    public function getSource(): Image;
 
-	/**
-	 * @param string|array<string, string|numeric|bool> $modifiers
-	 */
-	public function modifyImage(string|array $modifiers): static;
+    /**
+     * @param string|array<string, string|numeric|bool> $modifiers
+     */
+    public function modifyImage(string|array $modifiers): self;
 }

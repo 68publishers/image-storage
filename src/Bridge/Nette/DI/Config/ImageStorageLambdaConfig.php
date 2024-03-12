@@ -8,8 +8,8 @@ use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\LambdaConfig;
 
 final class ImageStorageLambdaConfig
 {
-	public string $output_dir;
+    public string $output_dir;
 
-	/** @var array<string, LambdaConfig> */
-	public array $stacks;
+    /** @var array<string, LambdaConfig> */
+    public array $stacks;
 }

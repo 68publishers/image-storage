@@ -9,27 +9,27 @@ use SixtyEightPublishers\FileStorage\Bridge\Nette\DI\Config\FilesystemConfig;
 
 final class StorageConfig
 {
-	public FilesystemConfig $source_filesystem;
+    public FilesystemConfig $source_filesystem;
 
-	public string $server;
+    public string $server;
 
-	public bool $route;
+    public bool $route;
 
-	/** @var array<string, string> */
-	public array $no_image;
+    /** @var array<string, string> */
+    public array $no_image;
 
-	/** @var array<string, string> */
-	public array $no_image_patterns;
+    /** @var array<string, string> */
+    public array $no_image_patterns;
 
-	/** @var array<string, array<string, scalar>> */
-	public array $presets;
+    /** @var array<string, array<string, scalar>> */
+    public array $presets;
 
-	/** @var array<Statement> */
-	public array $modifiers;
+    /** @var array<Statement> */
+    public array $modifiers;
 
-	/** @var array<Statement> */
-	public array $applicators;
+    /** @var array<Statement> */
+    public array $applicators;
 
-	/** @var array<Statement> */
-	public array $validators;
+    /** @var array<Statement> */
+    public array $validators;
 }

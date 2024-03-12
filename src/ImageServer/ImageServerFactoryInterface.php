@@ -8,5 +8,5 @@ use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 
 interface ImageServerFactoryInterface
 {
-	public function create(ImageStorageInterface $imageStorage): ImageServerInterface;
+    public function create(ImageStorageInterface $imageStorage): ImageServerInterface;
 }

@@ -6,7 +6,7 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 interface ModifierInterface
 {
-	public function getName(): string;
+    public function getName(): string;
 
-	public function getAlias(): string;
+    public function getAlias(): string;
 }

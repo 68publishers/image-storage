@@ -9,5 +9,5 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
 interface SrcSetGeneratorFactoryInterface
 {
-	public function create(LinkGeneratorInterface $linkGenerator, ModifierFacadeInterface $modifierFacade): SrcSetGenerator;
+    public function create(LinkGeneratorInterface $linkGenerator, ModifierFacadeInterface $modifierFacade): SrcSetGenerator;
 }

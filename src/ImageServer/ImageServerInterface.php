@@ -6,5 +6,5 @@ namespace SixtyEightPublishers\ImageStorage\ImageServer;
 
 interface ImageServerInterface
 {
-	public function getImageResponse(RequestInterface $request): object;
+    public function getImageResponse(RequestInterface $request): object;
 }

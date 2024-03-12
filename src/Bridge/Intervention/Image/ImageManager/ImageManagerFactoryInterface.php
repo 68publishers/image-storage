@@ -8,8 +8,8 @@ use Intervention\Image\ImageManager;
 
 interface ImageManagerFactoryInterface
 {
-	/**
-	 * @param array<string, mixed> $config
-	 */
-	public function create(array $config = []): ImageManager;
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function create(array $config = []): ImageManager;
 }

@@ -4,80 +4,80 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage;
 
-use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\FileInfo as BaseFileInfo;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
-use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
-use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface as ImageLinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 use function assert;
 
 final class FileInfo extends BaseFileInfo implements FileInfoInterface
 {
-	public function __construct(ImageLinkGeneratorInterface $linkGenerator, PathInfoInterface $pathInfo, string $imageStorageName)
-	{
-		parent::__construct($linkGenerator, $pathInfo, $imageStorageName);
-	}
+    public function __construct(ImageLinkGeneratorInterface $linkGenerator, PathInfoInterface $pathInfo, string $imageStorageName)
+    {
+        parent::__construct($linkGenerator, $pathInfo, $imageStorageName);
+    }
 
-	public function srcSet(DescriptorInterface $descriptor): string
-	{
-		assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
+    public function srcSet(DescriptorInterface $descriptor): string
+    {
+        assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
 
-		return $this->linkGenerator->srcSet($this, $descriptor);
-	}
+        return $this->linkGenerator->srcSet($this, $descriptor);
+    }
 
-	public function getModifiers(): string|array|null
-	{
-		return $this->pathInfo instanceof ImagePathInfoInterface ? $this->pathInfo->getModifiers() : null;
-	}
+    public function getModifiers(): string|array|null
+    {
+        return $this->pathInfo instanceof ImagePathInfoInterface ? $this->pathInfo->getModifiers() : null;
+    }
 
-	public function withModifiers(string|array|null $modifiers): static
-	{
-		$pathInfo = $this->checkPathInfoType(__METHOD__);
-		$info = clone $this;
-		$info->pathInfo = $pathInfo->withModifiers($modifiers);
+    public function withModifiers(string|array|null $modifiers): static
+    {
+        $pathInfo = $this->checkPathInfoType(__METHOD__);
+        $info = clone $this;
+        $info->pathInfo = $pathInfo->withModifiers($modifiers);
 
-		return $info;
-	}
+        return $info;
+    }
 
-	public function withEncodedModifiers(string $modifiers): static
-	{
-		$pathInfo = $this->checkPathInfoType(__METHOD__);
-		$info = clone $this;
-		$info->pathInfo = $pathInfo->withEncodedModifiers($modifiers);
+    public function withEncodedModifiers(string $modifiers): static
+    {
+        $pathInfo = $this->checkPathInfoType(__METHOD__);
+        $info = clone $this;
+        $info->pathInfo = $pathInfo->withEncodedModifiers($modifiers);
 
-		return $info;
-	}
+        return $info;
+    }
 
-	public function jsonSerialize(): array
-	{
-		$json = parent::jsonSerialize();
+    public function toArray(): array
+    {
+        $array = parent::toArray();
 
-		# A path doesn't contain an extension if a modifier is NULL
-		if ($this->pathInfo instanceof ImagePathInfoInterface && null === $this->getModifiers() && null !== $this->getExtension()) {
-			# Save with the default file extension
-			$json['path'] .= '.' . $this->getExtension();
-		}
+        # A path doesn't contain an extension if a modifier is NULL
+        if ($this->pathInfo instanceof ImagePathInfoInterface && null === $this->getModifiers() && null !== $this->getExtension()) {
+            # Save with the default file extension
+            $array['path'] .= '.' . $this->getExtension();
+        }
 
-		return $json;
-	}
+        return $array;
+    }
 
-	/**
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidStateException
-	 */
-	private function checkPathInfoType(string $method): ImagePathInfoInterface
-	{
-		$pathInfo = $this->pathInfo;
+    /**
+     * @throws InvalidStateException
+     */
+    private function checkPathInfoType(string $method): ImagePathInfoInterface
+    {
+        $pathInfo = $this->pathInfo;
 
-		if (!$pathInfo instanceof ImagePathInfoInterface) {
-			throw new InvalidStateException(sprintf(
-				'An instance of %s must be implementor of an interface %s if you want to use the method %s().',
-				get_class($this->pathInfo),
-				ImagePathInfoInterface::class,
-				$method
-			));
-		}
+        if (!$pathInfo instanceof ImagePathInfoInterface) {
+            throw new InvalidStateException(sprintf(
+                'An instance of %s must be implementor of an interface %s if you want to use the method %s().',
+                get_class($this->pathInfo),
+                ImagePathInfoInterface::class,
+                $method,
+            ));
+        }
 
-		return $pathInfo;
-	}
+        return $pathInfo;
+    }
 }

@@ -8,8 +8,8 @@ use League\Flysystem\FilesystemAdapter;
 
 interface AdapterProviderInterface
 {
-	/**
-	 * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
-	 */
-	public function getAdapter(?string $name = null): FilesystemAdapter;
+    /**
+     * @throws \SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException
+     */
+    public function getAdapter(?string $name = null): FilesystemAdapter;
 }

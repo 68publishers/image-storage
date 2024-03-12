@@ -10,24 +10,24 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
 final class TmpFileImageResource extends ImageResource
 {
-	public function __construct(
-		PathInfoInterface $pathInfo,
-		Image $image,
-		ModifierFacadeInterface $modifierFacade,
-		private readonly TmpFile $tmpFile,
-	) {
-		parent::__construct(
+    public function __construct(
+        PathInfoInterface $pathInfo,
+        Image $image,
+        ModifierFacadeInterface $modifierFacade,
+        private readonly TmpFile $tmpFile,
+    ) {
+        parent::__construct(
             pathInfo: $pathInfo,
             image: $image,
             modifierFacade: $modifierFacade,
         );
-	}
+    }
 
-	/**
-	 * Destroy a tmp file
-	 */
-	public function unlink(): void
-	{
-		$this->tmpFile->unlink();
-	}
+    /**
+     * Destroy a tmp file
+     */
+    public function unlink(): void
+    {
+        $this->tmpFile->unlink();
+    }
 }
