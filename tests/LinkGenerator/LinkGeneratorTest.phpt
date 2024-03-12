@@ -37,24 +37,32 @@ final class LinkGeneratorTest extends TestCase
         );
     }
 
-    public function testExceptionShouldBeThrownIfModifiersAreNull(): void
+    public function testOriginalLinkShouldBeCreatedIfModifiersAreNull(): void
     {
         $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
         $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $originalPathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
         $pathInfo->shouldReceive('getModifiers')
             ->once()
             ->withNoArgs()
             ->andReturn(null);
 
+        $pathInfo->shouldReceive('withModifiers')
+            ->once()
+            ->with(['original' => true])
+            ->andReturn($originalPathInfo);
+
+        $originalPathInfo->shouldReceive('getPath')
+            ->andReturn('images/original/image.png');
+
+        $originalPathInfo->shouldReceive('getVersion')
+            ->andReturn(null);
+
         $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
 
-        Assert::exception(
-            static fn () => $linkGenerator->link($pathInfo),
-            InvalidArgumentException::class,
-            'Links to source images can not be created.',
-        );
+        Assert::same('/images/original/image.png', $linkGenerator->link($pathInfo));
     }
 
     public function testLinkShouldBeCreated(): void
