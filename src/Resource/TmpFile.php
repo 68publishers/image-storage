@@ -8,27 +8,26 @@ use function unlink;
 
 final class TmpFile
 {
-	private bool $unlinked = false;
+    private bool $unlinked = false;
 
-	public function __construct(
-		private readonly string $filename,
-	) {
-	}
+    public function __construct(
+        private readonly string $filename,
+    ) {}
 
-	/**
-	 * Destroy a tmp file
-	 */
-	public function unlink(): void
-	{
-		if (false === $this->unlinked) {
-			@unlink($this->filename);
+    /**
+     * Destroy a tmp file
+     */
+    public function unlink(): void
+    {
+        if (false === $this->unlinked) {
+            @unlink($this->filename);
 
-			$this->unlinked = true;
-		}
-	}
+            $this->unlinked = true;
+        }
+    }
 
-	public function __destruct()
-	{
-		$this->unlink();
-	}
+    public function __destruct()
+    {
+        $this->unlink();
+    }
 }

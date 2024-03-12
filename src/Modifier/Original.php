@@ -6,5 +6,5 @@ namespace SixtyEightPublishers\ImageStorage\Modifier;
 
 final class Original extends AbstractModifier
 {
-	protected ?string $alias = 'original';
+    protected ?string $alias = 'original';
 }

@@ -10,7 +10,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
 
 final class TestValidator implements ValidatorInterface
 {
-	public function validate(ModifierValues $values, ConfigInterface $config): void
-	{
-	}
+    public function validate(ModifierValues $values, ConfigInterface $config): void
+    {
+    }
 }

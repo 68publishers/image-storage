@@ -4,63 +4,58 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
-use SixtyEightPublishers\ImageStorage\PathInfoInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use function is_array;
 use function trigger_error;
 
 final class ArgsFacade
 {
-	/** @var array<string, string|numeric|bool>|null */
-	private ?array $defaultModifiers = null;
+    /** @var array<string, string|numeric|bool>|null */
+    private ?array $defaultModifiers = null;
 
-	public function __construct(
-		private readonly LinkGeneratorInterface $linkGenerator,
-		private readonly ModifierFacadeInterface $modifierFacade,
-		private readonly PathInfoInterface $pathInfo,
-	) {
-		$modifiers = $this->pathInfo->getModifiers();
+    public function __construct(
+        private readonly LinkGeneratorInterface $linkGenerator,
+        private readonly ModifierFacadeInterface $modifierFacade,
+        private readonly PathInfoInterface $pathInfo,
+    ) {
+        $modifiers = $this->pathInfo->getModifiers();
 
-		if (null !== $modifiers) {
-			$this->defaultModifiers = is_array($modifiers) ? $modifiers : $this->modifierFacade->getCodec()->decode(new PresetValue($modifiers));
-		}
-	}
+        if (null !== $modifiers) {
+            $this->defaultModifiers = is_array($modifiers) ? $modifiers : $this->modifierFacade->getCodec()->decode(new PresetValue($modifiers));
+        }
+    }
 
-	/**
-	 * @return array<string, string|numeric|bool>|null
-	 */
-	public function getDefaultModifiers(): ?array
-	{
-		return $this->defaultModifiers;
-	}
+    /**
+     * @return array<string, string|numeric|bool>|null
+     */
+    public function getDefaultModifiers(): ?array
+    {
+        return $this->defaultModifiers;
+    }
 
-	/**
-	 * @param array<string, string|numeric|bool> $modifiers
-	 */
-	public function createLink(array $modifiers): string
-	{
-		return $this->linkGenerator->link($this->pathInfo->withModifiers($modifiers));
-	}
+    /**
+     * @param array<string, string|numeric|bool> $modifiers
+     */
+    public function createLink(array $modifiers): string
+    {
+        return $this->linkGenerator->link($this->pathInfo->withModifiers($modifiers));
+    }
 
-	/**
-	 * @param string $modifierClassName
-	 *
-	 * @return string|null
-	 */
-	public function getModifierAlias(string $modifierClassName): ?string
-	{
-		try {
-			return $this->modifierFacade
-				->getModifierCollection()
-				->getByName($modifierClassName)
-				->getAlias();
-		} catch (InvalidArgumentException $e) {
-			trigger_error($e->getMessage(), E_USER_WARNING);
-		}
+    public function getModifierAlias(string $modifierClassName): ?string
+    {
+        try {
+            return $this->modifierFacade
+                ->getModifierCollection()
+                ->getByName($modifierClassName)
+                ->getAlias();
+        } catch (InvalidArgumentException $e) {
+            trigger_error($e->getMessage(), E_USER_WARNING);
+        }
 
-		return null;
-	}
+        return null;
+    }
 }

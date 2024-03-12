@@ -8,8 +8,8 @@ use Nette\DI\Definitions\Statement;
 
 final class ImageStorageConfig
 {
-	public string|Statement $driver;
+    public string|Statement $driver;
 
-	/** @var array<string, StorageConfig> */
-	public array $storages;
+    /** @var array<string, StorageConfig> */
+    public array $storages;
 }

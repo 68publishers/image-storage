@@ -11,15 +11,15 @@ use Intervention\Image\Imagick\Decoder as ImagickDecoder;
 
 final class Decoder extends ImagickDecoder
 {
-	/**
-	 * @throws ImagickException
-	 */
-	public function initFromImagick(Imagick $object): Image
-	{
-		// reset image orientation
-		$object->setImageOrientation(Imagick::ORIENTATION_UNDEFINED);
-		$object->setFirstIterator();
+    /**
+     * @throws ImagickException
+     */
+    public function initFromImagick(Imagick $object): Image
+    {
+        // reset image orientation
+        $object->setImageOrientation(Imagick::ORIENTATION_UNDEFINED);
+        $object->setFirstIterator();
 
-		return new Image(new Driver(), $object);
-	}
+        return new Image(new Driver(), $object);
+    }
 }

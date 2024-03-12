@@ -8,10 +8,10 @@ use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
 
 interface SamConfigGeneratorInterface
 {
-	public function canGenerate(ImageStorageInterface $imageStorage): bool;
+    public function canGenerate(ImageStorageInterface $imageStorage): bool;
 
-	/**
-	 * Returns path to the generated config
-	 */
-	public function generate(ImageStorageInterface $imageStorage): string;
+    /**
+     * Returns path to the generated config
+     */
+    public function generate(ImageStorageInterface $imageStorage): string;
 }

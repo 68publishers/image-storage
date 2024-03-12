@@ -8,5 +8,5 @@ use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 
 interface ModifierFacadeFactoryInterface
 {
-	public function create(ConfigInterface $config): ModifierFacadeInterface;
+    public function create(ConfigInterface $config): ModifierFacadeInterface;
 }

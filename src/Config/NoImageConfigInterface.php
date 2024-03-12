@@ -6,15 +6,15 @@ namespace SixtyEightPublishers\ImageStorage\Config;
 
 interface NoImageConfigInterface
 {
-	public function getDefaultPath(): ?string;
+    public function getDefaultPath(): ?string;
 
-	/**
-	 * @return array<string, string>
-	 */
-	public function getPaths(): array;
+    /**
+     * @return array<string, string>
+     */
+    public function getPaths(): array;
 
-	/**
-	 * @return array<string, string>
-	 */
-	public function getPatterns(): array;
+    /**
+     * @return array<string, string>
+     */
+    public function getPatterns(): array;
 }

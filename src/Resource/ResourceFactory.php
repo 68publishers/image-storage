@@ -4,73 +4,72 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
+use Intervention\Image\Exception\ImageException;
 use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
+use League\Flysystem\FilesystemException as LeagueFilesystemException;
 use League\Flysystem\FilesystemReader;
 use League\Flysystem\UnableToReadFile;
-use Intervention\Image\Exception\ImageException;
-use SixtyEightPublishers\FileStorage\PathInfoInterface;
-use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
-use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
-use League\Flysystem\FilesystemException as LeagueFilesystemException;
+use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
+use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface;
-use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
+use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
-use function sprintf;
-use function tempnam;
-use function sys_get_temp_dir;
+use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use function file_put_contents;
+use function sprintf;
+use function sys_get_temp_dir;
+use function tempnam;
 
 final class ResourceFactory implements ResourceFactoryInterface
 {
-	public function __construct(
-		private readonly FilesystemReader $filesystemReader,
-		private readonly ImageManager $imageManager,
-		private readonly ModifierFacadeInterface $modifierFacade
-	) {
-	}
+    public function __construct(
+        private readonly FilesystemReader $filesystemReader,
+        private readonly ImageManager $imageManager,
+        private readonly ModifierFacadeInterface $modifierFacade,
+    ) {}
 
-	/**
-	 * @throws \SixtyEightPublishers\FileStorage\Exception\FileNotFoundException
-	 * @throws \League\Flysystem\FilesystemException
-	 * @throws \SixtyEightPublishers\FileStorage\Exception\FilesystemException
-	 */
-	public function createResource(PathInfoInterface $pathInfo): ResourceInterface
-	{
-		if ($pathInfo instanceof ImagePathInfoInterface && null !== $pathInfo->getModifiers()) {
-			$sourcePathInfo = $pathInfo->withModifiers(null);
-		}
+    /**
+     * @throws FileNotFoundException
+     * @throws LeagueFilesystemException
+     * @throws FilesystemException
+     */
+    public function createResource(PathInfoInterface $pathInfo): ResourceInterface
+    {
+        if ($pathInfo instanceof ImagePathInfoInterface && null !== $pathInfo->getModifiers()) {
+            $sourcePathInfo = $pathInfo->withModifiers(null);
+        }
 
-		$path = isset($sourcePathInfo) ? $sourcePathInfo->getPath() : $pathInfo->getPath();
-		$filesystemPath = ImagePersisterInterface::FILESYSTEM_PREFIX_SOURCE . $path;
+        $path = isset($sourcePathInfo) ? $sourcePathInfo->getPath() : $pathInfo->getPath();
+        $filesystemPath = ImagePersisterInterface::FILESYSTEM_PREFIX_SOURCE . $path;
 
-		if (false === $this->filesystemReader->fileExists($filesystemPath)) {
-			throw new FileNotFoundException($path);
-		}
+        if (false === $this->filesystemReader->fileExists($filesystemPath)) {
+            throw new FileNotFoundException($path);
+        }
 
-		try {
-			$source = $this->filesystemReader->read($filesystemPath);
-		} catch (UnableToReadFile $e) {
-			throw new FilesystemException(sprintf(
-				'Unable to read file "%s".',
-				$path
-			), 0, $e);
-		} catch (LeagueFilesystemException $e) {
-			throw new FilesystemException($e->getMessage(), 0, $e);
-		}
+        try {
+            $source = $this->filesystemReader->read($filesystemPath);
+        } catch (UnableToReadFile $e) {
+            throw new FilesystemException(sprintf(
+                'Unable to read file "%s".',
+                $path,
+            ), 0, $e);
+        } catch (LeagueFilesystemException $e) {
+            throw new FilesystemException($e->getMessage(), 0, $e);
+        }
 
-		$tmpFilename = (string) tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
+        $tmpFilename = (string) tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
 
-		if (false === file_put_contents($tmpFilename, $source)) {
-			throw new FilesystemException(sprintf(
-				'Unable to write tmp file for "%s".',
-				$path
-			));
-		}
+        if (false === file_put_contents($tmpFilename, $source)) {
+            throw new FilesystemException(sprintf(
+                'Unable to write tmp file for "%s".',
+                $path,
+            ));
+        }
 
-		return new TmpFileImageResource(
+        return new TmpFileImageResource(
             pathInfo: $pathInfo,
             image: $this->makeImage(
                 source: $tmpFilename,
@@ -79,10 +78,10 @@ final class ResourceFactory implements ResourceFactoryInterface
             modifierFacade: $this->modifierFacade,
             tmpFile: new TmpFile($tmpFilename),
         );
-	}
+    }
 
-	public function createResourceFromFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
-	{
+    public function createResourceFromFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
+    {
         return new ImageResource(
             pathInfo: $pathInfo,
             image: $this->makeImage(
@@ -91,7 +90,7 @@ final class ResourceFactory implements ResourceFactoryInterface
             ),
             modifierFacade: $this->modifierFacade,
         );
-	}
+    }
 
     /**
      * @throws FilesystemException
@@ -105,7 +104,7 @@ final class ResourceFactory implements ResourceFactoryInterface
                 message: sprintf(
                     'Unable to create image "%s". %s',
                     $location,
-                    $e->getMessage()
+                    $e->getMessage(),
                 ),
                 previous: $e,
             );

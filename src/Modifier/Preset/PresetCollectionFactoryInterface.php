@@ -6,5 +6,5 @@ namespace SixtyEightPublishers\ImageStorage\Modifier\Preset;
 
 interface PresetCollectionFactoryInterface
 {
-	public function create(): PresetCollectionInterface;
+    public function create(): PresetCollectionInterface;
 }

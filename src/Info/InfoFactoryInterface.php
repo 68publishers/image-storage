@@ -9,10 +9,10 @@ use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 
 interface InfoFactoryInterface
 {
-	/**
-	 * @param string|array<string, string|numeric|bool>|null $modifier
-	 */
-	public function createPathInfo(string $path, string|array|null $modifier = null): PathInfoInterface;
+    /**
+     * @param string|array<string, string|numeric|bool>|null $modifier
+     */
+    public function createPathInfo(string $path, string|array|null $modifier = null): PathInfoInterface;
 
-	public function createFileInfo(PathInfoInterface $pathInfo): FileInfoInterface;
+    public function createFileInfo(PathInfoInterface $pathInfo): FileInfoInterface;
 }

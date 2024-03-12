@@ -8,5 +8,5 @@ use Stringable;
 
 interface DescriptorInterface extends Stringable
 {
-	public function createSrcSet(ArgsFacade $args): string;
+    public function createSrcSet(ArgsFacade $args): string;
 }

@@ -10,37 +10,37 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 
 class ImageResource implements ResourceInterface
 {
-	public function __construct(
-		private PathInfoInterface $pathInfo,
-		private Image $image,
-		private readonly ModifierFacadeInterface $modifierFacade,
-	) {}
+    public function __construct(
+        private PathInfoInterface $pathInfo,
+        private Image $image,
+        private readonly ModifierFacadeInterface $modifierFacade,
+    ) {}
 
-	public function getPathInfo(): PathInfoInterface
-	{
-		return $this->pathInfo;
-	}
+    public function getPathInfo(): PathInfoInterface
+    {
+        return $this->pathInfo;
+    }
 
-	public function getSource(): Image
-	{
-		return $this->image;
-	}
+    public function getSource(): Image
+    {
+        return $this->image;
+    }
 
-	public function withPathInfo(PathInfoInterface $pathInfo): static
-	{
-		$resource = clone $this;
-		$resource->pathInfo = $pathInfo;
+    public function withPathInfo(PathInfoInterface $pathInfo): self
+    {
+        $resource = clone $this;
+        $resource->pathInfo = $pathInfo;
 
-		return $resource;
-	}
+        return $resource;
+    }
 
-	public function modifyImage(string|array $modifiers): static
-	{
-		$resource = clone $this;
-		$resource->image = $this->modifierFacade->modifyImage($this->image, $this->pathInfo, $modifiers);
+    public function modifyImage(string|array $modifiers): self
+    {
+        $resource = clone $this;
+        $resource->image = $this->modifierFacade->modifyImage($this->image, $this->pathInfo, $modifiers);
 
-		return $resource;
-	}
+        return $resource;
+    }
 
     public function getMimeType(): ?string
     {

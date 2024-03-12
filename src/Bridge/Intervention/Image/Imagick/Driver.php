@@ -9,11 +9,11 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\DriverProxy;
 
 final class Driver extends DriverProxy
 {
-	public function __construct()
-	{
-		$driver = new ImagickDriver(new Decoder(), new Encoder());
-		$executor = new CommandExecutor($driver->getDriverName());
+    public function __construct()
+    {
+        $driver = new ImagickDriver(new Decoder(), new Encoder());
+        $executor = new CommandExecutor($driver->getDriverName());
 
-		parent::__construct($driver, $executor);
-	}
+        parent::__construct($driver, $executor);
+    }
 }
