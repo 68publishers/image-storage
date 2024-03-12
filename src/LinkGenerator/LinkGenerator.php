@@ -43,7 +43,7 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
         }
 
         if (null === $pathInfo->getModifiers()) {
-            throw new InvalidArgumentException('Links to source images can not be created.');
+            $pathInfo = $pathInfo->withModifiers(['original' => true]);
         }
 
         return parent::link($pathInfo);
