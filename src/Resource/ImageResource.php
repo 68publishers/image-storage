@@ -14,17 +14,13 @@ class ImageResource implements ResourceInterface
 		private PathInfoInterface $pathInfo,
 		private Image $image,
 		private readonly ModifierFacadeInterface $modifierFacade,
-	) {
-	}
+	) {}
 
 	public function getPathInfo(): PathInfoInterface
 	{
 		return $this->pathInfo;
 	}
 
-	/**
-	 * @phpstan-ignore-next-line
-	 */
 	public function getSource(): Image
 	{
 		return $this->image;
@@ -45,4 +41,16 @@ class ImageResource implements ResourceInterface
 
 		return $resource;
 	}
+
+    public function getMimeType(): ?string
+    {
+        return $this->image->mime();
+    }
+
+    public function getFilesize(): ?int
+    {
+        $filesize = null !== $this->image->basePath() ? $this->image->filesize() : false; # @phpstan-ignore-line ternary.alwaysTrue
+
+        return false !== $filesize ? (int) $filesize : null;
+    }
 }

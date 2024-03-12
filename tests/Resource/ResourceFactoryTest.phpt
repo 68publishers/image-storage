@@ -242,7 +242,7 @@ final class ResourceFactoryTest extends TestCase
 			->andReturn($image);
 
 		$resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
-		$resource = $resourceFactory->createResourceFromLocalFile($pathInfo, 'filename');
+		$resource = $resourceFactory->createResourceFromFile($pathInfo, 'filename');
 
 		Assert::type(ImageResource::class, $resource);
 		Assert::same($pathInfo, $resource->getPathInfo());

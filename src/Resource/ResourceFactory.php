@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Resource;
 
+use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
 use League\Flysystem\FilesystemReader;
 use League\Flysystem\UnableToReadFile;
+use Intervention\Image\Exception\ImageException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
@@ -68,11 +70,45 @@ final class ResourceFactory implements ResourceFactoryInterface
 			));
 		}
 
-		return new TmpFileImageResource($pathInfo, $this->imageManager->make($tmpFilename), $this->modifierFacade, new TmpFile($tmpFilename));
+		return new TmpFileImageResource(
+            pathInfo: $pathInfo,
+            image: $this->makeImage(
+                source: $tmpFilename,
+                location: $path,
+            ),
+            modifierFacade: $this->modifierFacade,
+            tmpFile: new TmpFile($tmpFilename),
+        );
 	}
 
-	public function createResourceFromLocalFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
+	public function createResourceFromFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
 	{
-		return new ImageResource($pathInfo, $this->imageManager->make($filename), $this->modifierFacade);
+        return new ImageResource(
+            pathInfo: $pathInfo,
+            image: $this->makeImage(
+                source: $filename,
+                location: $filename,
+            ),
+            modifierFacade: $this->modifierFacade,
+        );
 	}
+
+    /**
+     * @throws FilesystemException
+     */
+    private function makeImage(mixed $source, string $location): Image
+    {
+        try {
+            return $this->imageManager->make($source);
+        } catch (ImageException $e) {
+            throw new FilesystemException(
+                message: sprintf(
+                    'Unable to create image "%s". %s',
+                    $location,
+                    $e->getMessage()
+                ),
+                previous: $e,
+            );
+        }
+    }
 }

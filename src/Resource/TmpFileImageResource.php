@@ -16,7 +16,11 @@ final class TmpFileImageResource extends ImageResource
 		ModifierFacadeInterface $modifierFacade,
 		private readonly TmpFile $tmpFile,
 	) {
-		parent::__construct($pathInfo, $image, $modifierFacade);
+		parent::__construct(
+            pathInfo: $pathInfo,
+            image: $image,
+            modifierFacade: $modifierFacade,
+        );
 	}
 
 	/**
