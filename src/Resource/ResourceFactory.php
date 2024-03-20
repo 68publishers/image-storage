@@ -18,8 +18,13 @@ use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
+use function error_clear_last;
+use function error_get_last;
 use function file_put_contents;
+use function filter_var;
+use function fopen;
 use function sprintf;
+use function stream_context_create;
 use function sys_get_temp_dir;
 use function tempnam;
 
@@ -60,12 +65,72 @@ final class ResourceFactory implements ResourceFactoryInterface
             throw new FilesystemException($e->getMessage(), 0, $e);
         }
 
+        return $this->createTmpFileResource(
+            pathInfo: $pathInfo,
+            location: $path,
+            source: $source,
+        );
+    }
+
+    public function createResourceFromFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
+    {
+        if (!filter_var($filename, FILTER_VALIDATE_URL)) {
+            return new ImageResource(
+                pathInfo: $pathInfo,
+                image: $this->makeImage(
+                    source: $filename,
+                    location: $filename,
+                ),
+                modifierFacade: $this->modifierFacade,
+            );
+        }
+
+        error_clear_last();
+
+        $context = stream_context_create(
+            options: [
+                'http' => [
+                    'method' => 'GET',
+                    'protocol_version' => 1.1,
+                    'header' => "Accept-language: en\r\n" . "User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36\r\n",
+                ],
+            ],
+        );
+
+        $source = @fopen(
+            filename: $filename,
+            mode: 'rb',
+            context: $context,
+        );
+
+        if (false === $source) {
+            throw new FilesystemException(
+                message: sprintf(
+                    'Can not read stream from url "%s". %s',
+                    $filename,
+                    error_get_last()['message'] ?? '',
+                ),
+            );
+        }
+
+        return $this->createTmpFileResource(
+            pathInfo: $pathInfo,
+            location: $filename,
+            source: $source,
+        );
+    }
+
+    /**
+     * @throws FilesystemException
+     */
+    private function createTmpFileResource(PathInfoInterface $pathInfo, string $location, mixed $source): TmpFileImageResource
+    {
         $tmpFilename = (string) tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
 
         if (false === file_put_contents($tmpFilename, $source)) {
             throw new FilesystemException(sprintf(
                 'Unable to write tmp file for "%s".',
-                $path,
+                $location,
             ));
         }
 
@@ -73,22 +138,10 @@ final class ResourceFactory implements ResourceFactoryInterface
             pathInfo: $pathInfo,
             image: $this->makeImage(
                 source: $tmpFilename,
-                location: $path,
+                location: $location,
             ),
             modifierFacade: $this->modifierFacade,
             tmpFile: new TmpFile($tmpFilename),
-        );
-    }
-
-    public function createResourceFromFile(PathInfoInterface $pathInfo, string $filename): ResourceInterface
-    {
-        return new ImageResource(
-            pathInfo: $pathInfo,
-            image: $this->makeImage(
-                source: $filename,
-                location: $filename,
-            ),
-            modifierFacade: $this->modifierFacade,
         );
     }
 
