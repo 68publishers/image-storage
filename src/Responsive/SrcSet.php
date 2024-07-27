@@ -9,8 +9,8 @@ use Stringable;
 final class SrcSet implements Stringable
 {
     /**
-     * @param "x"|"w"                $descriptor
-     * @param array<numeric, string> $links
+     * @param "x"|"w"                   $descriptor
+     * @param array<int|string, string> $links
      */
     public function __construct(
         public readonly string $descriptor,
