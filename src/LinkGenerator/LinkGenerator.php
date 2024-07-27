@@ -12,6 +12,7 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGeneratorFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
@@ -49,7 +50,7 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
         return parent::link($pathInfo);
     }
 
-    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): string
+    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): SrcSet
     {
         if (null === $this->srcSetGenerator) {
             $this->srcSetGenerator = $this->srcSetGeneratorFactory->create($this, $this->modifierFacade);

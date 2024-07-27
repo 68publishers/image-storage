@@ -27,7 +27,7 @@ use function substr;
 
 final class Resize implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image
     {
         $width = $values->getOptional(Width::class);
         $height = $values->getOptional(Height::class);
@@ -70,7 +70,7 @@ final class Resize implements ModifierApplicatorInterface
         $height = (int) ($height * $pd);
 
         if ($width === $imageWidth && $height === $imageHeight) {
-            return $image;
+            return null;
         }
 
         switch ($fit) {

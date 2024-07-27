@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: ['8.1', '8.2']
+        php-versions: ['8.1', '8.2', '8.3']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,6 +26,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2
+          extensions: imagick
 
       - name: Install dependencies
         run: composer update --no-progress --prefer-dist --prefer-stable --optimize-autoloader --quiet

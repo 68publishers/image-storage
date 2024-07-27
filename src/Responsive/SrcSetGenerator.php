@@ -13,7 +13,7 @@ use function array_key_exists;
 
 final class SrcSetGenerator
 {
-    /** @var array<string, string> */
+    /** @var array<string, SrcSet> */
     private array $results = [];
 
     public function __construct(
@@ -21,7 +21,7 @@ final class SrcSetGenerator
         private readonly ModifierFacadeInterface $modifierFacade,
     ) {}
 
-    public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo): string
+    public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo): SrcSet
     {
         $key = $descriptor . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => true]) : $pathInfo);
 

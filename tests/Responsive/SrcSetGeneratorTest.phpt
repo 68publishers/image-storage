@@ -11,6 +11,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator;
 use Tester\Assert;
 use Tester\TestCase;
@@ -27,6 +28,13 @@ final class SrcSetGeneratorTest extends TestCase
         $descriptor = Mockery::mock(DescriptorInterface::class);
         $pathInfo = Mockery::mock(PathInfoInterface::class);
         $modifiedPathInfo = Mockery::mock(PathInfoInterface::class);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
 
         $descriptor->shouldReceive('__toString')
             ->times(2)
@@ -51,26 +59,26 @@ final class SrcSetGeneratorTest extends TestCase
         $descriptor->shouldReceive('createSrcSet')
             ->times(1)
             ->with(Mockery::type(ArgsFacade::class))
-            ->andReturnUsing(function (ArgsFacade $facade) use ($linkGenerator, $modifierFacade, $pathInfo): string {
+            ->andReturnUsing(function (ArgsFacade $facade) use ($linkGenerator, $modifierFacade, $pathInfo, $srcSet): SrcSet {
                 $this->assertFacadeProperties($facade, $linkGenerator, $modifierFacade, $pathInfo);
 
-                return 'srcset';
+                return $srcSet;
             });
 
         $generator = new SrcSetGenerator($linkGenerator, $modifierFacade);
 
         $this->assertCache($generator, []);
 
-        Assert::same('srcset', $generator->generate($descriptor, $pathInfo));
+        Assert::same($srcSet, $generator->generate($descriptor, $pathInfo));
 
         $this->assertCache($generator, [
-            'TEST()::var/www/original/file.png' => 'srcset',
+            'TEST()::var/www/original/file.png' => $srcSet,
         ]);
 
-        Assert::same('srcset', $generator->generate($descriptor, $pathInfo));
+        Assert::same($srcSet, $generator->generate($descriptor, $pathInfo));
 
         $this->assertCache($generator, [
-            'TEST()::var/www/original/file.png' => 'srcset',
+            'TEST()::var/www/original/file.png' => $srcSet,
         ]);
     }
 
@@ -80,6 +88,13 @@ final class SrcSetGeneratorTest extends TestCase
         $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
         $descriptor = Mockery::mock(DescriptorInterface::class);
         $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
 
         $descriptor->shouldReceive('__toString')
             ->times(2)
@@ -99,26 +114,26 @@ final class SrcSetGeneratorTest extends TestCase
         $descriptor->shouldReceive('createSrcSet')
             ->times(1)
             ->with(Mockery::type(ArgsFacade::class))
-            ->andReturnUsing(function (ArgsFacade $facade) use ($linkGenerator, $modifierFacade, $pathInfo): string {
+            ->andReturnUsing(function (ArgsFacade $facade) use ($linkGenerator, $modifierFacade, $pathInfo, $srcSet): SrcSet {
                 $this->assertFacadeProperties($facade, $linkGenerator, $modifierFacade, $pathInfo);
 
-                return 'srcset';
+                return $srcSet;
             });
 
         $generator = new SrcSetGenerator($linkGenerator, $modifierFacade);
 
         $this->assertCache($generator, []);
 
-        Assert::same('srcset', $generator->generate($descriptor, $pathInfo));
+        Assert::same($srcSet, $generator->generate($descriptor, $pathInfo));
 
         $this->assertCache($generator, [
-            'TEST()::var/www/h:100/file.png' => 'srcset',
+            'TEST()::var/www/h:100/file.png' => $srcSet,
         ]);
 
-        Assert::same('srcset', $generator->generate($descriptor, $pathInfo));
+        Assert::same($srcSet, $generator->generate($descriptor, $pathInfo));
 
         $this->assertCache($generator, [
-            'TEST()::var/www/h:100/file.png' => 'srcset',
+            'TEST()::var/www/h:100/file.png' => $srcSet,
         ]);
     }
 

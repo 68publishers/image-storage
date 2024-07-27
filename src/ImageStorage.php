@@ -19,6 +19,7 @@ use SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
 use function assert;
 
@@ -89,7 +90,7 @@ final class ImageStorage extends FileStorage implements ImageStorageInterface
         return $this->noImageResolver->resolveNoImage($path);
     }
 
-    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): string
+    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): SrcSet
     {
         assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
 

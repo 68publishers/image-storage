@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Applicator;
 
+use Imagick;
 use Intervention\Image\Image;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
@@ -12,17 +13,24 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Helper\SupportedType;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 use SixtyEightPublishers\ImageStorage\Modifier\Quality;
-use function assert;
 use function in_array;
-use function is_int;
 
 final class Format implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image
     {
         $extension = $this->getFileExtension($image, $pathInfo);
-        $quality = $values->getOptional(Quality::class, $config[Config::ENCODE_QUALITY]);
-        assert(is_int($quality));
+        $quality = $values->getOptional(Quality::class);
+        $needEncode = null !== $quality || SupportedType::getTypeByExtension($extension) !== $image->mime();
+
+        if (!$needEncode && 'pjpg' === $extension) {
+            $core = $image->getCore();
+            $needEncode = !($core instanceof Imagick) || in_array($core->getInterlaceScheme(), [Imagick::INTERLACE_UNDEFINED, Imagick::INTERLACE_NO], true);
+        }
+
+        if (!$needEncode) {
+            return null;
+        }
 
         if (in_array($extension, ['jpg', 'pjpg'], true)) {
             $image = $image->getDriver()
@@ -35,7 +43,7 @@ final class Format implements ModifierApplicatorInterface
             }
         }
 
-        return $image->encode($extension, $quality);
+        return $image->encode($extension, (int) ($quality ?? $config[Config::ENCODE_QUALITY]));
     }
 
     private function getFileExtension(Image $image, PathInfoInterface $pathInfo): string

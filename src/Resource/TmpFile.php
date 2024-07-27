@@ -11,7 +11,7 @@ final class TmpFile
     private bool $unlinked = false;
 
     public function __construct(
-        private readonly string $filename,
+        public readonly string $filename,
     ) {}
 
     /**

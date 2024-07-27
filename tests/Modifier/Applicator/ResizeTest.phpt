@@ -61,7 +61,7 @@ final class ResizeTest extends TestCase
     /**
      * @dataProvider getSameImageDimensionsData
      */
-    public function testImageShouldNotBeModifiedIfCalculatedDimensionsAreSameAsOriginal(int $imageWidth, int $imageHeight, ?int $widthValue, ?int $heightValue, float $pd, array $aspectRatio): void
+    public function testNullShouldBeReturnedIfCalculatedDimensionsAreSameAsOriginal(int $imageWidth, int $imageHeight, ?int $widthValue, ?int $heightValue, float $pd, array $aspectRatio): void
     {
         $image = Mockery::mock(Image::class);
         $pathInfo = Mockery::mock(PathInfoInterface::class);
@@ -80,7 +80,7 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::same($image, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
     }
 
     public function testImageShouldBeModifiedWithContainFit(): void

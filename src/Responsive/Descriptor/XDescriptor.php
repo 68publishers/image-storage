@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use function array_map;
 use function array_unshift;
 use function implode;
@@ -41,25 +42,39 @@ final class XDescriptor implements DescriptorInterface
         return sprintf('X(%s)', implode(',', $this->pixelDensities));
     }
 
-    public function createSrcSet(ArgsFacade $args): string
+    public function createSrcSet(ArgsFacade $args): SrcSet
     {
         $pdAlias = $args->getModifierAlias(PixelDensity::class);
         $modifiers = $args->getDefaultModifiers() ?? [];
 
         if (null === $pdAlias) {
-            return empty($modifiers) ? '' : $args->createLink($modifiers);
+            $link = empty($modifiers) ? '' : $args->createLink($modifiers);
+
+            return new SrcSet(
+                descriptor: 'x',
+                links: '' !== $link ? [ '1.0' => $link ] : [],
+                value: $link,
+            );
         }
 
-        $links = array_map(static function (float $pd) use ($args, $pdAlias, $modifiers) {
+        $links = [];
+        $parts = array_map(static function (float $pd) use ($args, $pdAlias, $modifiers, &$links) {
             $modifiers[$pdAlias] = $pd;
+            $link = $args->createLink($modifiers);
+            $formattedPd = number_format($pd, 1, '.', '');
+            $links[$formattedPd] = $link;
 
             return sprintf(
                 '%s%s',
-                $args->createLink($modifiers),
-                1.0 === $pd ? '' : (' ' . number_format($pd, 1, '.', '') . 'x'),
+                $link,
+                1.0 === $pd ? '' : (' ' . $formattedPd . 'x'),
             );
         }, $this->pixelDensities);
 
-        return implode(', ', $links);
+        return new SrcSet(
+            descriptor: 'x',
+            links: $links,
+            value: implode(', ', $parts),
+        );
     }
 }

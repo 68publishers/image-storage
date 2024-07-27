@@ -12,6 +12,7 @@ use SixtyEightPublishers\ImageStorage\FileInfo;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use Tester\Assert;
 use Tester\TestCase;
 use function call_user_func;
@@ -42,13 +43,21 @@ final class FileInfoTest extends TestCase
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
         $descriptor = Mockery::mock(DescriptorInterface::class);
         $fileInfo = new FileInfo($linkGenerator, $pathInfo, 'default');
+        $srcSet = new SrcSet(
+            descriptor: 'w',
+            links: [
+                100 => 'var/www/h:100,w:100/file.png',
+                200 => 'var/www/h:100,w:200/file.png',
+            ],
+            value: 'var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w',
+        );
 
         $linkGenerator->shouldReceive('srcSet')
             ->once()
             ->with($fileInfo, $descriptor)
-            ->andReturn('srcset');
+            ->andReturn($srcSet);
 
-        Assert::same('srcset', $fileInfo->srcSet($descriptor));
+        Assert::same($srcSet, $fileInfo->srcSet($descriptor));
     }
 
     public function testModifiersShouldBeNullIfFilePathInfoPassed(): void

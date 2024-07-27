@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Persistence;
 
-use Intervention\Image\Image;
 use League\Flysystem\FilesystemException as LeagueFilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\FilesystemReader;
@@ -15,8 +14,8 @@ use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
-use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceInterface;
 use SixtyEightPublishers\ImageStorage\Resource\TmpFileImageResource;
 use function assert;
 use function is_scalar;
@@ -29,7 +28,6 @@ final class ImagePersister implements ImagePersisterInterface
     public function __construct(
         private readonly FilesystemOperator $filesystemOperator,
         private readonly ConfigInterface $config,
-        private readonly ModifierFacadeInterface $modifierFacade,
     ) {}
 
     public function getFilesystem(): FilesystemOperator
@@ -51,18 +49,11 @@ final class ImagePersister implements ImagePersisterInterface
 
     public function save(ResourceInterface $resource, array $config = []): string
     {
+        assert($resource instanceof ImageResourceInterface);
         $pathInfo = $this->assertPathInfo($resource->getPathInfo(), __METHOD__);
-        $source = $resource->getSource();
-
-        if (!($source instanceof Image)) {
-            throw new InvalidArgumentException(sprintf(
-                'A source must be instance of %s.',
-                Image::class,
-            ));
-        }
 
         if (null !== $pathInfo->getModifiers()) {
-            $source = $this->modifierFacade->modifyImage($source, $pathInfo, $pathInfo->getModifiers());
+            $resource = $resource->modifyImage($pathInfo->getModifiers());
 
             $prefix = self::FILESYSTEM_PREFIX_CACHE;
         } else {
@@ -73,7 +64,7 @@ final class ImagePersister implements ImagePersisterInterface
         $flushCache = self::FILESYSTEM_PREFIX_SOURCE === $prefix && $this->exists($pathInfo);
 
         try {
-            $this->filesystemOperator->write($prefix . $path, $this->encodeImage($source), $config);
+            $this->filesystemOperator->write($prefix . $path, $this->encodeImage($resource), $config);
 
             if ($flushCache) {
                 $this->delete($pathInfo, [
@@ -137,10 +128,19 @@ final class ImagePersister implements ImagePersisterInterface
         $this->deleteFile(self::FILESYSTEM_PREFIX_SOURCE . $pathInfo->getPath(), $config);
     }
 
-    private function encodeImage(Image $image): string
+    private function encodeImage(ImageResourceInterface $resource): string
     {
+        if (!$resource->hasBeenModified()) {
+            $contents = @file_get_contents($resource->getLocalFilename());
+
+            if (false !== $contents) {
+                return $contents;
+            }
+        }
+
         $quality = $this->config[Config::ENCODE_QUALITY];
-        $image = $image->isEncoded() ? $image : $image->encode(null, is_scalar($quality) ? (int) $quality : 90);
+        $image = $resource->getSource();
+        $image = $image->isEncoded() ? $image : $image->encode('', is_scalar($quality) ? (int) $quality : 90);
 
         return $image->getEncoded();
     }

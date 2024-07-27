@@ -20,6 +20,7 @@ use SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
 use Tester\Assert;
 use Tester\TestCase;
@@ -237,15 +238,23 @@ final class ImageStorageTest extends TestCase
         $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
         $descriptor = Mockery::mock(DescriptorInterface::class);
+        $srcSet = new SrcSet(
+            descriptor: 'w',
+            links: [
+                100 => 'var/www/h:100,w:100/file.png',
+                200 => 'var/www/h:100,w:200/file.png',
+            ],
+            value: 'var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w',
+        );
 
         $linkGenerator->shouldReceive('srcSet')
             ->once()
             ->with($pathInfo, $descriptor)
-            ->andReturn('srcset');
+            ->andReturn($srcSet);
 
         $imageStorage = $this->createImageStorage(linkGenerator: $linkGenerator);
 
-        Assert::same('srcset', $imageStorage->srcSet($pathInfo, $descriptor));
+        Assert::same($srcSet, $imageStorage->srcSet($pathInfo, $descriptor));
     }
 
     public function testSignatureStrategyShouldBeReturned(): void

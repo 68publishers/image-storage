@@ -9,6 +9,7 @@ use Mockery;
 use Nette\Utils\FileSystem;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifyResult;
 use SixtyEightPublishers\ImageStorage\Resource\TmpFile;
 use SixtyEightPublishers\ImageStorage\Resource\TmpFileImageResource;
 use Tester\Assert;
@@ -28,12 +29,15 @@ final class TmpFileImageResourceTest extends TestCase
         $pathInfo1 = Mockery::mock(FilePathInfoInterface::class);
         $pathInfo2 = Mockery::mock(FilePathInfoInterface::class);
 
-        $resource1 = new TmpFileImageResource($pathInfo1, $image, $modifierFacade, new TmpFile('fake'));
+        $resource1 = new TmpFileImageResource($pathInfo1, $image, $modifierFacade, new TmpFile('/tmp/fake'));
         $resource2 = $resource1->withPathInfo($pathInfo2);
 
         Assert::notSame($resource1, $resource2);
         Assert::same($pathInfo1, $resource1->getPathInfo());
         Assert::same($pathInfo2, $resource2->getPathInfo());
+
+        Assert::same('/tmp/fake', $resource1->getLocalFilename());
+        Assert::same('/tmp/fake', $resource2->getLocalFilename());
     }
 
     public function testImageShouldBeModified(): void
@@ -42,18 +46,24 @@ final class TmpFileImageResourceTest extends TestCase
         $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
         $image = Mockery::mock(Image::class);
         $modifiedImage = Mockery::mock(Image::class);
+        $modifyResult = new ModifyResult(
+            image: $modifiedImage,
+            modified: true,
+        );
 
         $modifierFacade->shouldReceive('modifyImage')
             ->once()
             ->with($image, $pathInfo, ['w' => 300])
-            ->andReturn($modifiedImage);
+            ->andReturn($modifyResult);
 
-        $resource1 = new TmpFileImageResource($pathInfo, $image, $modifierFacade, new TmpFile('fake'));
+        $resource1 = new TmpFileImageResource($pathInfo, $image, $modifierFacade, new TmpFile('/tmp/fake'));
         $resource2 = $resource1->modifyImage(['w' => 300]);
 
         Assert::notSame($resource1, $resource2);
         Assert::same($image, $resource1->getSource());
         Assert::same($modifiedImage, $resource2->getSource());
+        Assert::false($resource1->hasBeenModified());
+        Assert::true($resource2->hasBeenModified());
     }
 
     public function testTmpFileShouldBeUnlinked(): void

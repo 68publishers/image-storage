@@ -18,6 +18,7 @@ restart:
 tests.all:
 	PHP=81 make tests.run
 	PHP=82 make tests.run
+	PHP=83 make tests.run
 
 cs.fix:
 	PHP=81 make composer.update

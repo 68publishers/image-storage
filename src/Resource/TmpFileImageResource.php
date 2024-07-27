@@ -19,6 +19,7 @@ final class TmpFileImageResource extends ImageResource
         parent::__construct(
             pathInfo: $pathInfo,
             image: $image,
+            localFilename: $this->tmpFile->filename,
             modifierFacade: $modifierFacade,
         );
     }

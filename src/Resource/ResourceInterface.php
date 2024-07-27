@@ -11,6 +11,10 @@ interface ResourceInterface extends FileResourceInterface
 {
     public function getSource(): Image;
 
+    public function getLocalFilename(): string;
+
+    public function hasBeenModified(): bool;
+
     /**
      * @param string|array<string, string|numeric|bool> $modifiers
      */
