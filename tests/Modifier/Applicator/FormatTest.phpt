@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Tests\Modifier\Applicator;
 
+use Imagick;
 use Intervention\Image\AbstractDriver;
 use Intervention\Image\Image;
 use Mockery;
@@ -14,6 +15,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Applicator\Format;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 use SixtyEightPublishers\ImageStorage\Modifier\Quality as QualityModifier;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
+use stdClass;
 use Tester\Assert;
 use Tester\TestCase;
 
@@ -21,56 +23,46 @@ require __DIR__ . '/../../bootstrap.php';
 
 final class FormatTest extends TestCase
 {
-    public function testImageShouldBeFormattedWithPathInfoExtension(): void
+    public function testNullShouldBeReturnedIfQualityNotSpecifiedAndPathInfoHasSameExtensionAsImage(): void
     {
         $image = Mockery::mock(Image::class);
-        $modifiedImage = Mockery::mock(Image::class);
         $pathInfo = $this->createPathInfo('png');
-        $modifierValues = $this->createModifierValues();
-        $config = $this->createConfig();
-
-        $image->shouldReceive('encode')
-            ->once()
-            ->with('png', 90)
-            ->andReturn($modifiedImage);
-
-        $applicator = new Format();
-
-        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
-    }
-
-    public function testImageShouldBeFormattedWithImageMimeType(): void
-    {
-        $image = Mockery::mock(Image::class);
-        $modifiedImage = Mockery::mock(Image::class);
-        $pathInfo = $this->createPathInfo(null);
-        $modifierValues = $this->createModifierValues();
-        $config = $this->createConfig();
+        $modifierValues = $this->createModifierValues(null);
+        $config = Mockery::mock(ConfigInterface::class);
 
         $image->shouldReceive('mime')
-            ->once()
             ->withNoArgs()
             ->andReturn('image/png');
 
-        $image->shouldReceive('encode')
-            ->once()
-            ->with('png', 90)
-            ->andReturn($modifiedImage);
-
         $applicator = new Format();
 
-        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
     }
 
-    public function testImageShouldBeFormattedWithDefaultExtension(): void
+    public function testNullShouldBeReturnedIfQualityIsNotSpecifiedAndPathInfoExtensionIsNull(): void
     {
         $image = Mockery::mock(Image::class);
         $pathInfo = $this->createPathInfo(null);
-        $modifierValues = $this->createModifierValues();
-        $config = $this->createConfig();
+        $modifierValues = $this->createModifierValues(null);
+        $config = Mockery::mock(ConfigInterface::class);
 
         $image->shouldReceive('mime')
-            ->once()
+            ->withNoArgs()
+            ->andReturn('image/png');
+
+        $applicator = new Format();
+
+        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
+    }
+
+    public function testImageShouldBeEncodedInDefaultFormatIfPathInfoExtensionIsNullAndImageMimeTypeIsUnsupported(): void
+    {
+        $image = Mockery::mock(Image::class);
+        $pathInfo = $this->createPathInfo(null);
+        $modifierValues = $this->createModifierValues(null);
+        $config = $this->createConfigForEncode();
+
+        $image->shouldReceive('mime')
             ->withNoArgs()
             ->andReturn('image/unsupported');
 
@@ -86,12 +78,60 @@ final class FormatTest extends TestCase
         Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
     }
 
-    public function testImageShouldBeFormattedIfPathInfoExtensionIsJpg(): void
+    public function testImageShouldBeEncodedIfPathInfoExtensionIsDifferentThanImageMimeType(): void
+    {
+        $image = Mockery::mock(Image::class);
+        $modifiedImage = Mockery::mock(Image::class);
+        $pathInfo = $this->createPathInfo('webp');
+        $modifierValues = $this->createModifierValues(null);
+        $config = $this->createConfigForEncode();
+
+        $image->shouldReceive('mime')
+            ->withNoArgs()
+            ->andReturn('image/jpeg');
+
+        $image->shouldReceive('encode')
+            ->once()
+            ->with('webp', 90)
+            ->andReturn($modifiedImage);
+
+        $applicator = new Format();
+
+        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+    }
+
+    public function testImageShouldBeEncodedIfQualityIsSpecified(): void
+    {
+        $image = Mockery::mock(Image::class);
+        $modifiedImage = Mockery::mock(Image::class);
+        $pathInfo = $this->createPathInfo(null);
+        $modifierValues = $this->createModifierValues(75);
+        $config = Mockery::mock(ConfigInterface::class);
+
+        $image->shouldReceive('mime')
+            ->withNoArgs()
+            ->andReturn('image/png');
+
+        $image->shouldReceive('encode')
+            ->once()
+            ->with('png', 75)
+            ->andReturn($modifiedImage);
+
+        $applicator = new Format();
+
+        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+    }
+
+    public function testImageShouldBeEncodedToJpegFromDifferentFormat(): void
     {
         $image = Mockery::mock(Image::class);
         $pathInfo = $this->createPathInfo('jpg');
-        $modifierValues = $this->createModifierValues();
-        $config = $this->createConfig();
+        $modifierValues = $this->createModifierValues(null);
+        $config = $this->createConfigForEncode();
+
+        $image->shouldReceive('mime')
+            ->withNoArgs()
+            ->andReturn('image/png');
 
         $modifiedImage = $this->setupJpgExpectationsOnImage($image, false);
 
@@ -105,12 +145,23 @@ final class FormatTest extends TestCase
         Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
     }
 
-    public function testImageShouldBeFormattedIfPathInfoExtensionIsPjpg(): void
+    /**
+     * @dataProvider provideImageCoresForProgressiveJpegWithInvalidInterlaceScheme
+     */
+    public function testImageShouldBeEncodedToProgressiveJpeg(object $core): void
     {
         $image = Mockery::mock(Image::class);
         $pathInfo = $this->createPathInfo('pjpg');
-        $modifierValues = $this->createModifierValues();
-        $config = $this->createConfig();
+        $modifierValues = $this->createModifierValues(null);
+        $config = $this->createConfigForEncode();
+
+        $image->shouldReceive('mime')
+            ->withNoArgs()
+            ->andReturn('image/jpeg');
+
+        $image->shouldReceive('getCore')
+            ->withNoArgs()
+            ->andReturn($core);
 
         $modifiedImage = $this->setupJpgExpectationsOnImage($image, true);
 
@@ -124,12 +175,63 @@ final class FormatTest extends TestCase
         Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
     }
 
+    public function testImageShouldNotBeEncodedToProgressiveJpeg(): void
+    {
+        $image = Mockery::mock(Image::class);
+        $pathInfo = $this->createPathInfo('pjpg');
+        $modifierValues = $this->createModifierValues(null);
+        $config = Mockery::mock(ConfigInterface::class);
+        $core = new class extends Imagick {
+            public function getInterlaceScheme(): int
+            {
+                return Imagick::INTERLACE_JPEG;
+            }
+        };
+
+        $image->shouldReceive('mime')
+            ->withNoArgs()
+            ->andReturn('image/jpeg');
+
+        $image->shouldReceive('getCore')
+            ->withNoArgs()
+            ->andReturn($core);
+
+        $applicator = new Format();
+
+        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
+    }
+
+    public function provideImageCoresForProgressiveJpegWithInvalidInterlaceScheme(): array
+    {
+        return [
+            'Non imagick core' => [
+                new stdClass(),
+            ],
+            'Imagick core with INTERLACE_UNDEFINED' => [
+                new class extends Imagick {
+                    public function getInterlaceScheme(): int
+                    {
+                        return Imagick::INTERLACE_UNDEFINED;
+                    }
+                },
+            ],
+            'Imagick core with INTERLACE_NO' => [
+                new class extends Imagick {
+                    public function getInterlaceScheme(): int
+                    {
+                        return Imagick::INTERLACE_NO;
+                    }
+                },
+            ],
+        ];
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
     }
 
-    private function createConfig(): ConfigInterface
+    private function createConfigForEncode(): ConfigInterface
     {
         $config = Mockery::mock(ConfigInterface::class);
 
@@ -141,14 +243,14 @@ final class FormatTest extends TestCase
         return $config;
     }
 
-    private function createModifierValues(): ModifierValues
+    private function createModifierValues(?int $qualityReturn): ModifierValues
     {
         $modifierValues = Mockery::mock(ModifierValues::class);
 
         $modifierValues->shouldReceive('getOptional')
             ->once()
-            ->with(QualityModifier::class, 90)
-            ->andReturn(90);
+            ->with(QualityModifier::class)
+            ->andReturn($qualityReturn);
 
         return $modifierValues;
     }

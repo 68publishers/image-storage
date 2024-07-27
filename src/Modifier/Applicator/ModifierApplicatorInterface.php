@@ -11,5 +11,8 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 
 interface ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image;
+    /**
+     * Returns NULL of image is not modified
+     */
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image;
 }

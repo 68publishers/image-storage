@@ -10,6 +10,7 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Width;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\WDescriptor;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use Tester\Assert;
 use Tester\TestCase;
 use function call_user_func;
@@ -69,7 +70,7 @@ final class WDescriptorTest extends TestCase
         Assert::same('W(100,200,300)', (string) new WDescriptor(100, 200, 300));
     }
 
-    public function testSrcSetShouldBeEmptyStringIfWidthModifierNotFoundAndDefaultModifiersAreNull(): void
+    public function testSrcSetShouldBeEmptyIfWidthModifierNotFoundAndDefaultModifiersAreNull(): void
     {
         $argsFacade = Mockery::mock(ArgsFacade::class);
 
@@ -85,10 +86,17 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor(100, 200, 300);
 
-        Assert::same('', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [],
+                value: '',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
-    public function testSrcSetShouldBeEmptyStringIfWidthModifierNotFoundAndDefaultModifiersAreEmptyArray(): void
+    public function testSrcSetShouldBeEmptyIfWidthModifierNotFoundAndDefaultModifiersAreEmptyArray(): void
     {
         $argsFacade = Mockery::mock(ArgsFacade::class);
 
@@ -104,7 +112,14 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor(100, 200, 300);
 
-        Assert::same('', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [],
+                value: '',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldBeSingleLinkIfWidthModifierNotFound(): void
@@ -128,10 +143,19 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor(100, 200, 300);
 
-        Assert::same('var/www/h:100/file.png', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [
+                    0 => 'var/www/h:100/file.png',
+                ],
+                value: 'var/www/h:100/file.png',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
-    public function testSrcSetShouldBeEmptyStringIfNoWidthsDefined(): void
+    public function testSrcSetShouldBeEmptyIfNoWidthsDefined(): void
     {
         $argsFacade = Mockery::mock(ArgsFacade::class);
 
@@ -147,7 +171,14 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor();
 
-        Assert::same('', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [],
+                value: '',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldContainMultipleLinksWithoutDefaultModifiers(): void
@@ -181,7 +212,18 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor(100, 200, 300);
 
-        Assert::same('var/www/w:100/file.png 100w, var/www/w:200/file.png 200w, var/www/w:300/file.png 300w', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [
+                    100 => 'var/www/w:100/file.png',
+                    200 => 'var/www/w:200/file.png',
+                    300 => 'var/www/w:300/file.png',
+                ],
+                value: 'var/www/w:100/file.png 100w, var/www/w:200/file.png 200w, var/www/w:300/file.png 300w',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldContainMultipleLinksWithDefaultModifiers(): void
@@ -215,7 +257,18 @@ final class WDescriptorTest extends TestCase
 
         $descriptor = new WDescriptor(100, 200, 300);
 
-        Assert::same('var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w, var/www/h:100,w:300/file.png 300w', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'w',
+                links: [
+                    100 => 'var/www/h:100,w:100/file.png',
+                    200 => 'var/www/h:100,w:200/file.png',
+                    300 => 'var/www/h:100,w:300/file.png',
+                ],
+                value: 'var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w, var/www/h:100,w:300/file.png 300w',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function getInvalidRangeData(): array

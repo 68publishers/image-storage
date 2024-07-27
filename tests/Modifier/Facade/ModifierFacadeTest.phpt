@@ -16,6 +16,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacade;
+use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifyResult;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
@@ -223,7 +224,53 @@ final class ModifierFacadeTest extends TestCase
         $facade->setApplicators([$applicator]);
         $facade->setValidators([$validator]);
 
-        Assert::same($image, $facade->modifyImage($image, $pathInfo, $modifiers));
+        Assert::equal(
+            new ModifyResult(
+                image: $image,
+                modified: true,
+            ),
+            $facade->modifyImage($image, $pathInfo, $modifiers),
+        );
+    }
+
+    public function testImageShouldNotBeModifiedWithArrayModifiers(): void
+    {
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+        $validator = Mockery::mock(ValidatorInterface::class);
+        $applicator = Mockery::mock(ModifierApplicatorInterface::class);
+
+        $modifierValues = Mockery::mock(ModifierValues::class);
+        $image = Mockery::mock(Image::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifiers = ['w' => 100, 'h' => 200];
+
+        $modifierCollection->shouldReceive('parseValues')
+            ->once()
+            ->with($modifiers)
+            ->andReturn($modifierValues);
+
+        $validator->shouldReceive('validate')
+            ->once()
+            ->with($modifierValues, $config);
+
+        $applicator->shouldReceive('apply')
+            ->once()
+            ->with($image, $pathInfo, $modifierValues, $config)
+            ->andReturn(null);
+
+        $facade = $this->createModifierFacade(config: $config, modifierCollection: $modifierCollection);
+
+        $facade->setApplicators([$applicator]);
+        $facade->setValidators([$validator]);
+
+        Assert::equal(
+            new ModifyResult(
+                image: $image,
+                modified: false,
+            ),
+            $facade->modifyImage($image, $pathInfo, $modifiers),
+        );
     }
 
     public function testImageShouldBeModifiedWithPresetModifiers(): void
@@ -268,7 +315,64 @@ final class ModifierFacadeTest extends TestCase
         $facade->setApplicators([$applicator]);
         $facade->setValidators([$validator]);
 
-        Assert::same($image, $facade->modifyImage($image, $pathInfo, $preset));
+        Assert::equal(
+            new ModifyResult(
+                image: $image,
+                modified: true,
+            ),
+            $facade->modifyImage($image, $pathInfo, $preset),
+        );
+    }
+
+    public function testImageShouldNotBeModifiedWithPresetModifiers(): void
+    {
+        $config = Mockery::mock(ConfigInterface::class);
+        $codec = Mockery::mock(CodecInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+        $validator = Mockery::mock(ValidatorInterface::class);
+        $applicator = Mockery::mock(ModifierApplicatorInterface::class);
+
+        $modifierValues = Mockery::mock(ModifierValues::class);
+        $image = Mockery::mock(Image::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifiers = ['w' => 100, 'h' => 200];
+        $preset = 'preset';
+
+        $codec->shouldReceive('decode')
+            ->once()
+            ->with(Mockery::type(PresetValue::class))
+            ->andReturnUsing(static function (PresetValue $value) use ($preset, $modifiers): array {
+                Assert::same($preset, $value->presetName);
+
+                return $modifiers;
+            });
+
+        $modifierCollection->shouldReceive('parseValues')
+            ->once()
+            ->with($modifiers)
+            ->andReturn($modifierValues);
+
+        $validator->shouldReceive('validate')
+            ->once()
+            ->with($modifierValues, $config);
+
+        $applicator->shouldReceive('apply')
+            ->once()
+            ->with($image, $pathInfo, $modifierValues, $config)
+            ->andReturn(null);
+
+        $facade = $this->createModifierFacade(config: $config, codec: $codec, modifierCollection: $modifierCollection);
+
+        $facade->setApplicators([$applicator]);
+        $facade->setValidators([$validator]);
+
+        Assert::equal(
+            new ModifyResult(
+                image: $image,
+                modified: false,
+            ),
+            $facade->modifyImage($image, $pathInfo, $preset),
+        );
     }
 
     protected function tearDown(): void

@@ -23,6 +23,7 @@ jobs:
         with:
           php-version: 8.1
           tools: composer:v2
+          extensions: imagick
 
       - name: Install dependencies
         run: composer update --no-progress --prefer-dist --prefer-stable --optimize-autoloader --quiet
@@ -42,6 +43,7 @@ jobs:
         with:
           php-version: 8.1
           tools: composer:v2
+          extensions: imagick
 
       - name: Install dependencies
         run: composer update --no-progress --prefer-dist --prefer-stable --optimize-autoloader --quiet

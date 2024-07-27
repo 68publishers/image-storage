@@ -373,7 +373,6 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             ->setFactory(ImagePersister::class, [
                 new Reference($this->prefix('filesystem.' . $name)),
                 new Reference($this->prefix('config.' . $name)),
-                new Reference($this->prefix('modifier_facade.' . $name)),
             ])
             ->setAutowired(false);
 

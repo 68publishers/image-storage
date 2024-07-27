@@ -10,6 +10,7 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface as ImageLinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use function assert;
 
 final class FileInfo extends BaseFileInfo implements FileInfoInterface
@@ -19,7 +20,7 @@ final class FileInfo extends BaseFileInfo implements FileInfoInterface
         parent::__construct($linkGenerator, $pathInfo, $imageStorageName);
     }
 
-    public function srcSet(DescriptorInterface $descriptor): string
+    public function srcSet(DescriptorInterface $descriptor): SrcSet
     {
         assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
 

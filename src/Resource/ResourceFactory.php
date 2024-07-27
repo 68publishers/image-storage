@@ -81,6 +81,7 @@ final class ResourceFactory implements ResourceFactoryInterface
                     source: $filename,
                     location: $filename,
                 ),
+                localFilename: $filename,
                 modifierFacade: $this->modifierFacade,
             );
         }

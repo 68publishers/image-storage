@@ -102,7 +102,7 @@ final class ModifierFacade implements ModifierFacadeInterface
         return $this->codec;
     }
 
-    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers): Image
+    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers): ModifyResult
     {
         if (!is_array($modifiers)) {
             $modifiers = $this->getCodec()->decode(new PresetValue($modifiers));
@@ -118,10 +118,20 @@ final class ModifierFacade implements ModifierFacadeInterface
             $validator->validate($values, $this->config);
         }
 
+        $modified = false;
+
         foreach ($this->applicators as $applicator) {
-            $image = $applicator->apply($image, $info, $values, $this->config);
+            $modifiedImage = $applicator->apply($image, $info, $values, $this->config);
+
+            if (null !== $modifiedImage) {
+                $image = $modifiedImage;
+                $modified = true;
+            }
         }
 
-        return $image;
+        return new ModifyResult(
+            image: $image,
+            modified: $modified,
+        );
     }
 }

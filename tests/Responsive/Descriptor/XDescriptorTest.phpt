@@ -9,6 +9,7 @@ use Mockery;
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\XDescriptor;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use Tester\Assert;
 use Tester\TestCase;
 use function call_user_func;
@@ -37,7 +38,7 @@ final class XDescriptorTest extends TestCase
         Assert::same('X(1,2,3)', (string) new XDescriptor(1.0, 2.0, 3.0));
     }
 
-    public function testSrcSetShouldBeEmptyStringIfPixelDensityModifierNotFoundAndDefaultModifiersAreNull(): void
+    public function testSrcSetShouldBeEmptyIfPixelDensityModifierNotFoundAndDefaultModifiersAreNull(): void
     {
         $argsFacade = Mockery::mock(ArgsFacade::class);
 
@@ -53,10 +54,13 @@ final class XDescriptorTest extends TestCase
 
         $descriptor = new XDescriptor(1, 2, 2.5);
 
-        Assert::same('', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(descriptor: 'x', links: [], value: ''),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
-    public function testSrcSetShouldBeEmptyStringIfPixelDensityModifierNotFoundAndDefaultModifiersAreEmptyArray(): void
+    public function testSrcSetShouldBeEmptyIfPixelDensityModifierNotFoundAndDefaultModifiersAreEmptyArray(): void
     {
         $argsFacade = Mockery::mock(ArgsFacade::class);
 
@@ -72,7 +76,10 @@ final class XDescriptorTest extends TestCase
 
         $descriptor = new XDescriptor(1, 2, 2.5);
 
-        Assert::same('', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(descriptor: 'x', links: [], value: ''),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldBeSingleLinkIfWidthModifierNotFound(): void
@@ -96,7 +103,14 @@ final class XDescriptorTest extends TestCase
 
         $descriptor = new XDescriptor(1, 2, 2.5);
 
-        Assert::same('var/www/h:100/file.png', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'x',
+                links: ['1.0' => 'var/www/h:100/file.png'],
+                value: 'var/www/h:100/file.png',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldContainMultipleLinksWithoutDefaultModifiers(): void
@@ -130,7 +144,18 @@ final class XDescriptorTest extends TestCase
 
         $descriptor = new XDescriptor(1, 2, 2.5);
 
-        Assert::same('var/www/pd:1/file.png, var/www/pd:2/file.png 2.0x, var/www/pd:2.5/file.png 2.5x', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'x',
+                links: [
+                    '1.0' => 'var/www/pd:1/file.png',
+                    '2.0' => 'var/www/pd:2/file.png',
+                    '2.5' => 'var/www/pd:2.5/file.png',
+                ],
+                value: 'var/www/pd:1/file.png, var/www/pd:2/file.png 2.0x, var/www/pd:2.5/file.png 2.5x',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     public function testSrcSetShouldContainMultipleLinksWithDefaultModifiers(): void
@@ -164,7 +189,18 @@ final class XDescriptorTest extends TestCase
 
         $descriptor = new XDescriptor(1, 2, 2.5);
 
-        Assert::same('var/www/h:100,pd:1/file.png, var/www/h:100,pd:2/file.png 2.0x, var/www/h:100,pd:2.5/file.png 2.5x', $descriptor->createSrcSet($argsFacade));
+        Assert::equal(
+            new SrcSet(
+                descriptor: 'x',
+                links: [
+                    '1.0' => 'var/www/h:100,pd:1/file.png',
+                    '2.0' => 'var/www/h:100,pd:2/file.png',
+                    '2.5' => 'var/www/h:100,pd:2.5/file.png',
+                ],
+                value: 'var/www/h:100,pd:1/file.png, var/www/h:100,pd:2/file.png 2.0x, var/www/h:100,pd:2.5/file.png 2.5x',
+            ),
+            $descriptor->createSrcSet($argsFacade),
+        );
     }
 
     protected function tearDown(): void

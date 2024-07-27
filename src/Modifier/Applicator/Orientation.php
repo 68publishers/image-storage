@@ -14,14 +14,24 @@ use function is_string;
 
 final class Orientation implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image
     {
         $orientation = $values->getOptional(OrientationModifier::class);
 
         if (!is_string($orientation) && !is_numeric($orientation)) {
-            return $image;
+            return null;
         }
 
-        return ($orientation === 'auto') ? $image->orientate() : $image->rotate((float) $orientation);
+        if ('auto' === $orientation) {
+            $exifOrientation = $image->exif('Orientation');
+
+            if (2 <= $exifOrientation && 8 >= $exifOrientation) {
+                return $image->orientate();
+            }
+
+            return null;
+        }
+
+        return $image->rotate((float) $orientation);
     }
 }

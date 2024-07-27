@@ -18,3 +18,12 @@ services:
         container_name: 68publishers.image-storage.82
         volumes:
             - .:/var/www/html:cached
+
+    php83:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: php83
+        container_name: 68publishers.image-storage.83
+        volumes:
+            - .:/var/www/html:cached

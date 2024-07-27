@@ -6,6 +6,7 @@ namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Width;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use function array_map;
 use function array_unique;
 use function array_values;
@@ -60,25 +61,38 @@ final class WDescriptor implements DescriptorInterface
         return sprintf('W(%s)', implode(',', $this->widths));
     }
 
-    public function createSrcSet(ArgsFacade $args): string
+    public function createSrcSet(ArgsFacade $args): SrcSet
     {
         $wAlias = $args->getModifierAlias(Width::class);
         $modifiers = $args->getDefaultModifiers() ?? [];
 
         if (null === $wAlias) {
-            return empty($modifiers) ? '' : $args->createLink($modifiers);
+            $link = empty($modifiers) ? '' : $args->createLink($modifiers);
+
+            return new SrcSet(
+                descriptor: 'w',
+                links: '' !== $link ? [ 0 => $link ] : [],
+                value: $link,
+            );
         }
 
-        $links = array_map(static function (int $w) use ($args, $wAlias, $modifiers) {
+        $links = [];
+        $parts = array_map(static function (int $w) use ($args, $wAlias, $modifiers, &$links) {
             $modifiers[$wAlias] = $w;
+            $link = $args->createLink($modifiers);
+            $links[$w] = $link;
 
             return sprintf(
                 '%s %dw',
-                $args->createLink($modifiers),
+                $link,
                 $w,
             );
         }, $this->widths);
 
-        return implode(', ', $links);
+        return new SrcSet(
+            descriptor: 'w',
+            links: $links,
+            value: implode(', ', $parts),
+        );
     }
 }

@@ -13,6 +13,7 @@ use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGenerator;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGeneratorFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
@@ -133,6 +134,13 @@ final class LinkGeneratorTest extends TestCase
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
         $descriptor = Mockery::mock(DescriptorInterface::class);
         $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
 
         $srcSetGeneratorFactory->shouldReceive('create')
             ->once()
@@ -142,10 +150,10 @@ final class LinkGeneratorTest extends TestCase
         $srcSetGenerator->shouldReceive('generate')
             ->times(2)
             ->with($descriptor, $pathInfo)
-            ->andReturn('srcset');
+            ->andReturn($srcSet);
 
-        Assert::same('srcset', $linkGenerator->srcSet($pathInfo, $descriptor));
-        Assert::same('srcset', $linkGenerator->srcSet($pathInfo, $descriptor));
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor));
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor));
     }
 
     public function tearDown(): void
