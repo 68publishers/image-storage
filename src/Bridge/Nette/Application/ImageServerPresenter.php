@@ -45,9 +45,11 @@ class ImageServerPresenter implements IPresenter
         if ($response instanceof ErrorResponse && null !== $this->logger) {
             $exception = $response->getException();
 
-            $this->logger->error($exception->getMessage(), [
-                'exception' => $exception,
-            ]);
+            if (499 < $exception->getHttpCode()) {
+                $this->logger->error($exception->getMessage(), [
+                    'exception' => $exception,
+                ]);
+            }
         }
 
         return $response;

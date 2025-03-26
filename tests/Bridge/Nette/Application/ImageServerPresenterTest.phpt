@@ -123,7 +123,10 @@ final class ImageServerPresenterTest extends TestCase
         Assert::same($errorResponse, $presenter->run($applicationRequest));
     }
 
-    public function testErrorResponseShouldBeReturnedAndLogged(): void
+    /**
+     * @dataProvider testErrorResponseShouldBeReturnedAndLoggedOnServerErrorDataProvider
+     */
+    public function testErrorResponseShouldBeReturnedAndLoggedOnServerError(ResponseException $exception, array $logLines): void
     {
         $netteRequest = new NetteRequest(
             new UrlScript('https://www.example.com/images/test/w:100/image.png?_v=123'),
@@ -131,7 +134,6 @@ final class ImageServerPresenterTest extends TestCase
         $fileStorageProvider = Mockery::mock(FileStorageProviderInterface::class);
         $imageStorage = Mockery::mock(ImageStorageInterface::class);
         $errorResponse = Mockery::mock(ErrorResponse::class);
-        $exception = new ResponseException('File not found.', 404);
         $logger = new class implements LoggerInterface {
             use LoggerTrait;
 
@@ -173,15 +175,29 @@ final class ImageServerPresenterTest extends TestCase
         $presenter = new ImageServerPresenter($netteRequest, $fileStorageProvider, $logger);
 
         Assert::same($errorResponse, $presenter->run($applicationRequest));
-        Assert::same([
-            [
-                'level' => LogLevel::ERROR,
-                'message' => 'File not found.',
-                'context' => [
-                    'exception' => $exception,
+        Assert::same($logLines, $logger->records);
+    }
+
+    public function testErrorResponseShouldBeReturnedAndLoggedOnServerErrorDataProvider(): array
+    {
+        return [
+            'Non server error should be logged' => [
+                new ResponseException('File not found.', 404),
+                [],
+            ],
+            'Server error should be logged' => [
+                $exception = new ResponseException('Internal server error.', 500),
+                [
+                    [
+                        'level' => LogLevel::ERROR,
+                        'message' => 'Internal server error.',
+                        'context' => [
+                            'exception' => $exception,
+                        ],
+                    ],
                 ],
             ],
-        ], $logger->records);
+        ];
     }
 
     protected function tearDown(): void
