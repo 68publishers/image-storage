@@ -30,8 +30,9 @@
 		"nette/tester": "^2.4.3",
 		"phpstan/phpstan": "^1.9",
 		"phpstan/phpstan-nette": "^1.1",
+		"psr/log": "^2.0 || ^3.0",
 		"roave/security-advisories": "dev-latest",
-		"symfony/console": "^5.0 | ^6.0",
+		"symfony/console": "^5.0 || ^6.0",
 		"yosymfony/toml": "^1.0.4"
 	},
 	"suggest": {

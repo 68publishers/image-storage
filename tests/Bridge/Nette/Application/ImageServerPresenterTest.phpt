@@ -8,8 +8,9 @@ use Mockery;
 use Nette\Application\Request as ApplicationRequest;
 use Nette\Http\Request as NetteRequest;
 use Nette\Http\UrlScript;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerTrait;
 use Psr\Log\LogLevel;
-use Psr\Log\Test\TestLogger;
 use SixtyEightPublishers\FileStorage\FileStorageInterface;
 use SixtyEightPublishers\FileStorage\FileStorageProviderInterface;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\Application\ImageServerPresenter;
@@ -19,6 +20,7 @@ use SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\Request as ImageS
 use SixtyEightPublishers\ImageStorage\Exception\InvalidStateException;
 use SixtyEightPublishers\ImageStorage\Exception\ResponseException;
 use SixtyEightPublishers\ImageStorage\ImageStorageInterface;
+use Stringable;
 use Tester\Assert;
 use Tester\TestCase;
 
@@ -130,7 +132,20 @@ final class ImageServerPresenterTest extends TestCase
         $imageStorage = Mockery::mock(ImageStorageInterface::class);
         $errorResponse = Mockery::mock(ErrorResponse::class);
         $exception = new ResponseException('File not found.', 404);
-        $logger = new TestLogger();
+        $logger = new class implements LoggerInterface {
+            use LoggerTrait;
+
+            public array $records = [];
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->records[] = [
+                    'level' => $level,
+                    'message' => $message,
+                    'context' => $context,
+                ];
+            }
+        };
 
         $fileStorageProvider->shouldReceive('get')
             ->once()

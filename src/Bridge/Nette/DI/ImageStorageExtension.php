@@ -105,7 +105,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
                             ->before(static function ($factory) {
                                 return $factory instanceof Statement ? $factory : new Statement($factory);
                             }),
-                        'config' => Expect::array([
+                        'config' => Expect::array([ # @phpstan-ignore-line
                             FlysystemConfig::OPTION_VISIBILITY => Visibility::PRIVATE,
                             FlysystemConfig::OPTION_DIRECTORY_VISIBILITY => Visibility::PRIVATE,
                         ])->mergeDefaults(),
