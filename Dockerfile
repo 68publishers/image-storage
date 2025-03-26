@@ -75,7 +75,13 @@ RUN set -ex \
     	libavif-dev \
         imagemagick \
         imagemagick-dev \
-    && pecl install imagick-3.7.0 \
+    # Imagick - the imagick version in the pecl registry contains error and fix is still not released. See https://github.com/Imagick/imagick/issues/640
+    && git clone https://github.com/Imagick/imagick.git tmp-imagick-repository \
+    && cd tmp-imagick-repository \
+    && git checkout 28f27044e435a2b203e32675e942eb8de620ee58 \
+    && pecl install package.xml \
+    && cd .. \
+    && rm -rf tmp-imagick-repository \
     && docker-php-ext-enable \
         imagick \
     && apk del .build-deps
