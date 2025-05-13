@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Tests\Resource;
 
 use Exception;
+use GuzzleHttp\Psr7\BufferStream;
+use GuzzleHttp\Psr7\Stream;
 use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
 use League\Flysystem\Filesystem;
@@ -20,6 +22,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Resource\ImageResource;
 use SixtyEightPublishers\ImageStorage\Resource\ResourceFactory;
+use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface;
 use SixtyEightPublishers\ImageStorage\Resource\TmpFileImageResource;
 use Tester\Assert;
 use Tester\TestCase;
@@ -66,7 +69,7 @@ final class ResourceFactoryTest extends TestCase
         ]);
         $filesystem = Mockery::instanceMock($filesystem);
 
-        $filesystem->shouldReceive('read')
+        $filesystem->shouldReceive('readStream')
             ->once()
             ->with('source://var/www/file')
             ->andThrows(UnableToReadFile::fromLocation('var/www/file', 'test'));
@@ -96,7 +99,7 @@ final class ResourceFactoryTest extends TestCase
         ]);
         $filesystem = Mockery::instanceMock($filesystem);
 
-        $filesystem->shouldReceive('read')
+        $filesystem->shouldReceive('readStream')
             ->once()
             ->with('source://var/www/file')
             ->andThrows(new class('test') extends Exception implements LeagueFilesystemExceptionInterface {
@@ -138,11 +141,13 @@ final class ResourceFactoryTest extends TestCase
         ]);
 
         $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
         Assert::type(TmpFileImageResource::class, $resource);
         Assert::same($pathInfo, $resource->getPathInfo());
         Assert::same($image, $resource->getSource());
+        Assert::match('/tmp/68Publishers_ImageStorage%a%', $resource->getLocalFilename());
     }
 
     public function testResourceShouldBeCreatedFromImagePathInfoWithoutModifiers(): void
@@ -177,11 +182,13 @@ final class ResourceFactoryTest extends TestCase
         ]);
 
         $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
         Assert::type(TmpFileImageResource::class, $resource);
         Assert::same($pathInfo, $resource->getPathInfo());
         Assert::same($image, $resource->getSource());
+        Assert::match('/tmp/68Publishers_ImageStorage%a%', $resource->getLocalFilename());
     }
 
     public function testResourceShouldBeCreatedFromImagePathInfoWithModifiers(): void
@@ -222,11 +229,13 @@ final class ResourceFactoryTest extends TestCase
         ]);
 
         $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
         Assert::type(TmpFileImageResource::class, $resource);
         Assert::same($pathInfo, $resource->getPathInfo());
         Assert::same($image, $resource->getSource());
+        Assert::match('/tmp/68Publishers_ImageStorage%a%', $resource->getLocalFilename());
     }
 
     public function testResourceShouldBeCreatedFromLocalFile(): void
@@ -242,11 +251,71 @@ final class ResourceFactoryTest extends TestCase
             ->andReturn($image);
 
         $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+        /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResourceFromFile($pathInfo, 'filename');
 
         Assert::type(ImageResource::class, $resource);
         Assert::same($pathInfo, $resource->getPathInfo());
         Assert::same($image, $resource->getSource());
+        Assert::same('filename', $resource->getLocalFilename());
+    }
+
+    public function testResourceShouldBeCreatedFromFileBasedPsrStream(): void
+    {
+        $imageManager = Mockery::mock(ImageManager::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(FilePathInfoInterface::class);
+        $image = Mockery::mock(Image::class);
+
+        $handle = fopen(__DIR__ . '/../resources/images/logo.png', 'r+');
+        $stream = new Stream($handle);
+
+        $imageManager->shouldReceive('make')
+            ->once()
+            ->with($stream)
+            ->andReturn($image);
+
+        try {
+            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+            /** @var ResourceInterface $resource */
+            $resource = $resourceFactory->createResourceFromPsrStream($pathInfo, $stream);
+
+            Assert::type(ImageResource::class, $resource);
+            Assert::same($pathInfo, $resource->getPathInfo());
+            Assert::same($image, $resource->getSource());
+            Assert::same(__DIR__ . '/../resources/images/logo.png', $resource->getLocalFilename());
+        } finally {
+            $stream->close();
+        }
+    }
+
+    public function testResourceShouldBeCreatedFromBufferBasedPsrStream(): void
+    {
+        $imageManager = Mockery::mock(ImageManager::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(FilePathInfoInterface::class);
+        $image = Mockery::mock(Image::class);
+
+        $stream = new BufferStream();
+        $stream->write(file_get_contents(__DIR__ . '/../resources/images/logo.png'));
+
+        $imageManager->shouldReceive('make')
+            ->once()
+            ->with(Mockery::type('string'))
+            ->andReturn($image);
+
+        try {
+            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+            /** @var ResourceInterface $resource */
+            $resource = $resourceFactory->createResourceFromPsrStream($pathInfo, $stream);
+
+            Assert::type(ImageResource::class, $resource);
+            Assert::same($pathInfo, $resource->getPathInfo());
+            Assert::same($image, $resource->getSource());
+            Assert::match('/tmp/68Publishers_ImageStorage%a%', $resource->getLocalFilename());
+        } finally {
+            $stream->close();
+        }
     }
 
     protected function tearDown(): void
