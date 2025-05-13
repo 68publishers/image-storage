@@ -10,6 +10,8 @@ use Intervention\Image\ImageManager;
 use League\Flysystem\FilesystemException as LeagueFilesystemException;
 use League\Flysystem\FilesystemReader;
 use League\Flysystem\UnableToReadFile;
+use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
@@ -20,9 +22,14 @@ use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterfac
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use function error_clear_last;
 use function error_get_last;
+use function fclose;
 use function file_put_contents;
 use function filter_var;
 use function fopen;
+use function fwrite;
+use function get_debug_type;
+use function is_file;
+use function is_string;
 use function sprintf;
 use function stream_context_create;
 use function sys_get_temp_dir;
@@ -55,7 +62,7 @@ final class ResourceFactory implements ResourceFactoryInterface
         }
 
         try {
-            $source = $this->filesystemReader->read($filesystemPath);
+            $source = $this->filesystemReader->readStream($filesystemPath);
         } catch (UnableToReadFile $e) {
             throw new FilesystemException(sprintf(
                 'Unable to read file "%s".',
@@ -121,6 +128,37 @@ final class ResourceFactory implements ResourceFactoryInterface
         );
     }
 
+    public function createResourceFromPsrStream(PathInfoInterface $pathInfo, StreamInterface $stream): ResourceInterface
+    {
+        if ($stream->isSeekable()) {
+            try {
+                $stream->rewind();
+            } catch (RuntimeException $e) {
+                # ignore
+            }
+        }
+
+        $uri = $stream->getMetadata('uri');
+
+        if (is_string($uri) && @is_file($uri)) {
+            return new ImageResource(
+                pathInfo: $pathInfo,
+                image: $this->makeImage(
+                    source: $stream,
+                    location: $uri,
+                ),
+                localFilename: $uri,
+                modifierFacade: $this->modifierFacade,
+            );
+        }
+
+        return $this->createTmpFileResource(
+            pathInfo: $pathInfo,
+            location: get_debug_type($stream),
+            source: $stream,
+        );
+    }
+
     /**
      * @throws FilesystemException
      */
@@ -128,11 +166,47 @@ final class ResourceFactory implements ResourceFactoryInterface
     {
         $tmpFilename = (string) tempnam(sys_get_temp_dir(), '68Publishers_ImageStorage');
 
-        if (false === file_put_contents($tmpFilename, $source)) {
-            throw new FilesystemException(sprintf(
-                'Unable to write tmp file for "%s".',
-                $location,
-            ));
+        if ($source instanceof StreamInterface) {
+            $tmpStream = @fopen($tmpFilename, 'wb');
+
+            if (false === $tmpStream) {
+                throw new FilesystemException(
+                    message: sprintf(
+                        'Unable to open tmp file "%s" for writing.',
+                        $tmpFilename,
+                    ),
+                );
+            }
+
+            try {
+                while (!$source->eof()) {
+                    $chunk = $source->read(8192);
+
+                    if ('' === $chunk) {
+                        break;
+                    }
+
+                    fwrite($tmpStream, $chunk);
+                }
+            } catch (RuntimeException $e) {
+                throw new FilesystemException(
+                    message: sprintf(
+                        'Unable to write tmp file for "%s". %s',
+                        $location,
+                        $e->getMessage(),
+                    ),
+                    previous: $e,
+                );
+            } finally {
+                fclose($tmpStream);
+            }
+        } elseif (false === file_put_contents($tmpFilename, $source)) {
+            throw new FilesystemException(
+                message: sprintf(
+                    'Unable to write tmp file for "%s".',
+                    $location,
+                ),
+            );
         }
 
         return new TmpFileImageResource(
