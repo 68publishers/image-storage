@@ -9,7 +9,6 @@ use Nette\Bridges\ApplicationLatte\LatteFactory;
 use Nette\DI\Container;
 use SixtyEightPublishers\FileStorage\Exception\RuntimeException;
 use Tester\Assert;
-use Tester\CodeCoverage\Collector;
 use Tester\TestCase;
 use function assert;
 
@@ -52,14 +51,6 @@ final class ImageStorageLatteExtensionTest extends TestCase
             ['<img srcset="{no_image()->withModifiers([\'h\' => 200])->srcSet(w_descriptor(100, 200, 300))}" alt="">', '<img srcset="/images/noimage/h:200,w:100/noimage.png 100w, /images/noimage/h:200,w:200/noimage.png 200w, /images/noimage/h:200,w:300/noimage.png 300w" alt="">'],
             ['<img srcset="{no_image()->withModifiers([\'h\' => 200])->srcSet(w_descriptor_range(100, 300, 100))}" alt="">', '<img srcset="/images/noimage/h:200,w:100/noimage.png 100w, /images/noimage/h:200,w:200/noimage.png 200w, /images/noimage/h:200,w:300/noimage.png 300w" alt="">'],
         ];
-    }
-
-    protected function tearDown(): void
-    {
-        # save manually partial code coverage to free memory
-        if (Collector::isStarted()) {
-            Collector::save();
-        }
     }
 
     private function assertLatte(Container $container, array $assertions, array $params = []): void
