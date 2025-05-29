@@ -11,7 +11,6 @@ use SixtyEightPublishers\ImageStorage\Bridge\ImageStorageLambda\SamConfigGenerat
 use SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Command\DumpLambdaConfigCommand;
 use Symfony\Component\Console\Application;
 use Tester\Assert;
-use Tester\CodeCoverage\Collector;
 use Tester\TestCase;
 use function assert;
 use function call_user_func;
@@ -75,14 +74,6 @@ final class ImageStorageLambdaExtensionTest extends TestCase
             null,
             SamConfigGenerator::class,
         ));
-    }
-
-    protected function tearDown(): void
-    {
-        # save manually partial code coverage to free memory
-        if (Collector::isStarted()) {
-            Collector::save();
-        }
     }
 }
 

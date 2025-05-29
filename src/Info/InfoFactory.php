@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Info;
 
+use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\FileStorage\Helper\Path;
 use SixtyEightPublishers\ImageStorage\FileInfo;
 use SixtyEightPublishers\ImageStorage\FileInfoInterface;
-use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfo;

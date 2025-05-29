@@ -54,7 +54,6 @@ use SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestApplicator;
 use SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestModifier;
 use SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestValidator;
 use Tester\Assert;
-use Tester\CodeCoverage\Collector;
 use Tester\TestCase;
 use function array_map;
 use function array_values;
@@ -331,14 +330,6 @@ final class ImageStorageExtensionTest extends TestCase
             BaseCleanCommandConfigurator::class,
             ImageStorageCleanCommandConfigurator::class,
         ]);
-    }
-
-    protected function tearDown(): void
-    {
-        # save manually partial code coverage to free memory
-        if (Collector::isStarted()) {
-            Collector::save();
-        }
     }
 
     private function assertImageManager(Container $container, string $driver): void
