@@ -21,7 +21,7 @@ final class Filesystem extends LeagueFilesystem implements AdapterProviderInterf
     public function __construct(
         FilesystemAdapter $adapter,
         array $config = [],
-        PathNormalizer $pathNormalizer = null,
+        ?PathNormalizer $pathNormalizer = null,
         ?PublicUrlGenerator $publicUrlGenerator = null,
         ?TemporaryUrlGenerator $temporaryUrlGenerator = null,
     ) {

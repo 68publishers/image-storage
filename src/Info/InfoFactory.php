@@ -7,6 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Info;
 use SixtyEightPublishers\FileStorage\Helper\Path;
 use SixtyEightPublishers\ImageStorage\FileInfo;
 use SixtyEightPublishers\ImageStorage\FileInfoInterface;
+use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfo;
@@ -21,7 +22,7 @@ final class InfoFactory implements InfoFactoryInterface
     ) {}
 
     /**
-     * @throws \SixtyEightPublishers\FileStorage\Exception\PathInfoException
+     * @throws PathInfoException
      */
     public function createPathInfo(string $path, string|array|null $modifier = null): PathInfoInterface
     {

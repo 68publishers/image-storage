@@ -20,8 +20,10 @@ RUN set -ex \
         imagemagick \
         imagemagick-dev \
     && pecl install imagick-3.7.0 \
+    && pecl install pcov \
+    && pecl install uopz-7.1.1 \
     && docker-php-ext-enable \
-        imagick \
+        imagick pcov uopz \
     && apk del .build-deps
 
 CMD tail -f /dev/null
@@ -48,8 +50,10 @@ RUN set -ex \
         imagemagick \
         imagemagick-dev \
     && pecl install imagick-3.7.0 \
+    && pecl install pcov \
+    && pecl install uopz-7.1.1 \
     && docker-php-ext-enable \
-        imagick \
+        imagick pcov uopz \
     && apk del .build-deps
 
 CMD tail -f /dev/null
@@ -75,15 +79,43 @@ RUN set -ex \
     	libavif-dev \
         imagemagick \
         imagemagick-dev \
-    # Imagick - the imagick version in the pecl registry contains error and fix is still not released. See https://github.com/Imagick/imagick/issues/640
-    && git clone https://github.com/Imagick/imagick.git tmp-imagick-repository \
-    && cd tmp-imagick-repository \
-    && git checkout 28f27044e435a2b203e32675e942eb8de620ee58 \
-    && pecl install package.xml \
-    && cd .. \
-    && rm -rf tmp-imagick-repository \
+    && pecl install imagick-3.8.0 \
+    && pecl install pcov \
+    && pecl install uopz-7.1.1 \
     && docker-php-ext-enable \
-        imagick \
+        imagick pcov uopz \
+    && apk del .build-deps
+
+CMD tail -f /dev/null
+
+FROM php:8.4.4-cli-alpine3.21 AS php84
+
+CMD ["/bin/sh"]
+WORKDIR /var/www/html
+
+RUN apk add --no-cache --update git
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN set -ex \
+    # Build dependencies
+    && apk add --no-cache --virtual .build-deps  \
+        $PHPIZE_DEPS \
+    && apk add --no-cache \
+    	libgomp \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libwebp-dev \
+        libpng-dev \
+    	libavif-dev \
+        imagemagick \
+        imagemagick-dev \
+    && pecl install imagick-3.8.0 \
+    && pecl install pcov \
+    && mkdir -p /usr/src/php/ext/uopz \
+    && curl -fsSL https://github.com/zonuexe/uopz/archive/refs/heads/support/php84-exit.tar.gz | tar xvz -C /usr/src/php/ext/uopz --strip 1 \
+    && docker-php-ext-install uopz \
+    && docker-php-ext-enable \
+        imagick pcov uopz \
     && apk del .build-deps
 
 CMD tail -f /dev/null
