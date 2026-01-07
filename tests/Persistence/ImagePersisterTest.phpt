@@ -225,12 +225,27 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn($image);
 
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
             ->andReturn(null);
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -318,6 +333,16 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn(true);
 
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
             ->andReturn(null);
@@ -333,6 +358,11 @@ final class ImagePersisterTest extends TestCase
         $pathInfo->shouldReceive('getName')
             ->withNoArgs()
             ->andReturn('image');
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -373,6 +403,16 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn(true);
 
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
         $resource->shouldReceive('unlink')
             ->once()
             ->withNoArgs()
@@ -384,6 +424,11 @@ final class ImagePersisterTest extends TestCase
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -431,8 +476,23 @@ final class ImagePersisterTest extends TestCase
 
         $resource->shouldReceive('modifyImage')
             ->once()
-            ->with(['w' => 100, 'h' => 200])
+            ->with(['w' => 100, 'h' => 200], true)
             ->andReturnSelf();
+
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -471,12 +531,27 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn(true);
 
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
             ->andReturn(null);
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -522,12 +597,27 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn(true);
 
+        $resource->shouldReceive('getEncodeQuality')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $resource->shouldReceive('getEncodeFormat')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
             ->andReturn(null);
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
+
+        $config->shouldReceive('offsetExists')
+            ->once()
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(true);
 
         $config->shouldReceive('offsetGet')
             ->once()
@@ -904,23 +994,12 @@ final class ImagePersisterTest extends TestCase
 
     private function setupImageSaveExpectations(Image|MockInterface $image, string $content = '... image content ...'): void
     {
-        $isEncodedCalled = $encodeCalled = false;
-
-        $image->shouldReceive('isEncoded')
-            ->once()
-            ->withNoArgs()
-            ->andReturnUsing(static function () use (&$isEncodedCalled): bool {
-                $isEncodedCalled = true;
-
-                return false;
-            });
+        $encodeCalled = false;
 
         $image->shouldReceive('encode')
             ->once()
-            ->with(null, 90)
-            ->andReturnUsing(static function () use ($image, &$isEncodedCalled, &$encodeCalled): Image {
-                Assert::true($isEncodedCalled);
-
+            ->with('', 90)
+            ->andReturnUsing(static function () use ($image, &$encodeCalled): Image {
                 $encodeCalled = true;
 
                 return $image;

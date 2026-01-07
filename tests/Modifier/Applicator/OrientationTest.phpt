@@ -32,7 +32,7 @@ final class OrientationTest extends TestCase
 
         $applicator = new Orientation();
 
-        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
     }
 
     /**
@@ -58,7 +58,7 @@ final class OrientationTest extends TestCase
 
         $applicator = new Orientation();
 
-        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
     }
 
     /**
@@ -89,7 +89,8 @@ final class OrientationTest extends TestCase
 
         $applicator = new Orientation();
 
-        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($modifiedImage, $result['image']);
     }
 
     public function testImageShouldBeRotated(): void
@@ -112,7 +113,8 @@ final class OrientationTest extends TestCase
 
         $applicator = new Orientation();
 
-        Assert::same($modifiedImage, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($modifiedImage, $result['image']);
     }
 
     public function provideNormalExifOrientations(): array

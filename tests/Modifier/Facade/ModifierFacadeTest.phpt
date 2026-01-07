@@ -217,7 +217,7 @@ final class ModifierFacadeTest extends TestCase
         $applicator->shouldReceive('apply')
             ->once()
             ->with($image, $pathInfo, $modifierValues, $config)
-            ->andReturn($image);
+            ->andReturn([ModifierApplicatorInterface::OutImage => $image]);
 
         $facade = $this->createModifierFacade(config: $config, modifierCollection: $modifierCollection);
 
@@ -228,6 +228,8 @@ final class ModifierFacadeTest extends TestCase
             new ModifyResult(
                 image: $image,
                 modified: true,
+                encodeFormat: null,
+                encodeQuality: null,
             ),
             $facade->modifyImage($image, $pathInfo, $modifiers),
         );
@@ -257,7 +259,7 @@ final class ModifierFacadeTest extends TestCase
         $applicator->shouldReceive('apply')
             ->once()
             ->with($image, $pathInfo, $modifierValues, $config)
-            ->andReturn(null);
+            ->andReturn([]);
 
         $facade = $this->createModifierFacade(config: $config, modifierCollection: $modifierCollection);
 
@@ -268,6 +270,8 @@ final class ModifierFacadeTest extends TestCase
             new ModifyResult(
                 image: $image,
                 modified: false,
+                encodeFormat: null,
+                encodeQuality: null,
             ),
             $facade->modifyImage($image, $pathInfo, $modifiers),
         );
@@ -308,7 +312,7 @@ final class ModifierFacadeTest extends TestCase
         $applicator->shouldReceive('apply')
             ->once()
             ->with($image, $pathInfo, $modifierValues, $config)
-            ->andReturn($image);
+            ->andReturn([ModifierApplicatorInterface::OutImage => $image]);
 
         $facade = $this->createModifierFacade(config: $config, codec: $codec, modifierCollection: $modifierCollection);
 
@@ -319,6 +323,8 @@ final class ModifierFacadeTest extends TestCase
             new ModifyResult(
                 image: $image,
                 modified: true,
+                encodeFormat: null,
+                encodeQuality: null,
             ),
             $facade->modifyImage($image, $pathInfo, $preset),
         );
@@ -359,7 +365,7 @@ final class ModifierFacadeTest extends TestCase
         $applicator->shouldReceive('apply')
             ->once()
             ->with($image, $pathInfo, $modifierValues, $config)
-            ->andReturn(null);
+            ->andReturn([]);
 
         $facade = $this->createModifierFacade(config: $config, codec: $codec, modifierCollection: $modifierCollection);
 
@@ -370,6 +376,8 @@ final class ModifierFacadeTest extends TestCase
             new ModifyResult(
                 image: $image,
                 modified: false,
+                encodeFormat: null,
+                encodeQuality: null,
             ),
             $facade->modifyImage($image, $pathInfo, $preset),
         );
