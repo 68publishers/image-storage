@@ -49,11 +49,13 @@ final class TmpFileImageResourceTest extends TestCase
         $modifyResult = new ModifyResult(
             image: $modifiedImage,
             modified: true,
+            encodeFormat: null,
+            encodeQuality: null,
         );
 
         $modifierFacade->shouldReceive('modifyImage')
             ->once()
-            ->with($image, $pathInfo, ['w' => 300])
+            ->with($image, $pathInfo, ['w' => 300], false)
             ->andReturn($modifyResult);
 
         $resource1 = new TmpFileImageResource($pathInfo, $image, $modifierFacade, new TmpFile('/tmp/fake'));

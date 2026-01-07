@@ -12,7 +12,8 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 
 final class TestApplicator implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): iterable
     {
+        return [];
     }
 }

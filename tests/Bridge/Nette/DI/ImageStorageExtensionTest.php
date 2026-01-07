@@ -146,6 +146,7 @@ final class ImageStorageExtensionTest extends TestCase
                 Applicator\Orientation::class,
                 Applicator\Resize::class,
                 Applicator\Format::class,
+                Applicator\StripMeta::class,
             ],
             validatorTypes: [
                 Validator\AllowedResolutionValidator::class,
@@ -250,6 +251,7 @@ final class ImageStorageExtensionTest extends TestCase
                 Applicator\Orientation::class,
                 Applicator\Resize::class,
                 Applicator\Format::class,
+                Applicator\StripMeta::class,
             ],
             validatorTypes: [
                 TestValidator::class,

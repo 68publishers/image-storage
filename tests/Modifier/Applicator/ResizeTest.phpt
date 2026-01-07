@@ -36,7 +36,7 @@ final class ResizeTest extends TestCase
         $applicator = new Resize();
 
         Assert::exception(
-            static fn () => $applicator->apply($image, $pathInfo, $modifierValues, $config),
+            static fn () => iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)),
             ModifierException::class,
             'The only one dimension (width or height) must be defined if an aspect ratio is used. Passed values: w=null, h=null, ar=16x9.',
         );
@@ -52,7 +52,7 @@ final class ResizeTest extends TestCase
         $applicator = new Resize();
 
         Assert::exception(
-            static fn () => $applicator->apply($image, $pathInfo, $modifierValues, $config),
+            static fn () => iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)),
             ModifierException::class,
             'The only one dimension (width or height) must be defined if an aspect ratio is used. Passed values: w=100, h=200, ar=16x9.',
         );
@@ -80,7 +80,7 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::null($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
     }
 
     public function testImageShouldBeModifiedWithContainFit(): void
@@ -118,7 +118,8 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::same($image, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($image, $result['image']);
     }
 
     public function testImageShouldBeModifiedWithStretchFit(): void
@@ -145,7 +146,8 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::same($image, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($image, $result['image']);
     }
 
     public function testImageShouldBeModifiedWithFillFit(): void
@@ -200,7 +202,8 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::same($image, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($image, $result['image']);
     }
 
     public function testImageShouldBeModifiedWithCropFit(): void
@@ -227,7 +230,8 @@ final class ResizeTest extends TestCase
 
         $applicator = new Resize();
 
-        Assert::same($image, $applicator->apply($image, $pathInfo, $modifierValues, $config));
+        $result = iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config));
+        Assert::same($image, $result['image']);
     }
 
     public function getSameImageDimensionsData(): array
