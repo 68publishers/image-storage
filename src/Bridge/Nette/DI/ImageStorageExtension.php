@@ -147,7 +147,8 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
                         [
                             new Statement(Applicator\Orientation::class),
                             new Statement(Applicator\Resize::class),
-                            new Statement(Applicator\Format::class), # must be last
+                            new Statement(Applicator\Format::class),
+                            new Statement(Applicator\StripMeta::class), # must be last
                         ],
                     );
 

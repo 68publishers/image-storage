@@ -41,5 +41,5 @@ interface ModifierFacadeInterface
     /**
      * @param string|array<string, string|numeric|bool> $modifiers
      */
-    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers): ModifyResult;
+    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers, bool $stripMeta = false): ModifyResult;
 }
