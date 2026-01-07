@@ -14,6 +14,7 @@ use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use stdClass;
 use Tester\Assert;
 use Tester\TestCase;
+use Traversable;
 
 require __DIR__ . '/../../bootstrap.php';
 
@@ -32,8 +33,9 @@ final class StripMetaTest extends TestCase
             ->andReturn(false);
 
         $applicator = new StripMeta();
+        $result = $applicator->apply($image, $pathInfo, $modifierValues, $config);
 
-        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
+        Assert::same([], $result instanceof Traversable ? iterator_to_array($result) : $result);
     }
 
     public function testEmptyGeneratorShouldBeReturnedIfCoreIsNotImagick(): void
@@ -55,8 +57,9 @@ final class StripMetaTest extends TestCase
             ->andReturn($core);
 
         $applicator = new StripMeta();
+        $result = $applicator->apply($image, $pathInfo, $modifierValues, $config);
 
-        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
+        Assert::same([], $result instanceof Traversable ? iterator_to_array($result) : $result);
     }
 
     public function testMetadataShouldBeStrippedButIccProfileShouldBeKept(): void
@@ -91,8 +94,9 @@ final class StripMetaTest extends TestCase
             ->with('icc', 'icc_profile_data');
 
         $applicator = new StripMeta();
+        $result = $applicator->apply($image, $pathInfo, $modifierValues, $config);
 
-        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
+        Assert::same([], $result instanceof Traversable ? iterator_to_array($result) : $result);
     }
 
     public function testMetadataShouldBeStrippedWithoutIccProfile(): void
@@ -123,8 +127,9 @@ final class StripMetaTest extends TestCase
             ->withNoArgs();
 
         $applicator = new StripMeta();
+        $result = $applicator->apply($image, $pathInfo, $modifierValues, $config);
 
-        Assert::same([], iterator_to_array($applicator->apply($image, $pathInfo, $modifierValues, $config)));
+        Assert::same([], $result instanceof Traversable ? iterator_to_array($result) : $result);
     }
 
     protected function tearDown(): void
