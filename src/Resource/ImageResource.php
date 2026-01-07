@@ -12,6 +12,10 @@ class ImageResource implements ResourceInterface
 {
     private bool $modified = false;
 
+    private ?string $encodeFormat = null;
+
+    private ?int $encodeQuality = null;
+
     public function __construct(
         private PathInfoInterface $pathInfo,
         private Image $image,
@@ -47,12 +51,23 @@ class ImageResource implements ResourceInterface
         return $resource;
     }
 
-    public function modifyImage(string|array $modifiers): self
+    public function modifyImage(string|array $modifiers, bool $stripMeta = false): self
     {
         $resource = clone $this;
-        $modifyResult = $this->modifierFacade->modifyImage($this->image, $this->pathInfo, $modifiers);
+        $modifyResult = $this->modifierFacade->modifyImage($this->image, $this->pathInfo, $modifiers, $stripMeta);
         $resource->image = $modifyResult->image;
-        $resource->modified = $modifyResult->modified;
+
+        if ($modifyResult->modified) {
+            $resource->modified = $modifyResult->modified;
+        }
+
+        if (null !== $modifyResult->encodeFormat) {
+            $resource->encodeFormat = $modifyResult->encodeFormat;
+        }
+
+        if (null !== $modifyResult->encodeQuality) {
+            $resource->encodeQuality = $modifyResult->encodeQuality;
+        }
 
         return $resource;
     }
@@ -67,5 +82,15 @@ class ImageResource implements ResourceInterface
         $filesize = null !== $this->image->basePath() ? $this->image->filesize() : false; # @phpstan-ignore-line ternary.alwaysTrue
 
         return false !== $filesize ? (int) $filesize : null;
+    }
+
+    public function getEncodeQuality(): ?int
+    {
+        return $this->encodeQuality;
+    }
+
+    public function getEncodeFormat(): ?string
+    {
+        return $this->encodeFormat;
     }
 }

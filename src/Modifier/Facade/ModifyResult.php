@@ -11,5 +11,7 @@ final class ModifyResult
     public function __construct(
         public readonly Image $image,
         public readonly bool $modified,
+        public readonly ?string $encodeFormat,
+        public readonly ?int $encodeQuality,
     ) {}
 }

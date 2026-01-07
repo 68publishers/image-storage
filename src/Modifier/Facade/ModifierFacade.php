@@ -102,7 +102,7 @@ final class ModifierFacade implements ModifierFacadeInterface
         return $this->codec;
     }
 
-    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers): ModifyResult
+    public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers, bool $stripMeta = false): ModifyResult
     {
         if (!is_array($modifiers)) {
             $modifiers = $this->getCodec()->decode(new PresetValue($modifiers));
@@ -114,24 +114,46 @@ final class ModifierFacade implements ModifierFacadeInterface
 
         $values = $this->modifierCollection->parseValues($modifiers);
 
+        if ($stripMeta) {
+            $values->add('__stripMeta', true);
+        }
+
         foreach ($this->validators as $validator) {
             $validator->validate($values, $this->config);
         }
 
         $modified = false;
+        $encodeFormat = null;
+        $encodeQuality = null;
 
         foreach ($this->applicators as $applicator) {
-            $modifiedImage = $applicator->apply($image, $info, $values, $this->config);
+            foreach ($applicator->apply($image, $info, $values, $this->config) as $key => $value) {
+                if (ModifierApplicatorInterface::OutImage === $key && $value instanceof Image) {
+                    $image = $value;
+                    $modified = true;
 
-            if (null !== $modifiedImage) {
-                $image = $modifiedImage;
-                $modified = true;
+                    continue;
+                }
+
+                if (ModifierApplicatorInterface::OutFormat === $key) {
+                    $encodeFormat = $value;
+                    $modified = true;
+
+                    continue;
+                }
+
+                if (ModifierApplicatorInterface::OutQuality === $key) {
+                    $encodeQuality = $value;
+                    $modified = true;
+                }
             }
         }
 
         return new ModifyResult(
             image: $image,
             modified: $modified,
+            encodeFormat: $encodeFormat,
+            encodeQuality: $encodeQuality,
         );
     }
 }

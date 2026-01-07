@@ -18,7 +18,6 @@ use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterfac
 use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceInterface;
 use SixtyEightPublishers\ImageStorage\Resource\TmpFileImageResource;
 use function assert;
-use function is_scalar;
 use function preg_match;
 use function preg_quote;
 use function sprintf;
@@ -53,7 +52,7 @@ final class ImagePersister implements ImagePersisterInterface
         $pathInfo = $this->assertPathInfo($resource->getPathInfo(), __METHOD__);
 
         if (null !== $pathInfo->getModifiers()) {
-            $resource = $resource->modifyImage($pathInfo->getModifiers());
+            $resource = $resource->modifyImage($pathInfo->getModifiers(), true);
 
             $prefix = self::FILESYSTEM_PREFIX_CACHE;
         } else {
@@ -138,9 +137,10 @@ final class ImagePersister implements ImagePersisterInterface
             }
         }
 
-        $quality = $this->config[Config::ENCODE_QUALITY];
+        $quality = (int) ($resource->getEncodeQuality() ?? $this->config[Config::ENCODE_QUALITY] ?? 90);
+        $format = $resource->getEncodeFormat() ?? '';
         $image = $resource->getSource();
-        $image = $image->isEncoded() ? $image : $image->encode('', is_scalar($quality) ? (int) $quality : 90);
+        $image = $image->encode($format, $quality);
 
         return $image->getEncoded();
     }

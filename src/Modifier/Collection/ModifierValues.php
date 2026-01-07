@@ -44,7 +44,7 @@ final class ModifierValues
         return $this->has($name) ? $this->values[$name] : $default;
     }
 
-    private function add(string $name, mixed $value): void
+    public function add(string $name, mixed $value): void
     {
         $this->values[$name] = $value;
     }

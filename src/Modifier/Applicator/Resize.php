@@ -27,7 +27,7 @@ use function substr;
 
 final class Resize implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): iterable
     {
         $width = $values->getOptional(Width::class);
         $height = $values->getOptional(Height::class);
@@ -70,28 +70,24 @@ final class Resize implements ModifierApplicatorInterface
         $height = (int) ($height * $pd);
 
         if ($width === $imageWidth && $height === $imageHeight) {
-            return null;
+            return;
         }
 
-        switch ($fit) {
-            case Fit::CONTAIN:
-                return $image->resize($width, $height, static function (Constraint $constraint) {
-                    $constraint->aspectRatio();
-                });
-
-            case Fit::STRETCH:
-                return $image->resize($width, $height);
-            case Fit::FILL:
-                return $image->resize($width, $height, static function (Constraint $constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                })->resizeCanvas($width, $height, 'center');
-        }
-
-        if (0 === strncmp($fit, 'crop-', 5)) {
-            $fit = substr($fit, 5);
-        }
-
-        return $image->fit($width, $height, null, $fit);
+        yield self::OutImage => match ($fit) {
+            Fit::CONTAIN => $image->resize($width, $height, static function (Constraint $constraint) {
+                $constraint->aspectRatio();
+            }),
+            Fit::STRETCH => $image->resize($width, $height),
+            Fit::FILL => $image->resize($width, $height, static function (Constraint $constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })->resizeCanvas($width, $height, 'center'),
+            default => $image->fit(
+                $width,
+                $height,
+                null,
+                0 === strncmp($fit, 'crop-', 5) ? substr($fit, 5) : $fit,
+            ),
+        };
     }
 }

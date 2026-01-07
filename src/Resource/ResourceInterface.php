@@ -18,5 +18,9 @@ interface ResourceInterface extends FileResourceInterface
     /**
      * @param string|array<string, string|numeric|bool> $modifiers
      */
-    public function modifyImage(string|array $modifiers): self;
+    public function modifyImage(string|array $modifiers, bool $stripMeta = false): self;
+
+    public function getEncodeQuality(): ?int;
+
+    public function getEncodeFormat(): ?string;
 }

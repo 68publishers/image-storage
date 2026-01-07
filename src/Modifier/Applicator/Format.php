@@ -8,7 +8,6 @@ use Imagick;
 use Intervention\Image\Image;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
-use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Helper\SupportedType;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
@@ -17,7 +16,7 @@ use function in_array;
 
 final class Format implements ModifierApplicatorInterface
 {
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): iterable
     {
         $extension = $this->getFileExtension($image, $pathInfo);
         $quality = $values->getOptional(Quality::class);
@@ -29,7 +28,7 @@ final class Format implements ModifierApplicatorInterface
         }
 
         if (!$needEncode) {
-            return null;
+            return;
         }
 
         if (in_array($extension, ['jpg', 'pjpg'], true)) {
@@ -43,7 +42,12 @@ final class Format implements ModifierApplicatorInterface
             }
         }
 
-        return $image->encode($extension, (int) ($quality ?? $config[Config::ENCODE_QUALITY]));
+        yield self::OutImage => $image;
+        yield self::OutFormat => $extension;
+
+        if (null !== $quality) {
+            yield self::OutQuality => (int) $quality;
+        }
     }
 
     private function getFileExtension(Image $image, PathInfoInterface $pathInfo): string

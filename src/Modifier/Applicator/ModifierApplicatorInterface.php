@@ -11,8 +11,19 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 
 interface ModifierApplicatorInterface
 {
+    public const OutImage = 'image';
+    public const OutFormat = 'format';
+    public const OutQuality = 'quality';
+
     /**
-     * Returns NULL of image is not modified
+     * Allowed outputs:
+     *   "image": Image
+     *   "format": string
+     *   "quality": int
+     *
+     * If nothing changed, then nothing should be returned.
+     *
+     * @return iterable<string, mixed>
      */
-    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): ?Image;
+    public function apply(Image $image, PathInfoInterface $pathInfo, ModifierValues $values, ConfigInterface $config): iterable;
 }
