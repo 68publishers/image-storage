@@ -32,7 +32,7 @@ final class ArgsFacadeTest extends TestCase
             ->withNoArgs()
             ->andReturn(null);
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::null($facade->getDefaultModifiers());
     }
@@ -48,7 +48,7 @@ final class ArgsFacadeTest extends TestCase
             ->withNoArgs()
             ->andReturn(['w' => 150]);
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::same(['w' => 150], $facade->getDefaultModifiers());
     }
@@ -79,7 +79,7 @@ final class ArgsFacadeTest extends TestCase
                 return ['w' => 150];
             });
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::same(['w' => 150], $facade->getDefaultModifiers());
     }
@@ -103,12 +103,39 @@ final class ArgsFacadeTest extends TestCase
 
         $linkGenerator->shouldReceive('link')
             ->once()
-            ->with($modifiedPathInfo)
+            ->with($modifiedPathInfo, true)
             ->andReturn('/var/www/h:100/file.png');
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::same('/var/www/h:100/file.png', $facade->createLink(['h' => 100]));
+    }
+
+    public function testRelativeLinkShouldBeCreated(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $modifiedPathInfo = Mockery::mock(PathInfoInterface::class);
+
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $pathInfo->shouldReceive('withModifiers')
+            ->once()
+            ->with(['h' => 100])
+            ->andReturn($modifiedPathInfo);
+
+        $linkGenerator->shouldReceive('link')
+            ->once()
+            ->with($modifiedPathInfo, false)
+            ->andReturn('var/www/h:100/file.png');
+
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, false);
+
+        Assert::same('var/www/h:100/file.png', $facade->createLink(['h' => 100]));
     }
 
     public function testErrorShouldBeTriggeredIfModifierNotFound(): void
@@ -133,7 +160,7 @@ final class ArgsFacadeTest extends TestCase
             ->with(Width::class)
             ->andThrows(new InvalidArgumentException('Missing modifier.'));
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::error(
             static fn () => $facade->getModifierAlias(Width::class),
@@ -164,7 +191,7 @@ final class ArgsFacadeTest extends TestCase
             ->with(Width::class)
             ->andReturn(new Width());
 
-        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo);
+        $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 
         Assert::same('w', $facade->getModifierAlias(Width::class));
     }

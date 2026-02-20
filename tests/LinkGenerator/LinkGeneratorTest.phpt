@@ -149,11 +149,41 @@ final class LinkGeneratorTest extends TestCase
 
         $srcSetGenerator->shouldReceive('generate')
             ->times(2)
-            ->with($descriptor, $pathInfo)
+            ->with($descriptor, $pathInfo, true)
             ->andReturn($srcSet);
 
         Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor));
         Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor));
+    }
+
+    public function testRelativeSrcSetShouldBeCreated(): void
+    {
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
+        $srcSetGenerator = Mockery::mock(SrcSetGenerator::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
+
+        $srcSetGeneratorFactory->shouldReceive('create')
+            ->once()
+            ->with($linkGenerator, $modifierFacade)
+            ->andReturn($srcSetGenerator);
+
+        $srcSetGenerator->shouldReceive('generate')
+            ->times(2)
+            ->with($descriptor, $pathInfo, false)
+            ->andReturn($srcSet);
+
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor, false));
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor, false));
     }
 
     public function tearDown(): void

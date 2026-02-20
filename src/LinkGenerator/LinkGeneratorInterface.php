@@ -12,7 +12,7 @@ use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
 
 interface LinkGeneratorInterface extends BaseLinkGeneratorInterface
 {
-    public function srcSet(PathInfoInterface $info, DescriptorInterface $descriptor): SrcSet;
+    public function srcSet(PathInfoInterface $info, DescriptorInterface $descriptor, bool $absolute = true): SrcSet;
 
     public function getSignatureStrategy(): ?SignatureStrategyInterface;
 }

@@ -21,18 +21,19 @@ final class SrcSetGenerator
         private readonly ModifierFacadeInterface $modifierFacade,
     ) {}
 
-    public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo): SrcSet
+    public function generate(DescriptorInterface $descriptor, PathInfoInterface $pathInfo, bool $absolute): SrcSet
     {
-        $key = $descriptor . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => true]) : $pathInfo);
+        $key = $descriptor . '::' . ($absolute ? 'abs' : 'rel') . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => true]) : $pathInfo);
 
         if (array_key_exists($key, $this->results)) {
             return $this->results[$key];
         }
 
         return $this->results[$key] = $descriptor->createSrcSet(new ArgsFacade(
-            $this->linkGenerator,
-            $this->modifierFacade,
-            $pathInfo,
+            linkGenerator: $this->linkGenerator,
+            modifierFacade: $this->modifierFacade,
+            pathInfo: $pathInfo,
+            absolute: $absolute,
         ));
     }
 }
