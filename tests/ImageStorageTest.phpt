@@ -249,12 +249,36 @@ final class ImageStorageTest extends TestCase
 
         $linkGenerator->shouldReceive('srcSet')
             ->once()
-            ->with($pathInfo, $descriptor)
+            ->with($pathInfo, $descriptor, true)
             ->andReturn($srcSet);
 
         $imageStorage = $this->createImageStorage(linkGenerator: $linkGenerator);
 
         Assert::same($srcSet, $imageStorage->srcSet($pathInfo, $descriptor));
+    }
+
+    public function testRelativeSrcSetShouldBeReturned(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $srcSet = new SrcSet(
+            descriptor: 'w',
+            links: [
+                100 => 'var/www/h:100,w:100/file.png',
+                200 => 'var/www/h:100,w:200/file.png',
+            ],
+            value: 'var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w',
+        );
+
+        $linkGenerator->shouldReceive('srcSet')
+            ->once()
+            ->with($pathInfo, $descriptor, false)
+            ->andReturn($srcSet);
+
+        $imageStorage = $this->createImageStorage(linkGenerator: $linkGenerator);
+
+        Assert::same($srcSet, $imageStorage->srcSet($pathInfo, $descriptor, false));
     }
 
     public function testSignatureStrategyShouldBeReturned(): void

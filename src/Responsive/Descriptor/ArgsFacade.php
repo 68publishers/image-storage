@@ -21,6 +21,7 @@ final class ArgsFacade
         private readonly LinkGeneratorInterface $linkGenerator,
         private readonly ModifierFacadeInterface $modifierFacade,
         private readonly PathInfoInterface $pathInfo,
+        private readonly bool $absolute,
     ) {
         $modifiers = $this->pathInfo->getModifiers();
 
@@ -42,7 +43,10 @@ final class ArgsFacade
      */
     public function createLink(array $modifiers): string
     {
-        return $this->linkGenerator->link($this->pathInfo->withModifiers($modifiers));
+        return $this->linkGenerator->link(
+            pathInfo: $this->pathInfo->withModifiers($modifiers),
+            absolute: $this->absolute,
+        );
     }
 
     public function getModifierAlias(string $modifierClassName): ?string

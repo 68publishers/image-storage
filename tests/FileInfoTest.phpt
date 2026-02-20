@@ -54,10 +54,33 @@ final class FileInfoTest extends TestCase
 
         $linkGenerator->shouldReceive('srcSet')
             ->once()
-            ->with($fileInfo, $descriptor)
+            ->with($fileInfo, $descriptor, true)
             ->andReturn($srcSet);
 
         Assert::same($srcSet, $fileInfo->srcSet($descriptor));
+    }
+
+    public function testRelativeSrcSetShouldBeReturned(): void
+    {
+        $linkGenerator = Mockery::mock(LinkGeneratorInterface::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $fileInfo = new FileInfo($linkGenerator, $pathInfo, 'default');
+        $srcSet = new SrcSet(
+            descriptor: 'w',
+            links: [
+                100 => 'var/www/h:100,w:100/file.png',
+                200 => 'var/www/h:100,w:200/file.png',
+            ],
+            value: 'var/www/h:100,w:100/file.png 100w, var/www/h:100,w:200/file.png 200w',
+        );
+
+        $linkGenerator->shouldReceive('srcSet')
+            ->once()
+            ->with($fileInfo, $descriptor, false)
+            ->andReturn($srcSet);
+
+        Assert::same($srcSet, $fileInfo->srcSet($descriptor, false));
     }
 
     public function testModifiersShouldBeNullIfFilePathInfoPassed(): void

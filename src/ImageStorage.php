@@ -90,11 +90,15 @@ final class ImageStorage extends FileStorage implements ImageStorageInterface
         return $this->noImageResolver->resolveNoImage($path);
     }
 
-    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): SrcSet
+    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor, bool $absolute = true): SrcSet
     {
         assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
 
-        return $this->linkGenerator->srcSet($info, $descriptor);
+        return $this->linkGenerator->srcSet(
+            info: $info,
+            descriptor: $descriptor,
+            absolute: $absolute,
+        );
     }
 
     public function getSignatureStrategy(): ?SignatureStrategyInterface

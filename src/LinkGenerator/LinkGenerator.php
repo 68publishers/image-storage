@@ -33,7 +33,7 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
         parent::__construct($this->config);
     }
 
-    public function link(FilePathInfoInterface $pathInfo): string
+    public function link(FilePathInfoInterface $pathInfo, bool $absolute = true): string
     {
         if (!$pathInfo instanceof ImagePathInfoInterface) {
             throw new InvalidArgumentException(sprintf(
@@ -47,16 +47,23 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
             $pathInfo = $pathInfo->withModifiers(['original' => true]);
         }
 
-        return parent::link($pathInfo);
+        return parent::link(
+            pathInfo: $pathInfo,
+            absolute: $absolute,
+        );
     }
 
-    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor): SrcSet
+    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor, bool $absolute = true): SrcSet
     {
         if (null === $this->srcSetGenerator) {
             $this->srcSetGenerator = $this->srcSetGeneratorFactory->create($this, $this->modifierFacade);
         }
 
-        return $this->srcSetGenerator->generate($descriptor, $info);
+        return $this->srcSetGenerator->generate(
+            descriptor: $descriptor,
+            pathInfo: $info,
+            absolute: $absolute,
+        );
     }
 
     public function getSignatureStrategy(): ?SignatureStrategyInterface
