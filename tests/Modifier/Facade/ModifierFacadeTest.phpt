@@ -7,6 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Tests\Modifier\Facade;
 use CLosure;
 use Intervention\Image\Image;
 use Mockery;
+use TypeError;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
@@ -18,6 +19,7 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierValues;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacade;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifyResult;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
 use Tester\Assert;
@@ -71,8 +73,7 @@ final class ModifierFacadeTest extends TestCase
 
         Assert::exception(
             static fn () => $facade->setPresets(['test']),
-            InvalidArgumentException::class,
-            'The argument passed into the method SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacade::setPresets() must be an array of arrays (a preset name => an array of modifier aliases).',
+            TypeError::class,
         );
     }
 
@@ -80,16 +81,16 @@ final class ModifierFacadeTest extends TestCase
     {
         $presetCollection = Mockery::mock(PresetCollectionInterface::class);
         $presets = [
-            'a' => ['w' => 100],
-            'b' => ['w' => 150, 'f' => 'stretch'],
-            'c' => ['w' => 150, 'ar' => '16x9'],
+            'a' => new Preset(['w' => 100], null, null),
+            'b' => new Preset(['w' => 150, 'f' => 'stretch'], null, null),
+            'c' => new Preset(['w' => 150, 'ar' => '16x9'], null, null),
         ];
         $addedPresets = [];
 
         $presetCollection->shouldReceive('add')
             ->times(3)
-            ->with(Mockery::type('string'), Mockery::type('array'))
-            ->andReturnUsing(static function (string $name, array $preset) use (&$addedPresets) {
+            ->with(Mockery::type('string'), Mockery::type(Preset::class))
+            ->andReturnUsing(static function (string $name, Preset $preset) use (&$addedPresets) {
                 $addedPresets[$name] = $preset;
 
                 return null;
@@ -291,14 +292,10 @@ final class ModifierFacadeTest extends TestCase
         $modifiers = ['w' => 100, 'h' => 200];
         $preset = 'preset';
 
-        $codec->shouldReceive('pathToModifiers')
+        $codec->shouldReceive('expandModifiers')
             ->once()
-            ->with(Mockery::type(PresetValue::class))
-            ->andReturnUsing(static function (PresetValue $value) use ($preset, $modifiers): array {
-                Assert::same($preset, $value->presetName);
-
-                return $modifiers;
-            });
+            ->with($preset)
+            ->andReturn($modifiers);
 
         $modifierCollection->shouldReceive('parseValues')
             ->once()
@@ -344,14 +341,10 @@ final class ModifierFacadeTest extends TestCase
         $modifiers = ['w' => 100, 'h' => 200];
         $preset = 'preset';
 
-        $codec->shouldReceive('pathToModifiers')
+        $codec->shouldReceive('expandModifiers')
             ->once()
-            ->with(Mockery::type(PresetValue::class))
-            ->andReturnUsing(static function (PresetValue $value) use ($preset, $modifiers): array {
-                Assert::same($preset, $value->presetName);
-
-                return $modifiers;
-            });
+            ->with($preset)
+            ->andReturn($modifiers);
 
         $modifierCollection->shouldReceive('parseValues')
             ->once()

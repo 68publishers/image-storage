@@ -70,14 +70,10 @@ final class ArgsFacadeTest extends TestCase
             ->withNoArgs()
             ->andReturn($codec);
 
-        $codec->shouldReceive('pathToModifiers')
+        $codec->shouldReceive('expandModifiers')
             ->once()
-            ->with(Mockery::type(PresetValue::class))
-            ->andReturnUsing(static function (PresetValue $value): array {
-                Assert::same('preset', $value->presetName);
-
-                return ['w' => 150];
-            });
+            ->with('preset')
+            ->andReturn(['w' => 150]);
 
         $facade = new ArgsFacade($linkGenerator, $modifierFacade, $pathInfo, true);
 

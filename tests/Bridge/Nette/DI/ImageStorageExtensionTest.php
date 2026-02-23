@@ -123,6 +123,7 @@ final class ImageStorageExtensionTest extends TestCase
                 Config::SIGNATURE_PARAMETER_NAME => '_s',
                 Config::SIGNATURE_KEY => null,
                 Config::SIGNATURE_ALGORITHM => 'sha256',
+                Config::DISABLE_SIGNATURE_ON_KNOWN_MODIFIERS => false,
                 Config::ALLOWED_PIXEL_DENSITY => [],
                 Config::ALLOWED_RESOLUTIONS => [],
                 Config::ALLOWED_QUALITIES => [],
@@ -194,6 +195,7 @@ final class ImageStorageExtensionTest extends TestCase
                 Config::SIGNATURE_PARAMETER_NAME => '_s',
                 Config::SIGNATURE_KEY => null,
                 Config::SIGNATURE_ALGORITHM => 'sha256',
+                Config::DISABLE_SIGNATURE_ON_KNOWN_MODIFIERS => false,
                 Config::ALLOWED_PIXEL_DENSITY => [],
                 Config::ALLOWED_RESOLUTIONS => [],
                 Config::ALLOWED_QUALITIES => [],
@@ -220,6 +222,7 @@ final class ImageStorageExtensionTest extends TestCase
                 Config::SIGNATURE_PARAMETER_NAME => '_s',
                 Config::SIGNATURE_KEY => 'abc',
                 Config::SIGNATURE_ALGORITHM => 'sha256',
+                Config::DISABLE_SIGNATURE_ON_KNOWN_MODIFIERS => false,
                 Config::ALLOWED_PIXEL_DENSITY => [],
                 Config::ALLOWED_RESOLUTIONS => [],
                 Config::ALLOWED_QUALITIES => [],
@@ -257,17 +260,29 @@ final class ImageStorageExtensionTest extends TestCase
                 TestValidator::class,
             ],
             presets: [
-                'small' => [
-                    'w' => 100,
-                    'ar' => '2x1',
-                ],
-                'huge' => [
-                    'w' => 1000,
-                    'ar' => '16x9',
-                ],
-                'rotated' => [
-                    'o' => 180,
-                ],
+                'small' => new Modifier\Preset\Preset(
+                    modifiers: [
+                        'w' => 100,
+                        'ar' => '2x1',
+                    ],
+                    descriptor: null,
+                    defaultDescriptorValue: null
+                ),
+                'huge' => new Modifier\Preset\Preset(
+                    modifiers: [
+                        'w' => 1000,
+                        'ar' => '16x9',
+                    ],
+                    descriptor: null,
+                    defaultDescriptorValue: null
+                ),
+                'rotated' => new Modifier\Preset\Preset(
+                    modifiers: [
+                        'o' => 180,
+                    ],
+                    descriptor: null,
+                    defaultDescriptorValue: null
+                ),
             ],
         );
     }
@@ -500,7 +515,7 @@ final class ImageStorageExtensionTest extends TestCase
 
                 call_user_func(Closure::bind(
                     static function () use ($presetCollection, $presets): void {
-                        Assert::same($presets, $presetCollection->presets);
+                        Assert::equal($presets, $presetCollection->presets);
                     },
                     null,
                     PresetCollection::class,

@@ -32,7 +32,7 @@ final class LocalImageServerTest extends TestCase
         $config = $this->createConfig('', true);
         $response = (object) ['test' => true];
 
-        $server = new LocalImageServer($imageStorage, $this->expectErrorResponse($response, 'Missing signature in request.', 403));
+        $server = new LocalImageServer($imageStorage, $this->expectErrorResponse($response, 'Request contains invalid signature.', 403));
 
         $imageStorage->shouldReceive('getConfig')
             ->withNoArgs()
@@ -42,6 +42,11 @@ final class LocalImageServerTest extends TestCase
             ->once()
             ->withNoArgs()
             ->andReturn($signatureStrategy);
+
+        $signatureStrategy->shouldReceive('verifyToken')
+            ->once()
+            ->with('', 'path/w:100/image.png')
+            ->andReturn(false);
 
         Assert::same($response, $server->getImageResponse($this->createRequest('/path/w:100/image.png', null)));
     }

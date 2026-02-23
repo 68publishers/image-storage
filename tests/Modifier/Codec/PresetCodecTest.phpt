@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Tests\Modifier\Codec;
 
 use Mockery;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
+use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\PresetCodec;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 use Tester\Assert;
 use Tester\TestCase;
 
@@ -20,9 +23,11 @@ final class PresetCodecTest extends TestCase
     public function testSimpleValueShouldBeEncoded(): void
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
         $presetCollection = Mockery::mock(PresetCollectionInterface::class);
-        $presetCodec = new PresetCodec($innerCodec, $presetCollection);
-        $value = new Value(['w' => 100, 'h' => 200]);
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
+        $value = ['w' => 100, 'h' => 200];
 
         $innerCodec->shouldReceive('modifiersToPath')
             ->once()
@@ -35,10 +40,15 @@ final class PresetCodecTest extends TestCase
     public function testPresetValueShouldBeEncoded(): void
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
         $presetCollection = Mockery::mock(PresetCollectionInterface::class);
-        $presetCodec = new PresetCodec($innerCodec, $presetCollection);
-        $value = new PresetValue('preset');
-        $preset = ['w' => 100, 'h' => 200];
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
+        $preset = new Preset(['w' => 100, 'h' => 200], null, null);
+
+        $config->shouldReceive('offsetGet')
+            ->with(Config::MODIFIER_ASSIGNER)
+            ->andReturn(':');
 
         $presetCollection->shouldReceive('get')
             ->once()
@@ -47,45 +57,126 @@ final class PresetCodecTest extends TestCase
 
         $innerCodec->shouldReceive('modifiersToPath')
             ->once()
-            ->with(Mockery::type(Value::class))
-            ->andReturnUsing(static function (Value $value) use ($preset): string {
-                Assert::same($preset, $value->getValue());
+            ->with(['w' => 100, 'h' => 200])
+            ->andReturn('w:100,h:200');
 
-                return 'w:100,h:200';
-            });
-
-        Assert::same('w:100,h:200', $presetCodec->modifiersToPath($value));
+        Assert::same('w:100,h:200', $presetCodec->modifiersToPath('preset'));
     }
 
     public function testSimpleValueShouldBeDecoded(): void
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
         $presetCollection = Mockery::mock(PresetCollectionInterface::class);
-        $presetCodec = new PresetCodec($innerCodec, $presetCollection);
-        $value = new Value('w:100,h:200');
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
 
         $innerCodec->shouldReceive('pathToModifiers')
             ->once()
-            ->with($value)
+            ->with('w:100,h:200')
             ->andReturn(['w' => 100, 'h' => 200]);
 
-        Assert::same(['w' => 100, 'h' => 200], $presetCodec->pathToModifiers($value));
+        Assert::same(['w' => 100, 'h' => 200], $presetCodec->pathToModifiers('w:100,h:200'));
     }
 
-    public function testPresetValueShouldBeDecoded(): void
+    public function testPresetValueShouldBeExpanded(): void
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
         $presetCollection = Mockery::mock(PresetCollectionInterface::class);
-        $presetCodec = new PresetCodec($innerCodec, $presetCollection);
-        $value = new PresetValue('preset');
-        $preset = ['w' => 100, 'h' => 200];
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
+        $preset = new Preset(['w' => 100, 'h' => 200], null, null);
+
+        $config->shouldReceive('offsetGet')
+            ->with(Config::MODIFIER_ASSIGNER)
+            ->andReturn(':');
 
         $presetCollection->shouldReceive('get')
             ->once()
             ->with('preset')
             ->andReturn($preset);
 
-        Assert::same(['w' => 100, 'h' => 200], $presetCodec->pathToModifiers($value));
+        $innerCodec->shouldReceive('expandModifiers')
+            ->once()
+            ->with(['w' => 100, 'h' => 200])
+            ->andReturn(['w' => 100, 'h' => 200]);
+
+        Assert::same(['w' => 100, 'h' => 200], $presetCodec->expandModifiers('preset'));
+    }
+
+    public function testPresetValueWithDescriptorShouldBeExpanded(): void
+    {
+        $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+        $presetCollection = Mockery::mock(PresetCollectionInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
+        $preset = new Preset(['ar' => '16x9'], $descriptor, 100);
+
+        $config->shouldReceive('offsetGet')
+            ->with(Config::MODIFIER_ASSIGNER)
+            ->andReturn(':');
+
+        $presetCollection->shouldReceive('get')
+            ->once()
+            ->with('preset')
+            ->andReturn($preset);
+
+        $descriptor->shouldReceive('validateModifierValue')
+            ->once()
+            ->with(true, 100)
+            ->andReturn(100);
+
+        $descriptor->shouldReceive('expandModifier')
+            ->once()
+            ->with($modifierCollection, 100)
+            ->andReturn(['w' => 100]);
+
+        $innerCodec->shouldReceive('expandModifiers')
+            ->once()
+            ->with(['ar' => '16x9', 'w' => 100])
+            ->andReturn(['ar' => '16x9', 'w' => 100]);
+
+        Assert::same(['ar' => '16x9', 'w' => 100], $presetCodec->expandModifiers('preset'));
+    }
+
+    public function testPresetValueWithDescriptorAndCustomValueShouldBeExpanded(): void
+    {
+        $innerCodec = Mockery::mock(CodecInterface::class);
+        $config = Mockery::mock(ConfigInterface::class);
+        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
+        $presetCollection = Mockery::mock(PresetCollectionInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $presetCodec = new PresetCodec($innerCodec, $config, $modifierCollection, $presetCollection);
+        $preset = new Preset(['ar' => '16x9'], $descriptor, 100);
+
+        $config->shouldReceive('offsetGet')
+            ->with(Config::MODIFIER_ASSIGNER)
+            ->andReturn(':');
+
+        $presetCollection->shouldReceive('get')
+            ->once()
+            ->with('preset')
+            ->andReturn($preset);
+
+        $descriptor->shouldReceive('validateModifierValue')
+            ->once()
+            ->with('200', 100)
+            ->andReturn(200);
+
+        $descriptor->shouldReceive('expandModifier')
+            ->once()
+            ->with($modifierCollection, 200)
+            ->andReturn(['w' => 200]);
+
+        $innerCodec->shouldReceive('expandModifiers')
+            ->once()
+            ->with(['ar' => '16x9', 'w' => 200])
+            ->andReturn(['ar' => '16x9', 'w' => 200]);
+
+        Assert::same(['ar' => '16x9', 'w' => 200], $presetCodec->expandModifiers('preset:200'));
     }
 
     protected function tearDown(): void

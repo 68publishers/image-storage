@@ -89,8 +89,14 @@ extensions:
                 user: '^user_avatar\/' # the noimage "user" will be used for missing files with paths that matches this regex
             presets:
                 my_preset:
-                	w: 150
-                	ar: '2x1.5'
+                    modifiers:
+                      w: 150
+                      ar: '2x1.5'
+                my_preset_2:
+                    modifiers:
+                        ar: 1x2
+                    w: [300, 600, 900]
+                    defaultW: 600
 ```
 
 ### Animated GIFs

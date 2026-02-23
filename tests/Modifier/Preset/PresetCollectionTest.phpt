@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Tests\Modifier\Preset;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollection;
 use Tester\Assert;
 use Tester\TestCase;
@@ -17,15 +18,15 @@ final class PresetCollectionTest extends TestCase
     {
         $collection = new PresetCollection();
 
-        $collection->add('a', ['w' => 15]);
-        $collection->add('b', ['w' => 15, 'pd' => 2.0]);
+        $collection->add('a', new Preset(['w' => 15], null, null));
+        $collection->add('b', new Preset(['w' => 15, 'pd' => 2.0], null, null));
 
         Assert::true($collection->has('a'));
         Assert::true($collection->has('b'));
         Assert::false($collection->has('c'));
 
-        Assert::same(['w' => 15], $collection->get('a'));
-        Assert::same(['w' => 15, 'pd' => 2.0], $collection->get('b'));
+        Assert::same(['w' => 15], $collection->get('a')->modifiers);
+        Assert::same(['w' => 15, 'pd' => 2.0], $collection->get('b')->modifiers);
 
         Assert::exception(
             static fn () => $collection->get('c'),

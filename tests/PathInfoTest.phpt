@@ -114,15 +114,11 @@ final class PathInfoTest extends TestCase
 
         $codec->shouldReceive('pathToModifiers')
             ->once()
-            ->with(Mockery::type(Value::class))
-            ->andReturnUsing(static function (Value $value): array {
-                Assert::same('w:15,h:15', $value->getValue());
-
-                return [
-                    'w' => 15,
-                    'h' => 15,
-                ];
-            });
+            ->with('w:15,h:15')
+            ->andReturn([
+                'w' => 15,
+                'h' => 15,
+            ]);
 
         $info1 = new PathInfo($codec, 'var/www', 'image', 'png', null);
         $info2 = $info1->withEncodedModifiers('w:15,h:15');
@@ -153,21 +149,13 @@ final class PathInfoTest extends TestCase
 
         $codecPreset->shouldReceive('modifiersToPath')
             ->times(4)
-            ->with(Mockery::type(PresetValue::class))
-            ->andReturnUsing(static function (PresetValue $value): string {
-                Assert::same('preset', $value->presetName);
-
-                return 'w:15,h:15';
-            });
+            ->with('preset')
+            ->andReturn('w:15,h:15');
 
         $codecArray->shouldReceive('modifiersToPath')
             ->times(4)
-            ->with(Mockery::type(Value::class))
-            ->andReturnUsing(static function (Value $value): string {
-                Assert::same(['h' => 15, 'w' => 15], $value->getValue());
-
-                return 'w:15,h:15';
-            });
+            ->with(['h' => 15, 'w' => 15])
+            ->andReturn('w:15,h:15');
 
         $infoPreset1 = new PathInfo($codecPreset, 'var/www', 'image', null, 'preset');
         $infoPreset2 = new PathInfo($codecPreset, 'var/www', 'image', 'png', 'preset');
