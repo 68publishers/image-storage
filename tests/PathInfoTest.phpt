@@ -7,8 +7,6 @@ namespace SixtyEightPublishers\ImageStorage\Tests;
 use Mockery;
 use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
 use SixtyEightPublishers\ImageStorage\PathInfo;
 use Tester\Assert;
 use Tester\TestCase;
