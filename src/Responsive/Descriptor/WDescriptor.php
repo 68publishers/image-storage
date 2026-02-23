@@ -64,7 +64,7 @@ final class WDescriptor implements DescriptorInterface
         mixed $default,
     ): int {
         if (true === $value) {
-            if (!is_numeric($default)) {
+            if (!is_numeric($default) && [] !== $this->widths) {
                 return $this->widths[0];
             }
 

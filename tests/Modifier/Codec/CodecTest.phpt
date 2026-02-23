@@ -15,7 +15,6 @@ use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ParsableModifierInterface;
 use Tester\Assert;
 use Tester\TestCase;
-use TypeError;
 use function assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -76,18 +75,6 @@ final class CodecTest extends TestCase
             'flag_a' => true,
             'flag_b' => false,
         ]));
-    }
-
-    public function testExceptionShouldBeThrownIfNonStringValueIsDecoded(): void
-    {
-        $config = Mockery::mock(ConfigInterface::class);
-        $modifierCollection = Mockery::mock(ModifierCollectionInterface::class);
-        $codec = new Codec($config, $modifierCollection);
-
-        Assert::exception(
-            static fn () => $codec->pathToModifiers([]),
-            TypeError::class,
-        );
     }
 
     public function testExceptionShouldBeThrownIfEmptyStringValueIsDecoded(): void

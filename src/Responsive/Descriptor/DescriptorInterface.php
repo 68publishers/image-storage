@@ -23,7 +23,7 @@ interface DescriptorInterface extends Stringable
     ): mixed;
 
     /**
-     * @return array<string, string|numeric|bool>
+     * @param string|numeric|bool $value
      *
      * @return array<string, string|numeric|bool>
      * @throws InvalidArgumentException
