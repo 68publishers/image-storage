@@ -31,6 +31,7 @@ use SixtyEightPublishers\ImageStorage\Bridge\Intervention\Image\ImageManager\Ima
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\Application\ImageServerPresenter;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\Application\ImageServerRoute;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\Config\ImageStorageConfig;
+use SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\Config\PresetConfig;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\DI\Config\StorageConfig;
 use SixtyEightPublishers\ImageStorage\Bridge\Nette\ImageServer\ResponseFactory;
 use SixtyEightPublishers\ImageStorage\Bridge\Symfony\Console\Configurator\CleanCommandConfigurator;
@@ -52,11 +53,14 @@ use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGenerator;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier;
 use SixtyEightPublishers\ImageStorage\Modifier\Applicator;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\Codec;
+use SixtyEightPublishers\ImageStorage\Modifier\Codec\PresetCodec;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollection;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeFactory;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollection;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator;
@@ -65,13 +69,22 @@ use SixtyEightPublishers\ImageStorage\NoImage\NoImageResolverInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersister;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
 use SixtyEightPublishers\ImageStorage\Resource\ResourceFactory;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\WDescriptor;
+use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\XDescriptor;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGeneratorFactoryInterface;
+use SixtyEightPublishers\ImageStorage\Security\KnownModifiers;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategy;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
 use function array_diff;
+use function array_fill_keys;
 use function array_keys;
+use function array_map;
+use function array_merge;
+use function array_unique;
 use function assert;
 use function is_array;
+use function is_string;
+use function is_subclass_of;
 use function sprintf;
 
 final class ImageStorageExtension extends CompilerExtension implements FileStorageDefinitionFactoryInterface
@@ -120,7 +133,17 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
                     'no_image_patterns' => Expect::arrayOf('string', 'string')
                         ->default([]),
                     'presets' => Expect::arrayOf(
-                        Expect::arrayOf(Expect::scalar(), 'string'),
+                        Expect::structure([
+                            'modifiers' => Expect::arrayOf(Expect::scalar(), 'string'),
+                            'w' => Expect::listOf(Expect::int())->default([]),
+                            'x' => Expect::listOf(Expect::anyOf(Expect::int(), Expect::float()))->default([]),
+                            'defaultW' => Expect::int()->nullable(),
+                            'defaultX' => Expect::anyOf(Expect::int(), Expect::float())->nullable(),
+                        ])->castTo(PresetConfig::class)
+                            ->assert(
+                                handler: static fn (PresetConfig $preset): bool => !([] !== $preset->w && [] !== $preset->x),
+                                description: 'A preset cannot have both "w" and "x" properties.',
+                            ),
                         'string',
                     )->default([]),
 
@@ -329,13 +352,30 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             ->setFactory(Config::class, [$config->config])
             ->setAutowired(false);
 
+        $presets = array_map(
+            callback: static fn (PresetConfig $preset): Statement => new Statement(Preset::class, [
+                'modifiers' => $preset->modifiers,
+                'descriptor' => match (true) {
+                    [] !== $preset->w => new Statement(WDescriptor::class, $preset->w),
+                    [] !== $preset->x => new Statement(XDescriptor::class, $preset->x),
+                    default => null,
+                },
+                'defaultDescriptorValue' => match (true) {
+                    [] !== $preset->w => $preset->defaultW,
+                    [] !== $preset->x => $preset->defaultX,
+                    default => null,
+                },
+            ]),
+            array: $imageStorageConfig->presets,
+        );
+
         $builder->addDefinition($this->prefix('modifier_facade.' . $name))
             ->setType(ModifierFacadeInterface::class)
             ->setFactory(new Statement([$this->prefix('@modifiers.modifier_facade_factory'), 'create'], [
                 new Reference($this->prefix('config.' . $name)),
             ]))
             ->addSetup('setModifiers', [$imageStorageConfig->modifiers])
-            ->addSetup('setPresets', [$imageStorageConfig->presets])
+            ->addSetup('setPresets', [$presets])
             ->addSetup('setApplicators', [$imageStorageConfig->applicators])
             ->addSetup('setValidators', [$imageStorageConfig->validators])
             ->setAutowired(false);
@@ -354,7 +394,13 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             $signatureStrategyDefinition = $builder->addDefinition($this->prefix('signature_strategy.' . $name))
                 ->setType(SignatureStrategyInterface::class)
                 ->setFactory(SignatureStrategy::class, [
-                    new Reference($this->prefix('config.' . $name)),
+                    'config' => new Reference($this->prefix('config.' . $name)),
+                    'knownModifiers' => new Statement(KnownModifiers::class, [
+                        'list' => $this->buildKnownModifiers(
+                            config: $config,
+                            extConfig: $imageStorageConfig,
+                        ),
+                    ]),
                 ])
                 ->setAutowired(false);
         }
@@ -505,5 +551,93 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             ->setType(ImageServerPresenter::class);
 
         $this->imageServerPresenterRegistered = true;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private function buildKnownModifiers(FileStorageConfig $config, StorageConfig $extConfig): array
+    {
+        $presets = array_map(
+            callback: static function (PresetConfig $conf): Preset {
+                $descriptor = match (true) {
+                    [] !== $conf->w => new WDescriptor(...$conf->w),
+                    [] !== $conf->x => new XDescriptor(...$conf->x),
+                    default => null,
+                };
+
+                $defaultDescriptorValue = match (true) {
+                    [] !== $conf->w => $conf->defaultW,
+                    [] !== $conf->x => $conf->defaultX,
+                    default => null,
+                };
+
+                return new Preset(
+                    modifiers: $conf->modifiers,
+                    descriptor: $descriptor,
+                    defaultDescriptorValue: $defaultDescriptorValue,
+                );
+            },
+            array: $extConfig->presets,
+        );
+
+        $modifiers = array_map(
+            callback: static function (Statement $modifier): Modifier\ModifierInterface {
+                $entity = $modifier->getEntity();
+                $params = $modifier->arguments;
+                assert(is_string($entity) && is_subclass_of($entity, Modifier\AbstractModifier::class) && is_array($params));
+
+                return new $entity(...$params);
+            },
+            array: $extConfig->modifiers,
+        );
+
+        $presetsCollection = new PresetCollection();
+
+        foreach ($presets as $name => $preset) {
+            $presetsCollection->add(presetAlias: $name, preset: $preset);
+        }
+
+        $modifierCollection = new ModifierCollection();
+
+        foreach ($modifiers as $modifier) {
+            $modifierCollection->add(modifier: $modifier);
+        }
+
+        $cnf = new Config($config->config);
+
+        $codec = new PresetCodec(
+            codec: new Codec(
+                config: $cnf,
+                modifierCollection: $modifierCollection,
+            ),
+            config: $cnf,
+            modifierCollection: $modifierCollection,
+            presetCollection: $presetsCollection,
+        );
+
+        $known = [];
+
+        foreach ($presets as $preset) {
+            if (null === $preset->descriptor) {
+                $known[] = $codec->modifiersToPath($preset->modifiers);
+
+                continue;
+            }
+
+            $modifiers = $preset->modifiers;
+
+            foreach ($preset->descriptor->iterateModifiers($modifierCollection) as $mod) {
+                $known[] = $codec->modifiersToPath(array_merge(
+                    $modifiers,
+                    $mod,
+                ));
+            }
+        }
+
+        return array_fill_keys(
+            keys: array_unique($known),
+            value: true,
+        );
     }
 }

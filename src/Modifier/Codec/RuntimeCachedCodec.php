@@ -5,17 +5,22 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Modifier\Codec;
 
 use JsonException;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\ValueInterface;
 use function json_encode;
-use function md5;
 
 final class RuntimeCachedCodec implements CodecInterface
 {
-    /** @var array<string, string>  */
-    private array $encodeCache = [];
-
-    /** @var array<string, array<string, string|numeric|bool>>  */
-    private array $decodeCache = [];
+    /**
+     * @var array{
+     *     modifiersToPath: array<string, string>,
+     *     pathToModifiers: array<string, array<string, string|numeric|bool>>,
+     *     expandModifiers: array<string, array<string, string|numeric|bool>>,
+     * }
+     */
+    private array $cache = [
+        'modifiersToPath' => [],
+        'pathToModifiers' => [],
+        'expandModifiers' => [],
+    ];
 
     public function __construct(
         private readonly CodecInterface $codec,
@@ -24,28 +29,25 @@ final class RuntimeCachedCodec implements CodecInterface
     /**
      * @throws JsonException
      */
-    public function encode(ValueInterface $value): string
+    public function modifiersToPath(string|array $value): string
     {
-        $key = $this->createCacheKey($value);
+        $key = json_encode($value, JSON_THROW_ON_ERROR);
 
-        return $this->encodeCache[$key] ?? ($this->encodeCache[$key] = $this->codec->encode($value));
+        return $this->cache['modifiersToPath'][$key] ??= $this->codec->modifiersToPath($value);
+    }
+
+    public function pathToModifiers(string $value): array
+    {
+        return $this->cache['pathToModifiers'][$value] ??= $this->codec->pathToModifiers($value);
     }
 
     /**
      * @throws JsonException
      */
-    public function decode(ValueInterface $value): array
+    public function expandModifiers(array|string $value): array
     {
-        $key = $this->createCacheKey($value);
+        $key = json_encode($value, JSON_THROW_ON_ERROR);
 
-        return $this->decodeCache[$key] ?? ($this->decodeCache[$key] = $this->codec->decode($value));
-    }
-
-    /**
-     * @throws JsonException
-     */
-    private function createCacheKey(ValueInterface $value): string
-    {
-        return md5(json_encode($value->getValue(), JSON_THROW_ON_ERROR));
+        return $this->cache['expandModifiers'][$key] ??= $this->codec->expandModifiers($value);
     }
 }

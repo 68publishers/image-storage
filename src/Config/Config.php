@@ -11,6 +11,7 @@ final class Config extends FileStorageConfig
     public const SIGNATURE_PARAMETER_NAME = 'signature_parameter_name';
     public const SIGNATURE_KEY = 'signature_key';
     public const SIGNATURE_ALGORITHM = 'signature_algorithm';
+    public const DISABLE_SIGNATURE_ON_KNOWN_MODIFIERS = 'disable_signature_on_known_modifiers';
     public const MODIFIER_SEPARATOR = 'modifier_separator';
     public const MODIFIER_ASSIGNER = 'modifier_assigner';
     public const ALLOWED_PIXEL_DENSITY = 'allowed_pixel_density';
@@ -28,6 +29,7 @@ final class Config extends FileStorageConfig
         self::SIGNATURE_PARAMETER_NAME => '_s',
         self::SIGNATURE_KEY => null,
         self::SIGNATURE_ALGORITHM => 'sha256',
+        self::DISABLE_SIGNATURE_ON_KNOWN_MODIFIERS => false,
         self::ALLOWED_PIXEL_DENSITY => [],
         self::ALLOWED_RESOLUTIONS => [],
         self::ALLOWED_QUALITIES => [],

@@ -10,6 +10,8 @@ use SixtyEightPublishers\ImageStorage\Modifier\Applicator\ModifierApplicatorInte
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
 
 interface ModifierFacadeInterface
@@ -20,7 +22,7 @@ interface ModifierFacadeInterface
     public function setModifiers(array $modifiers): void;
 
     /**
-     * @param array<string, array<string, string|numeric|bool>> $presets
+     * @param array<string, Preset> $presets
      */
     public function setPresets(array $presets): void;
 
@@ -35,6 +37,8 @@ interface ModifierFacadeInterface
     public function setValidators(array $validators): void;
 
     public function getModifierCollection(): ModifierCollectionInterface;
+
+    public function getPresetCollection(): PresetCollectionInterface;
 
     public function getCodec(): CodecInterface;
 

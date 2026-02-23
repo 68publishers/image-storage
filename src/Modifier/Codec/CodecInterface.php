@@ -4,14 +4,22 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Modifier\Codec;
 
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\ValueInterface;
-
 interface CodecInterface
 {
-    public function encode(ValueInterface $value): string;
+    /**
+     * @param string|array<string, string|numeric|bool> $value
+     */
+    public function modifiersToPath(string|array $value): string;
 
     /**
      * @return array<string, string|numeric|bool>
      */
-    public function decode(ValueInterface $value): array;
+    public function pathToModifiers(string $value): array;
+
+    /**
+     * @param string|array<string, string|numeric|bool> $value
+     *
+     * @return array<string, string|numeric|bool>
+     */
+    public function expandModifiers(string|array $value): array;
 }

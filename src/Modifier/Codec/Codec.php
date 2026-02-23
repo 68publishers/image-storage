@@ -7,16 +7,14 @@ namespace SixtyEightPublishers\ImageStorage\Modifier\Codec;
 use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\ValueInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ParsableModifierInterface;
-use Stringable;
 use function assert;
 use function count;
 use function explode;
-use function gettype;
 use function implode;
 use function is_array;
+use function is_string;
 use function ksort;
 use function sprintf;
 
@@ -27,30 +25,30 @@ final class Codec implements CodecInterface
         private readonly ModifierCollectionInterface $modifierCollection,
     ) {}
 
-    public function encode(ValueInterface $value): string
+    public function modifiersToPath(string|array $value): string
     {
-        $parameters = $value->getValue();
-
-        if (!is_array($parameters)) {
-            throw new InvalidArgumentException(sprintf(
-                'Can not decode value of type %s, the value must be array<string, string|numeric|bool>.',
-                gettype($parameters),
-            ));
+        if (!is_array($value)) {
+            throw new InvalidArgumentException(
+                message: 'Can not decode value of type string, the value must be array<string, string|numeric|bool>.',
+            );
         }
 
-        if (empty($parameters)) {
+        if (empty($value)) {
             throw new InvalidArgumentException('Value can not be an empty array.');
         }
 
-        /** @var array<string, string|numeric|bool> $parameters */
         $assigner = $this->config[Config::MODIFIER_ASSIGNER];
         $separator = $this->config[Config::MODIFIER_SEPARATOR];
+
+        $assigner = empty($assigner) ? ':' : $assigner;
+        $separator = empty($separator) ? ',' : $separator;
+
         $result = [];
-        assert(\is_string($assigner) && \is_string($separator));
+        assert(is_string($assigner) && is_string($separator));
 
-        ksort($parameters);
+        ksort($value);
 
-        foreach ($parameters as $k => $v) {
+        foreach ($value as $k => $v) {
             $modifier = $this->modifierCollection->getByAlias($k);
 
             if (!$modifier instanceof ParsableModifierInterface) {
@@ -67,39 +65,28 @@ final class Codec implements CodecInterface
         return implode($separator, $result);
     }
 
-    public function decode(ValueInterface $value): array
+    public function pathToModifiers(string $value): array
     {
-        $path = $value->getValue();
-
-        if (!is_string($path) && !$path instanceof Stringable) {
-            throw new InvalidArgumentException(sprintf(
-                'Can not decode value of type %s, the value must be string or Stringable object.',
-                gettype($path),
-            ));
-        }
-
-        $path = (string) $path;
-
-        if (empty($path)) {
+        if (empty($value)) {
             throw new InvalidArgumentException('Value can not be an empty string.');
         }
 
         $parameters = [];
         $assigner = $this->config[Config::MODIFIER_ASSIGNER];
         $separator = $this->config[Config::MODIFIER_SEPARATOR];
-        assert(\is_string($assigner) && \is_string($separator));
+        assert(is_string($assigner) && is_string($separator));
 
         $assigner = empty($assigner) ? ':' : $assigner;
         $separator = empty($separator) ? ',' : $separator;
 
-        foreach (explode($separator, $path) as $modifier) {
+        foreach (explode($separator, $value) as $modifier) {
             $modifier = explode($assigner, $modifier);
             $count = count($modifier);
 
             if (2 < $count) {
                 throw new InvalidArgumentException(sprintf(
                     'An invalid path "%s" passed, the modifier "%s" has an invalid format.',
-                    $path,
+                    $value,
                     implode($assigner, $modifier),
                 ));
             }
@@ -109,7 +96,7 @@ final class Codec implements CodecInterface
             if (1 === $count && $modifierObject instanceof ParsableModifierInterface) {
                 throw new InvalidArgumentException(sprintf(
                     'An invalid path "%s" passed, the modifier "%s" must have a value.',
-                    $path,
+                    $value,
                     $modifierObject->getAlias(),
                 ));
             }
@@ -117,7 +104,7 @@ final class Codec implements CodecInterface
             if (2 === $count && !$modifierObject instanceof ParsableModifierInterface) {
                 throw new InvalidArgumentException(sprintf(
                     'An invalid path "%s" passed, the modifier "%s" can not have a value.',
-                    $path,
+                    $value,
                     $modifierObject->getAlias(),
                 ));
             }
@@ -126,5 +113,16 @@ final class Codec implements CodecInterface
         }
 
         return $parameters;
+    }
+
+    public function expandModifiers(array|string $value): array
+    {
+        if (!is_array($value)) {
+            throw new InvalidArgumentException(
+                message: 'Can not expand value of type string, the value must be array<string, string|numeric|bool>.',
+            );
+        }
+
+        return $value;
     }
 }

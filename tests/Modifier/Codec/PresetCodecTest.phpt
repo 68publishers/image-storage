@@ -24,12 +24,12 @@ final class PresetCodecTest extends TestCase
         $presetCodec = new PresetCodec($innerCodec, $presetCollection);
         $value = new Value(['w' => 100, 'h' => 200]);
 
-        $innerCodec->shouldReceive('encode')
+        $innerCodec->shouldReceive('modifiersToPath')
             ->once()
             ->with($value)
             ->andReturn('w:100,h:200');
 
-        Assert::same('w:100,h:200', $presetCodec->encode($value));
+        Assert::same('w:100,h:200', $presetCodec->modifiersToPath($value));
     }
 
     public function testPresetValueShouldBeEncoded(): void
@@ -45,7 +45,7 @@ final class PresetCodecTest extends TestCase
             ->with('preset')
             ->andReturn($preset);
 
-        $innerCodec->shouldReceive('encode')
+        $innerCodec->shouldReceive('modifiersToPath')
             ->once()
             ->with(Mockery::type(Value::class))
             ->andReturnUsing(static function (Value $value) use ($preset): string {
@@ -54,7 +54,7 @@ final class PresetCodecTest extends TestCase
                 return 'w:100,h:200';
             });
 
-        Assert::same('w:100,h:200', $presetCodec->encode($value));
+        Assert::same('w:100,h:200', $presetCodec->modifiersToPath($value));
     }
 
     public function testSimpleValueShouldBeDecoded(): void
@@ -64,12 +64,12 @@ final class PresetCodecTest extends TestCase
         $presetCodec = new PresetCodec($innerCodec, $presetCollection);
         $value = new Value('w:100,h:200');
 
-        $innerCodec->shouldReceive('decode')
+        $innerCodec->shouldReceive('pathToModifiers')
             ->once()
             ->with($value)
             ->andReturn(['w' => 100, 'h' => 200]);
 
-        Assert::same(['w' => 100, 'h' => 200], $presetCodec->decode($value));
+        Assert::same(['w' => 100, 'h' => 200], $presetCodec->pathToModifiers($value));
     }
 
     public function testPresetValueShouldBeDecoded(): void
@@ -85,7 +85,7 @@ final class PresetCodecTest extends TestCase
             ->with('preset')
             ->andReturn($preset);
 
-        Assert::same(['w' => 100, 'h' => 200], $presetCodec->decode($value));
+        Assert::same(['w' => 100, 'h' => 200], $presetCodec->pathToModifiers($value));
     }
 
     protected function tearDown(): void

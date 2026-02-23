@@ -19,7 +19,7 @@ interface PathInfoInterface extends BasePathInfoInterface
     public function withModifiers(string|array|null $modifiers): static;
 
     /**
-     * Creates new object with encoded modifiers, the modifier will be decoded into an array.
+     * Creates a new object with encoded modifiers, the modifier will be decoded into an array.
      */
     public function withEncodedModifiers(string $modifiers): static;
 }

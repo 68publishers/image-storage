@@ -24,12 +24,22 @@ final class ModifierFacadeFactory implements ModifierFacadeFactoryInterface
         $modifierCollection = $this->modifierCollectionFactory->create();
 
         $codec = new RuntimeCachedCodec(
-            new PresetCodec(
-                new Codec($config, $modifierCollection),
-                $presetCollection,
+            codec: new PresetCodec(
+                codec: new Codec(
+                    config: $config,
+                    modifierCollection: $modifierCollection,
+                ),
+                config: $config,
+                modifierCollection: $modifierCollection,
+                presetCollection: $presetCollection,
             ),
         );
 
-        return new ModifierFacade($config, $codec, $presetCollection, $modifierCollection);
+        return new ModifierFacade(
+            config: $config,
+            codec: $codec,
+            presetCollection: $presetCollection,
+            modifierCollection: $modifierCollection,
+        );
     }
 }

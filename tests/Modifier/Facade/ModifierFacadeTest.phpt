@@ -291,7 +291,7 @@ final class ModifierFacadeTest extends TestCase
         $modifiers = ['w' => 100, 'h' => 200];
         $preset = 'preset';
 
-        $codec->shouldReceive('decode')
+        $codec->shouldReceive('pathToModifiers')
             ->once()
             ->with(Mockery::type(PresetValue::class))
             ->andReturnUsing(static function (PresetValue $value) use ($preset, $modifiers): array {
@@ -344,7 +344,7 @@ final class ModifierFacadeTest extends TestCase
         $modifiers = ['w' => 100, 'h' => 200];
         $preset = 'preset';
 
-        $codec->shouldReceive('decode')
+        $codec->shouldReceive('pathToModifiers')
             ->once()
             ->with(Mockery::type(PresetValue::class))
             ->andReturnUsing(static function (PresetValue $value) use ($preset, $modifiers): array {

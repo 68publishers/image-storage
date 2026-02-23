@@ -17,6 +17,7 @@ use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGenerator;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSetGeneratorFactoryInterface;
 use SixtyEightPublishers\ImageStorage\Security\SignatureStrategyInterface;
 use function assert;
+use function explode;
 use function is_string;
 use function sprintf;
 
@@ -36,14 +37,16 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
     public function link(FilePathInfoInterface $pathInfo, bool $absolute = true): string
     {
         if (!$pathInfo instanceof ImagePathInfoInterface) {
-            throw new InvalidArgumentException(sprintf(
-                'Path info passed into the method %s() must be an instance of %s.',
-                __METHOD__,
-                ImagePathInfoInterface::class,
-            ));
+            throw new InvalidArgumentException(
+                message: sprintf(
+                    'Path info passed into the method %s() must be an instance of %s.',
+                    __METHOD__,
+                    ImagePathInfoInterface::class,
+                ),
+            );
         }
 
-        if (null === $pathInfo->getModifiers()) {
+        if (null === $pathInfo->getModifiers() || [] === $pathInfo->getModifiers()) {
             $pathInfo = $pathInfo->withModifiers(['original' => true]);
         }
 
@@ -53,8 +56,14 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
         );
     }
 
-    public function srcSet(ImagePathInfoInterface $info, DescriptorInterface $descriptor, bool $absolute = true): SrcSet
+    public function srcSet(ImagePathInfoInterface $info, ?DescriptorInterface $descriptor = null, bool $absolute = true): SrcSet
     {
+        if (null === $descriptor) {
+            $descriptor = $this->resolveDescriptor(
+                pathInfo: $info,
+            );
+        }
+
         if (null === $this->srcSetGenerator) {
             $this->srcSetGenerator = $this->srcSetGeneratorFactory->create($this, $this->modifierFacade);
         }
@@ -79,9 +88,38 @@ final class LinkGenerator extends FileLinkGenerator implements LinkGeneratorInte
             $signatureParameterName = $this->config[Config::SIGNATURE_PARAMETER_NAME];
             assert(is_string($signatureParameterName));
 
-            $params[$signatureParameterName] = $this->signatureStrategy->createToken($pathInfo->getPath());
+            $token = $this->signatureStrategy->createToken($pathInfo->getPath());
+
+            if (null !== $token) {
+                $params[$signatureParameterName] = $token;
+            }
         }
 
         return $params;
+    }
+
+    private function resolveDescriptor(ImagePathInfoInterface $pathInfo): DescriptorInterface
+    {
+        $modifiers = $pathInfo->getModifiers();
+
+        if (is_string($modifiers)) {
+            $presets = $this->modifierFacade->getPresetCollection();
+            $assigner = $this->config[Config::MODIFIER_ASSIGNER];
+            $assigner = empty($assigner) ? ':' : $assigner;
+            [$presetAlias] = explode($assigner, $modifiers, 2);
+            $preset = $presets->get(presetAlias: $presetAlias);
+
+            if (null !== $preset->descriptor) {
+                return $preset->descriptor;
+            }
+        }
+
+        throw new InvalidArgumentException(
+            message: sprintf(
+                'Unable to resolve descriptor for path info %s. Descriptor must be provided to the method %s::srcSet() manually.',
+                $pathInfo,
+                __CLASS__,
+            ),
+        );
     }
 }

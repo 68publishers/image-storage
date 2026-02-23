@@ -21,13 +21,13 @@ final class RuntimeCachedCodecTest extends TestCase
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
         $value = new Value(['w' => 100, 'h' => 200]);
 
-        $innerCodec->shouldReceive('encode')
+        $innerCodec->shouldReceive('modifiersToPath')
             ->once()
             ->with($value)
             ->andReturn('w:100,h:200');
 
-        Assert::same('w:100,h:200', $runtimeCachedCodec->encode($value));
-        Assert::same('w:100,h:200', $runtimeCachedCodec->encode($value));
+        Assert::same('w:100,h:200', $runtimeCachedCodec->modifiersToPath($value));
+        Assert::same('w:100,h:200', $runtimeCachedCodec->modifiersToPath($value));
     }
 
     public function testStringValueShouldBeEncodedAndCached(): void
@@ -36,13 +36,13 @@ final class RuntimeCachedCodecTest extends TestCase
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
         $value = new Value('preset');
 
-        $innerCodec->shouldReceive('encode')
+        $innerCodec->shouldReceive('modifiersToPath')
             ->once()
             ->with($value)
             ->andReturn('w:100,h:200');
 
-        Assert::same('w:100,h:200', $runtimeCachedCodec->encode($value));
-        Assert::same('w:100,h:200', $runtimeCachedCodec->encode($value));
+        Assert::same('w:100,h:200', $runtimeCachedCodec->modifiersToPath($value));
+        Assert::same('w:100,h:200', $runtimeCachedCodec->modifiersToPath($value));
     }
 
     public function testArrayValueShouldBeDecodedAndCached(): void
@@ -51,13 +51,13 @@ final class RuntimeCachedCodecTest extends TestCase
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
         $value = new Value(['w' => 100, 'h' => 200]);
 
-        $innerCodec->shouldReceive('decode')
+        $innerCodec->shouldReceive('pathToModifiers')
             ->once()
             ->with($value)
             ->andReturn(['w' => 100, 'h' => 200]);
 
-        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->decode($value));
-        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->decode($value));
+        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->pathToModifiers($value));
+        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->pathToModifiers($value));
     }
 
     public function testStringValueShouldBeDecodedAndCached(): void
@@ -66,13 +66,13 @@ final class RuntimeCachedCodecTest extends TestCase
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
         $value = new Value('w:100,h:100');
 
-        $innerCodec->shouldReceive('decode')
+        $innerCodec->shouldReceive('pathToModifiers')
             ->once()
             ->with($value)
             ->andReturn(['w' => 100, 'h' => 200]);
 
-        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->decode($value));
-        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->decode($value));
+        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->pathToModifiers($value));
+        Assert::same(['w' => 100, 'h' => 200], $runtimeCachedCodec->pathToModifiers($value));
     }
 
     protected function tearDown(): void

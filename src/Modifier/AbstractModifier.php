@@ -11,7 +11,7 @@ abstract class AbstractModifier implements ModifierInterface
 {
     protected ?string $alias = null;
 
-    public function __construct(?string $alias = null)
+    final public function __construct(?string $alias = null)
     {
         if (null !== $alias) {
             $this->alias = $alias;
