@@ -14,7 +14,6 @@ use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInte
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
-use function is_array;
 use function is_string;
 use function sprintf;
 

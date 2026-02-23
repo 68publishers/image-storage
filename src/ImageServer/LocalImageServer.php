@@ -148,7 +148,7 @@ final class LocalImageServer implements ImageServerInterface
         $signatureParameterName = $this->imageStorage->getConfig()[Config::SIGNATURE_PARAMETER_NAME];
         assert(is_string($signatureParameterName));
 
-        $token = (string) ($request->getQueryParameter($signatureParameterName) ?? '');
+        $token = (string) ($request->getQueryParameter($signatureParameterName) ?? ''); # @phpstan-ignore-line
 
         if (!$signatureStrategy->verifyToken($token, $path)) {
             throw new SignatureException('Request contains invalid signature.');

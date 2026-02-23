@@ -266,7 +266,7 @@ final class ImageStorageExtensionTest extends TestCase
                         'ar' => '2x1',
                     ],
                     descriptor: null,
-                    defaultDescriptorValue: null
+                    defaultDescriptorValue: null,
                 ),
                 'huge' => new Modifier\Preset\Preset(
                     modifiers: [
@@ -274,14 +274,14 @@ final class ImageStorageExtensionTest extends TestCase
                         'ar' => '16x9',
                     ],
                     descriptor: null,
-                    defaultDescriptorValue: null
+                    defaultDescriptorValue: null,
                 ),
                 'rotated' => new Modifier\Preset\Preset(
                     modifiers: [
                         'o' => 180,
                     ],
                     descriptor: null,
-                    defaultDescriptorValue: null
+                    defaultDescriptorValue: null,
                 ),
             ],
         );

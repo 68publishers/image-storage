@@ -8,7 +8,6 @@ use Mockery;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Width;
