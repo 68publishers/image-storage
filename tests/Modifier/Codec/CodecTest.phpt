@@ -10,12 +10,12 @@ use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\Codec;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ParsableModifierInterface;
 use Tester\Assert;
 use Tester\TestCase;
+use TypeError;
 use function assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -29,7 +29,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->modifiersToPath(new Value('test')),
+            static fn () => $codec->modifiersToPath('test'),
             InvalidArgumentException::class,
             'Can not decode value of type string, the value must be array<string, string|numeric|bool>.',
         );
@@ -42,7 +42,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->modifiersToPath(new Value([])),
+            static fn () => $codec->modifiersToPath([]),
             InvalidArgumentException::class,
             'Value can not be an empty array.',
         );
@@ -69,13 +69,13 @@ final class CodecTest extends TestCase
                 ->andReturn($modifier);
         }
 
-        Assert::same('ar:16x9,flag_a,pd:2.5,w:100', $codec->modifiersToPath(new Value([
+        Assert::same('ar:16x9,flag_a,pd:2.5,w:100', $codec->modifiersToPath([
             'w' => 100,
             'pd' => 2.5,
             'ar' => '16x9',
             'flag_a' => true,
             'flag_b' => false,
-        ])));
+        ]));
     }
 
     public function testExceptionShouldBeThrownIfNonStringValueIsDecoded(): void
@@ -85,9 +85,8 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->pathToModifiers(new Value([])),
-            InvalidArgumentException::class,
-            'Can not decode value of type array, the value must be string or Stringable object.',
+            static fn () => $codec->pathToModifiers([]),
+            TypeError::class,
         );
     }
 
@@ -98,7 +97,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->pathToModifiers(new Value('')),
+            static fn () => $codec->pathToModifiers(''),
             InvalidArgumentException::class,
             'Value can not be an empty string.',
         );
@@ -111,7 +110,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->pathToModifiers(new Value('w:100:200,ar:16x9')),
+            static fn () => $codec->pathToModifiers('w:100:200,ar:16x9'),
             InvalidArgumentException::class,
             'An invalid path "w:100:200,ar:16x9" passed, the modifier "w:100:200" has an invalid format.',
         );
@@ -135,7 +134,7 @@ final class CodecTest extends TestCase
             ->andReturn('w');
 
         Assert::exception(
-            static fn () => $codec->pathToModifiers(new Value('w')),
+            static fn () => $codec->pathToModifiers('w'),
             InvalidArgumentException::class,
             'An invalid path "w" passed, the modifier "w" must have a value.',
         );
@@ -159,7 +158,7 @@ final class CodecTest extends TestCase
             ->andReturn('flag_a');
 
         Assert::exception(
-            static fn () => $codec->pathToModifiers(new Value('flag_a:value')),
+            static fn () => $codec->pathToModifiers('flag_a:value'),
             InvalidArgumentException::class,
             'An invalid path "flag_a:value" passed, the modifier "flag_a" can not have a value.',
         );
@@ -197,7 +196,7 @@ final class CodecTest extends TestCase
             'flag_a' => true,
             'pd' => '2.5',
             'w' => '100',
-        ], $codec->pathToModifiers(new Value('ar:16x9,flag_a,pd:2.5,w:100')));
+        ], $codec->pathToModifiers('ar:16x9,flag_a,pd:2.5,w:100'));
     }
 
     protected function tearDown(): void

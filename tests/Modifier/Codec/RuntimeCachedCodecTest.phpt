@@ -7,7 +7,6 @@ namespace SixtyEightPublishers\ImageStorage\Tests\Modifier\Codec;
 use Mockery;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\RuntimeCachedCodec;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
 use Tester\Assert;
 use Tester\TestCase;
 
@@ -19,7 +18,7 @@ final class RuntimeCachedCodecTest extends TestCase
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
-        $value = new Value(['w' => 100, 'h' => 200]);
+        $value = ['w' => 100, 'h' => 200];
 
         $innerCodec->shouldReceive('modifiersToPath')
             ->once()
@@ -34,7 +33,7 @@ final class RuntimeCachedCodecTest extends TestCase
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
-        $value = new Value('preset');
+        $value = 'preset';
 
         $innerCodec->shouldReceive('modifiersToPath')
             ->once()
@@ -45,11 +44,11 @@ final class RuntimeCachedCodecTest extends TestCase
         Assert::same('w:100,h:200', $runtimeCachedCodec->modifiersToPath($value));
     }
 
-    public function testArrayValueShouldBeDecodedAndCached(): void
+    public function testStringValueShouldBeDecodedAndCached2(): void
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
-        $value = new Value(['w' => 100, 'h' => 200]);
+        $value = 'w:100,h:200';
 
         $innerCodec->shouldReceive('pathToModifiers')
             ->once()
@@ -64,7 +63,7 @@ final class RuntimeCachedCodecTest extends TestCase
     {
         $innerCodec = Mockery::mock(CodecInterface::class);
         $runtimeCachedCodec = new RuntimeCachedCodec($innerCodec);
-        $value = new Value('w:100,h:100');
+        $value = 'w:100,h:100';
 
         $innerCodec->shouldReceive('pathToModifiers')
             ->once()

@@ -11,6 +11,8 @@ use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGenerator;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\Preset;
+use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
@@ -186,6 +188,148 @@ final class LinkGeneratorTest extends TestCase
         Assert::same($srcSet, $linkGenerator->srcSet($pathInfo, $descriptor, false));
     }
 
+    public function testSrcSetShouldBeCreatedWithDescriptorResolvedFromPreset(): void
+    {
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
+        $srcSetGenerator = Mockery::mock(SrcSetGenerator::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $presetCollection = Mockery::mock(PresetCollectionInterface::class);
+        $preset = new Preset(['w' => 100], $descriptor, 100);
+        $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
+
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn('preset');
+
+        $modifierFacade->shouldReceive('getPresetCollection')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($presetCollection);
+
+        $presetCollection->shouldReceive('get')
+            ->once()
+            ->with('preset')
+            ->andReturn($preset);
+
+        $srcSetGeneratorFactory->shouldReceive('create')
+            ->once()
+            ->with($linkGenerator, $modifierFacade)
+            ->andReturn($srcSetGenerator);
+
+        $srcSetGenerator->shouldReceive('generate')
+            ->once()
+            ->with($descriptor, $pathInfo, true)
+            ->andReturn($srcSet);
+
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo));
+    }
+
+    public function testSrcSetShouldBeCreatedWithDescriptorResolvedFromPresetWithCustomValue(): void
+    {
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
+        $srcSetGenerator = Mockery::mock(SrcSetGenerator::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $descriptor = Mockery::mock(DescriptorInterface::class);
+        $presetCollection = Mockery::mock(PresetCollectionInterface::class);
+        $preset = new Preset(['w' => 100], $descriptor, 100);
+        $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+        $srcSet = new SrcSet(
+            descriptor: 'test',
+            links: [
+                1 => 'srcset',
+            ],
+            value: 'srcset',
+        );
+
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn('preset:200');
+
+        $modifierFacade->shouldReceive('getPresetCollection')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($presetCollection);
+
+        $presetCollection->shouldReceive('get')
+            ->once()
+            ->with('preset')
+            ->andReturn($preset);
+
+        $srcSetGeneratorFactory->shouldReceive('create')
+            ->once()
+            ->with($linkGenerator, $modifierFacade)
+            ->andReturn($srcSetGenerator);
+
+        $srcSetGenerator->shouldReceive('generate')
+            ->once()
+            ->with($descriptor, $pathInfo, true)
+            ->andReturn($srcSet);
+
+        Assert::same($srcSet, $linkGenerator->srcSet($pathInfo));
+    }
+
+    public function testExceptionShouldBeThrownWhenDescriptorCannotBeResolvedFromPresetWithoutDescriptor(): void
+    {
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $presetCollection = Mockery::mock(PresetCollectionInterface::class);
+        $preset = new Preset(['w' => 100], null, null);
+        $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn('preset');
+
+        $modifierFacade->shouldReceive('getPresetCollection')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($presetCollection);
+
+        $presetCollection->shouldReceive('get')
+            ->once()
+            ->with('preset')
+            ->andReturn($preset);
+
+        Assert::exception(
+            static fn () => $linkGenerator->srcSet($pathInfo),
+            InvalidArgumentException::class,
+            '#Unable to resolve descriptor for path info .+\. Descriptor must be provided to the method .+::srcSet\(\) manually\.#',
+        );
+    }
+
+    public function testExceptionShouldBeThrownWhenDescriptorCannotBeResolvedFromArrayModifiers(): void
+    {
+        $modifierFacade = Mockery::mock(ModifierFacadeInterface::class);
+        $srcSetGeneratorFactory = Mockery::mock(SrcSetGeneratorFactoryInterface::class);
+        $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
+        $linkGenerator = new LinkGenerator(new Config([]), $modifierFacade, $srcSetGeneratorFactory);
+
+        $pathInfo->shouldReceive('getModifiers')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(['w' => 100, 'h' => 200]);
+
+        Assert::exception(
+            static fn () => $linkGenerator->srcSet($pathInfo),
+            InvalidArgumentException::class,
+            '#Unable to resolve descriptor for path info .+\. Descriptor must be provided to the method .+::srcSet\(\) manually\.#',
+        );
+    }
+
     public function tearDown(): void
     {
         Mockery::close();
@@ -202,7 +346,7 @@ final class LinkGeneratorTest extends TestCase
             ->andReturn($version);
 
         $pathInfo->shouldReceive('getModifiers')
-            ->once()
+            ->atLeast()->once()
             ->withNoArgs()
             ->andReturn(['w' => 100, 'h' => 200]);
 

@@ -25,10 +25,13 @@ image_storage:
 				- SixtyEightPublishers\ImageStorage\Tests\Fixtures\TestValidator
 			presets:
 				small:
-					w: 100
-					ar: 2x1
+					modifiers:
+						w: 100
+						ar: 2x1
 				huge:
-					w: 1000
-					ar: 16x9
+					modifiers:
+						w: 1000
+						ar: 16x9
 				rotated:
-					o: 180
+					modifiers:
+						o: 180
