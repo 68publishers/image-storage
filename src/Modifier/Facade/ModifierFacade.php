@@ -10,12 +10,12 @@ use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\Modifier\Applicator\ModifierApplicatorInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\ModifierInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Preset\PresetCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Validator\ValidatorInterface;
 use function is_array;
+use function is_string;
 use function sprintf;
 
 final class ModifierFacade implements ModifierFacadeInterface
@@ -51,13 +51,6 @@ final class ModifierFacade implements ModifierFacadeInterface
     public function setPresets(array $presets): void
     {
         foreach ($presets as $name => $preset) {
-            if (!is_array($preset)) {
-                throw new InvalidArgumentException(sprintf(
-                    'The argument passed into the method %s() must be an array of arrays (a preset name => an array of modifier aliases).',
-                    __METHOD__,
-                ));
-            }
-
             $this->presetCollection->add((string) $name, $preset);
         }
     }
@@ -97,6 +90,11 @@ final class ModifierFacade implements ModifierFacadeInterface
         return $this->modifierCollection;
     }
 
+    public function getPresetCollection(): PresetCollectionInterface
+    {
+        return $this->presetCollection;
+    }
+
     public function getCodec(): CodecInterface
     {
         return $this->codec;
@@ -104,8 +102,9 @@ final class ModifierFacade implements ModifierFacadeInterface
 
     public function modifyImage(Image $image, PathInfoInterface $info, string|array $modifiers, bool $stripMeta = false): ModifyResult
     {
-        if (!is_array($modifiers)) {
-            $modifiers = $this->getCodec()->decode(new PresetValue($modifiers));
+        if (is_string($modifiers)) {
+            $codec = $this->getCodec();
+            $modifiers = $codec->expandModifiers(value: $modifiers);
         }
 
         if (empty($modifiers)) {

@@ -112,7 +112,7 @@ final class PathInfoTest extends TestCase
     {
         $codec = Mockery::mock(CodecInterface::class);
 
-        $codec->shouldReceive('decode')
+        $codec->shouldReceive('pathToModifiers')
             ->once()
             ->with(Mockery::type(Value::class))
             ->andReturnUsing(static function (Value $value): array {
@@ -151,7 +151,7 @@ final class PathInfoTest extends TestCase
         $codecPreset = Mockery::mock(CodecInterface::class);
         $codecArray = Mockery::mock(CodecInterface::class);
 
-        $codecPreset->shouldReceive('encode')
+        $codecPreset->shouldReceive('modifiersToPath')
             ->times(4)
             ->with(Mockery::type(PresetValue::class))
             ->andReturnUsing(static function (PresetValue $value): string {
@@ -160,7 +160,7 @@ final class PathInfoTest extends TestCase
                 return 'w:15,h:15';
             });
 
-        $codecArray->shouldReceive('encode')
+        $codecArray->shouldReceive('modifiersToPath')
             ->times(4)
             ->with(Mockery::type(Value::class))
             ->andReturnUsing(static function (Value $value): string {

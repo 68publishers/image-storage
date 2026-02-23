@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Width;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use function array_map;
 use function array_unique;
 use function array_values;
 use function implode;
+use function is_numeric;
 use function range;
 use function sprintf;
+use function var_export;
 
 final class WDescriptor implements DescriptorInterface
 {
@@ -54,6 +57,67 @@ final class WDescriptor implements DescriptorInterface
         $range[] = $max;
 
         return new self(...array_values(array_unique($range)));
+    }
+
+    public function validateModifierValue(
+        mixed $value,
+        mixed $default,
+    ): int {
+        if (true === $value) {
+            if (!is_numeric($default)) {
+                return $this->widths[0];
+            }
+
+            $value = $default;
+        }
+
+        if (is_numeric($value) && in_array((int) $value, $this->widths, true)) {
+            return (int) $value;
+        }
+
+        throw new InvalidArgumentException(
+            message: sprintf(
+                'Invalid preset value "%s" passed for descriptor %s',
+                var_export($value, true),
+                $this,
+            ),
+        );
+    }
+
+    public function expandModifier(
+        ModifierCollectionInterface $modifierCollection,
+        mixed $value,
+    ): array {
+        $wAlias = $modifierCollection
+            ->getByName(Width::class)
+            ->getAlias();
+
+        if (is_numeric($value) && in_array((int) $value, $this->widths, true)) {
+            return [
+                $wAlias => (int) $value,
+            ];
+        }
+
+        throw new InvalidArgumentException(
+            message: sprintf(
+                'Invalid preset value "%s" passed for descriptor %s',
+                var_export($value, true),
+                $this,
+            ),
+        );
+    }
+
+    public function iterateModifiers(ModifierCollectionInterface $modifierCollection): iterable
+    {
+        $wAlias = $modifierCollection
+            ->getByName(Width::class)
+            ->getAlias();
+
+        foreach ($this->widths as $width) {
+            yield [
+                $wAlias => $width,
+            ];
+        }
     }
 
     public function __toString(): string

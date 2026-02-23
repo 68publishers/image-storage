@@ -9,7 +9,6 @@ use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\ArgsFacade;
 use SixtyEightPublishers\ImageStorage\Responsive\Descriptor\DescriptorInterface;
-use function array_key_exists;
 
 final class SrcSetGenerator
 {
@@ -25,7 +24,7 @@ final class SrcSetGenerator
     {
         $key = $descriptor . '::' . ($absolute ? 'abs' : 'rel') . '::' . (empty($pathInfo->getModifiers()) ? $pathInfo->withModifiers(['original' => true]) : $pathInfo);
 
-        if (array_key_exists($key, $this->results)) {
+        if (isset($this->results[$key])) {
             return $this->results[$key];
         }
 

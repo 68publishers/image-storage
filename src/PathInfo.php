@@ -8,9 +8,6 @@ use SixtyEightPublishers\FileStorage\Exception\PathInfoException;
 use SixtyEightPublishers\FileStorage\PathInfo as BasePathInfo;
 use SixtyEightPublishers\ImageStorage\Helper\SupportedType;
 use SixtyEightPublishers\ImageStorage\Modifier\Codec\CodecInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\Value;
-use function is_string;
 use function sprintf;
 
 final class PathInfo extends BasePathInfo implements PathInfoInterface
@@ -68,7 +65,9 @@ final class PathInfo extends BasePathInfo implements PathInfoInterface
 
     public function withEncodedModifiers(string $modifiers): static
     {
-        return $this->withModifiers($this->codec->decode(new Value($modifiers)));
+        return $this->withModifiers(
+            modifiers: $this->codec->pathToModifiers(value: $modifiers),
+        );
     }
 
     public function getPath(): string
@@ -82,7 +81,7 @@ final class PathInfo extends BasePathInfo implements PathInfoInterface
                 : sprintf('%s/%s', $namespace, $this->getName());
         }
 
-        $modifier = $this->codec->encode(is_string($modifiers) ? new PresetValue($modifiers) : new Value($modifiers));
+        $modifier = $this->codec->modifiersToPath(value: $modifiers);
         $extension = $this->getExtension() ?? SupportedType::getDefaultExtension();
 
         return $namespace === ''

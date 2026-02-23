@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
+use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
+use SixtyEightPublishers\ImageStorage\Modifier\Collection\ModifierCollectionInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\PixelDensity;
 use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 use function array_map;
@@ -35,6 +37,67 @@ final class XDescriptor implements DescriptorInterface
     public static function default(): self
     {
         return new self(1, 2, 3);
+    }
+
+    public function validateModifierValue(
+        mixed $value,
+        mixed $default,
+    ): float {
+        if (true === $value) {
+            if (!is_numeric($default)) {
+                return $this->pixelDensities[0];
+            }
+
+            $value = $default;
+        }
+
+        if (is_numeric($value) && in_array((float) $value, $this->pixelDensities, true)) {
+            return (float) $value;
+        }
+
+        throw new InvalidArgumentException(
+            message: sprintf(
+                'Invalid preset value "%s" passed for descriptor %s',
+                var_export($value, true),
+                $this,
+            ),
+        );
+    }
+
+    public function expandModifier(
+        ModifierCollectionInterface $modifierCollection,
+        mixed $value,
+    ): array {
+        $pdAlias = $modifierCollection
+            ->getByName(PixelDensity::class)
+            ->getAlias();
+
+        if (is_numeric($value) && in_array((float) $value, $this->pixelDensities, true)) {
+            return [
+                $pdAlias => (float) $value,
+            ];
+        }
+
+        throw new InvalidArgumentException(
+            message: sprintf(
+                'Invalid preset value "%s" passed for descriptor %s',
+                var_export($value, true),
+                $this,
+            ),
+        );
+    }
+
+    public function iterateModifiers(ModifierCollectionInterface $modifierCollection): iterable
+    {
+        $pdAlias = $modifierCollection
+            ->getByName(PixelDensity::class)
+            ->getAlias();
+
+        foreach ($this->pixelDensities as $pixelDensity) {
+            yield [
+                $pdAlias => $pixelDensity,
+            ];
+        }
     }
 
     public function __toString(): string

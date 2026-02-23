@@ -29,7 +29,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->encode(new Value('test')),
+            static fn () => $codec->modifiersToPath(new Value('test')),
             InvalidArgumentException::class,
             'Can not decode value of type string, the value must be array<string, string|numeric|bool>.',
         );
@@ -42,7 +42,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->encode(new Value([])),
+            static fn () => $codec->modifiersToPath(new Value([])),
             InvalidArgumentException::class,
             'Value can not be an empty array.',
         );
@@ -69,7 +69,7 @@ final class CodecTest extends TestCase
                 ->andReturn($modifier);
         }
 
-        Assert::same('ar:16x9,flag_a,pd:2.5,w:100', $codec->encode(new Value([
+        Assert::same('ar:16x9,flag_a,pd:2.5,w:100', $codec->modifiersToPath(new Value([
             'w' => 100,
             'pd' => 2.5,
             'ar' => '16x9',
@@ -85,7 +85,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->decode(new Value([])),
+            static fn () => $codec->pathToModifiers(new Value([])),
             InvalidArgumentException::class,
             'Can not decode value of type array, the value must be string or Stringable object.',
         );
@@ -98,7 +98,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->decode(new Value('')),
+            static fn () => $codec->pathToModifiers(new Value('')),
             InvalidArgumentException::class,
             'Value can not be an empty string.',
         );
@@ -111,7 +111,7 @@ final class CodecTest extends TestCase
         $codec = new Codec($config, $modifierCollection);
 
         Assert::exception(
-            static fn () => $codec->decode(new Value('w:100:200,ar:16x9')),
+            static fn () => $codec->pathToModifiers(new Value('w:100:200,ar:16x9')),
             InvalidArgumentException::class,
             'An invalid path "w:100:200,ar:16x9" passed, the modifier "w:100:200" has an invalid format.',
         );
@@ -135,7 +135,7 @@ final class CodecTest extends TestCase
             ->andReturn('w');
 
         Assert::exception(
-            static fn () => $codec->decode(new Value('w')),
+            static fn () => $codec->pathToModifiers(new Value('w')),
             InvalidArgumentException::class,
             'An invalid path "w" passed, the modifier "w" must have a value.',
         );
@@ -159,7 +159,7 @@ final class CodecTest extends TestCase
             ->andReturn('flag_a');
 
         Assert::exception(
-            static fn () => $codec->decode(new Value('flag_a:value')),
+            static fn () => $codec->pathToModifiers(new Value('flag_a:value')),
             InvalidArgumentException::class,
             'An invalid path "flag_a:value" passed, the modifier "flag_a" can not have a value.',
         );
@@ -197,7 +197,7 @@ final class CodecTest extends TestCase
             'flag_a' => true,
             'pd' => '2.5',
             'w' => '100',
-        ], $codec->decode(new Value('ar:16x9,flag_a,pd:2.5,w:100')));
+        ], $codec->pathToModifiers(new Value('ar:16x9,flag_a,pd:2.5,w:100')));
     }
 
     protected function tearDown(): void

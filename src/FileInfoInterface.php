@@ -10,5 +10,5 @@ use SixtyEightPublishers\ImageStorage\Responsive\SrcSet;
 
 interface FileInfoInterface extends BaseFileInfoInterface, PathInfoInterface
 {
-    public function srcSet(DescriptorInterface $descriptor, bool $absolute = true): SrcSet;
+    public function srcSet(?DescriptorInterface $descriptor = null, bool $absolute = true): SrcSet;
 }

@@ -70,7 +70,7 @@ final class ArgsFacadeTest extends TestCase
             ->withNoArgs()
             ->andReturn($codec);
 
-        $codec->shouldReceive('decode')
+        $codec->shouldReceive('pathToModifiers')
             ->once()
             ->with(Mockery::type(PresetValue::class))
             ->andReturnUsing(static function (PresetValue $value): array {

@@ -6,7 +6,6 @@ namespace SixtyEightPublishers\ImageStorage\Responsive\Descriptor;
 
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\LinkGenerator\LinkGeneratorInterface;
-use SixtyEightPublishers\ImageStorage\Modifier\Codec\Value\PresetValue;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface;
 use function is_array;
@@ -26,7 +25,9 @@ final class ArgsFacade
         $modifiers = $this->pathInfo->getModifiers();
 
         if (null !== $modifiers) {
-            $this->defaultModifiers = is_array($modifiers) ? $modifiers : $this->modifierFacade->getCodec()->decode(new PresetValue($modifiers));
+            $this->defaultModifiers = is_array($modifiers)
+                ? $modifiers
+                : $this->modifierFacade->getCodec()->expandModifiers(value: $modifiers);
         }
     }
 

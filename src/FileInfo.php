@@ -20,7 +20,7 @@ final class FileInfo extends BaseFileInfo implements FileInfoInterface
         parent::__construct($linkGenerator, $pathInfo, $imageStorageName);
     }
 
-    public function srcSet(DescriptorInterface $descriptor, bool $absolute = true): SrcSet
+    public function srcSet(?DescriptorInterface $descriptor = null, bool $absolute = true): SrcSet
     {
         assert($this->linkGenerator instanceof ImageLinkGeneratorInterface);
 

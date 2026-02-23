@@ -8,12 +8,12 @@ use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 
 final class PresetCollection implements PresetCollectionInterface
 {
-    /** @var array<string, array<string, string|numeric|bool>> */
+    /** @var array<string, Preset> */
     private array $presets = [];
 
-    public function add(string $presetAlias, array $parameters): void
+    public function add(string $presetAlias, Preset $preset): void
     {
-        $this->presets[$presetAlias] = $parameters;
+        $this->presets[$presetAlias] = $preset;
     }
 
     public function has(string $presetAlias): bool
@@ -24,7 +24,7 @@ final class PresetCollection implements PresetCollectionInterface
     /**
      * @throws InvalidArgumentException
      */
-    public function get(string $presetAlias): array
+    public function get(string $presetAlias): Preset
     {
         if (!$this->has($presetAlias)) {
             throw new InvalidArgumentException(sprintf(

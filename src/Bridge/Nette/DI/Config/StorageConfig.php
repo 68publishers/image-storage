@@ -21,7 +21,7 @@ final class StorageConfig
     /** @var array<string, string> */
     public array $no_image_patterns;
 
-    /** @var array<string, array<string, scalar>> */
+    /** @var array<string, PresetConfig> */
     public array $presets;
 
     /** @var array<Statement> */
