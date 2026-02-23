@@ -35,6 +35,10 @@ final class SignatureStrategy implements SignatureStrategyInterface
             return true;
         }
 
+        if ('' === $token) {
+            return false;
+        }
+
         return hash_equals($token, $this->doCreateToken(path: $path));
     }
 
