@@ -44,7 +44,7 @@ final class XDescriptor implements DescriptorInterface
         mixed $default,
     ): float {
         if (true === $value) {
-            if (!is_numeric($default)) {
+            if (!is_numeric($default) && [] !== $this->pixelDensities) {
                 return $this->pixelDensities[0];
             }
 

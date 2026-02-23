@@ -29,7 +29,7 @@ final class Codec implements CodecInterface
     {
         if (!is_array($value)) {
             throw new InvalidArgumentException(
-                message: 'Can not decode value of type string, the value must be array<string, string|numeric|bool>.',
+                message: 'Can not transform value of type string, the value must be array<string, string|numeric|bool>.',
             );
         }
 
