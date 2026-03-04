@@ -105,10 +105,16 @@ final class ResourceFactory implements ResourceFactoryInterface
         $parsedUrl = parse_url($filename) ?: [];
 
         if (isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+            $host = $parsedUrl['host'];
+
+            if (isset($parsedUrl['port'])) {
+                $host .= ':' . $parsedUrl['port'];
+            }
+
             $headers[] = sprintf(
                 "Referer: %s://%s\r\n",
                 $parsedUrl['scheme'],
-                $parsedUrl['host'],
+                $host,
             );
         }
 
