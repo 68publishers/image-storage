@@ -28,8 +28,10 @@ use function filter_var;
 use function fopen;
 use function fwrite;
 use function get_debug_type;
+use function implode;
 use function is_file;
 use function is_string;
+use function parse_url;
 use function sprintf;
 use function stream_context_create;
 use function sys_get_temp_dir;
@@ -95,13 +97,28 @@ final class ResourceFactory implements ResourceFactoryInterface
 
         error_clear_last();
 
+        $headers = [
+            "Accept-language: en\r\n",
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\r\n",
+        ];
+
+        $parsedUrl = parse_url($filename) ?: [];
+
+        if (isset($parsedUrl['scheme'], $parsedUrl['host'])) {
+            $headers[] = sprintf(
+                "Referer: %s://%s\r\n",
+                $parsedUrl['scheme'],
+                $parsedUrl['host'],
+            );
+        }
+
         $context = stream_context_create(
             options: [
                 'http' => [
                     'method' => 'GET',
                     'protocol_version' => 1.1,
                     'follow_location' => true,
-                    'header' => "Accept-language: en\r\n" . "User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36\r\n",
+                    'header' => implode('', $headers),
                 ],
             ],
         );
