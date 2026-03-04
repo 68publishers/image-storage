@@ -30,7 +30,7 @@ final class CodecTest extends TestCase
         Assert::exception(
             static fn () => $codec->modifiersToPath('test'),
             InvalidArgumentException::class,
-            'Can not decode value of type string, the value must be array<string, string|numeric|bool>.',
+            'Can not transform value of type string, the value must be array<string, string|numeric|bool>.',
         );
     }
 
