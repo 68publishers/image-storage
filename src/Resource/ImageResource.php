@@ -7,6 +7,7 @@ namespace SixtyEightPublishers\ImageStorage\Resource;
 use Intervention\Image\Image;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
+use function file_get_contents;
 
 class ImageResource implements ResourceInterface
 {
@@ -14,13 +15,14 @@ class ImageResource implements ResourceInterface
 
     private ?string $encodeFormat = null;
 
-    private ?int $encodeQuality = null;
+    private ?string $encodedImage = null;
 
     public function __construct(
         private PathInfoInterface $pathInfo,
         private Image $image,
         private readonly string $localFilename,
         private readonly ModifierFacadeInterface $modifierFacade,
+        private int $encodeQuality,
     ) {}
 
     public function getPathInfo(): PathInfoInterface
@@ -59,6 +61,7 @@ class ImageResource implements ResourceInterface
 
         if ($modifyResult->modified) {
             $resource->modified = $modifyResult->modified;
+            $resource->encodedImage = null;
         }
 
         if (null !== $modifyResult->encodeFormat) {
@@ -84,7 +87,7 @@ class ImageResource implements ResourceInterface
         return false !== $filesize ? (int) $filesize : null;
     }
 
-    public function getEncodeQuality(): ?int
+    public function getEncodeQuality(): int
     {
         return $this->encodeQuality;
     }
@@ -92,5 +95,26 @@ class ImageResource implements ResourceInterface
     public function getEncodeFormat(): ?string
     {
         return $this->encodeFormat;
+    }
+
+    public function getEncodedImage(): string
+    {
+        if (null !== $this->encodedImage) {
+            return $this->encodedImage;
+        }
+
+        if (!$this->hasBeenModified()) {
+            $contents = @file_get_contents($this->getLocalFilename());
+
+            if (false !== $contents) {
+                return $this->encodedImage = $contents;
+            }
+        }
+
+        $format = $this->getEncodeFormat() ?? '';
+        $image = $this->getSource();
+        $image = $image->encode($format, $this->getEncodeQuality());
+
+        return $this->encodedImage = $image->getEncoded();
     }
 }

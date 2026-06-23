@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SixtyEightPublishers\ImageStorage\Tests\Persistence;
 
 use Exception;
-use Intervention\Image\Image;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\FilesystemReader;
@@ -16,12 +15,9 @@ use League\Flysystem\UnableToListContents;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToWriteFile;
 use Mockery;
-use Mockery\MockInterface;
-use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\FileStorage\Persistence\FilePersisterInterface;
-use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersister;
@@ -30,10 +26,6 @@ use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourc
 use SixtyEightPublishers\ImageStorage\Resource\TmpFileImageResource;
 use Tester\Assert;
 use Tester\TestCase;
-use function file_put_contents;
-use function sys_get_temp_dir;
-use function uniqid;
-use function unlink;
 
 require __DIR__ . '/../bootstrap.php';
 
@@ -41,20 +33,14 @@ final class ImagePersisterTest extends TestCase
 {
     public function testFilesystemShouldBeReturned(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         Assert::type(FilesystemOperator::class, $persister->getFilesystem());
     }
 
     public function testExceptionShouldBeThrownIfExistenceIsCheckedWithFilePathInfo(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         Assert::exception(
             static fn () => $persister->exists(Mockery::mock(FilePathInfoInterface::class)),
@@ -69,7 +55,6 @@ final class ImagePersisterTest extends TestCase
             $this->createFilesystem([
                 'path/image' => '... image content ...',
             ]),
-            Mockery::mock(ConfigInterface::class),
         );
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
@@ -92,7 +77,6 @@ final class ImagePersisterTest extends TestCase
             $this->createFilesystem([], [
                 'path/w:100,h:200/image.png' => '... image content ...',
             ]),
-            Mockery::mock(ConfigInterface::class),
         );
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
@@ -111,10 +95,7 @@ final class ImagePersisterTest extends TestCase
 
     public function testSourcePathShouldNotExists(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -132,10 +113,7 @@ final class ImagePersisterTest extends TestCase
 
     public function testCachedPathShouldNotExists(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -154,10 +132,7 @@ final class ImagePersisterTest extends TestCase
     public function testPathShouldNotExistsOnFilesystemException(): void
     {
         $filesystem = Mockery::instanceMock($this->createFilesystem());
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -180,10 +155,7 @@ final class ImagePersisterTest extends TestCase
 
     public function testExceptionShouldBeThrownIfResourceIsSavedWithFilePathInfo(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(FilePathInfoInterface::class);
@@ -200,40 +172,23 @@ final class ImagePersisterTest extends TestCase
         );
     }
 
-    public function testNewModifiedSourceShouldBeEncodedAndSaved(): void
+    public function testNewSourceShouldBeSaved(): void
     {
         $filesystem = $this->createFilesystem();
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
 
-        $resource->shouldReceive('hasBeenModified')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn(true);
-
-        $resource->shouldReceive('getSource')
-            ->once()
-            ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('getEncodeQuality')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
+            ->andReturn('... image content ...');
 
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
@@ -242,65 +197,9 @@ final class ImagePersisterTest extends TestCase
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
 
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image);
-
         Assert::same('path/image', $persister->save($resource));
         Assert::true($filesystem->fileExists('source://path/image'));
         Assert::same('... image content ...', $filesystem->read('source://path/image'));
-    }
-
-    public function testNewNonModifiedSourceShouldBeSavedFromOriginal(): void
-    {
-        $localFilename = sys_get_temp_dir() . '/' . uniqid('68publishers:ImageStorage', true) . '_testNewNonModifiedSourceShouldBeSavedFromOriginal';
-
-        file_put_contents(filename: $localFilename, data: '...the original content...');
-
-        try {
-            $filesystem = $this->createFilesystem();
-            $config = Mockery::mock(ConfigInterface::class);
-            $persister = new ImagePersister($filesystem, $config);
-
-            $resource = Mockery::mock(ImageResourceInterface::class);
-            $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-
-            $resource->shouldReceive('getPathInfo')
-                ->once()
-                ->withNoArgs()
-                ->andReturn($pathInfo);
-
-            $resource->shouldReceive('hasBeenModified')
-                ->once()
-                ->withNoArgs()
-                ->andReturn(false);
-
-            $resource->shouldReceive('getLocalFilename')
-                ->once()
-                ->withNoArgs()
-                ->andReturn($localFilename);
-
-            $pathInfo->shouldReceive('getModifiers')
-                ->withNoArgs()
-                ->andReturn(null);
-
-            $pathInfo->shouldReceive('getPath')
-                ->andReturn('path/image');
-
-            Assert::same('path/image', $persister->save($resource));
-            Assert::true($filesystem->fileExists('source://path/image'));
-            Assert::same('...the original content...', $filesystem->read('source://path/image'));
-        } finally {
-            @unlink($localFilename);
-        }
     }
 
     public function testSourceImageShouldBeUpdatedAndCachedImagesShouldBeDeleted(): void
@@ -311,37 +210,20 @@ final class ImagePersisterTest extends TestCase
             'path/w:100/image.png' => '... image content ...',
             'path/w:100,pd:2/image.png' => '... image content ...',
         ]);
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
 
-        $resource->shouldReceive('getSource')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('hasBeenModified')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(true);
-
-        $resource->shouldReceive('getEncodeQuality')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
+            ->andReturn('... new image content ...');
 
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
@@ -359,18 +241,6 @@ final class ImagePersisterTest extends TestCase
             ->withNoArgs()
             ->andReturn('image');
 
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image, '... new image content ...');
-
         Assert::same('path/image', $persister->save($resource));
         Assert::true($filesystem->fileExists('source://path/image'));
         Assert::same('... new image content ...', $filesystem->read('source://path/image'));
@@ -381,37 +251,20 @@ final class ImagePersisterTest extends TestCase
     public function testTempFileShouldBeUnlinkedAfterSave(): void
     {
         $filesystem = $this->createFilesystem();
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(TmpFileImageResource::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
 
-        $resource->shouldReceive('getSource')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('hasBeenModified')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(true);
-
-        $resource->shouldReceive('getEncodeQuality')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
+            ->andReturn('... image content ...');
 
         $resource->shouldReceive('unlink')
             ->once()
@@ -425,47 +278,22 @@ final class ImagePersisterTest extends TestCase
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
 
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image);
-
         Assert::same('path/image', $persister->save($resource));
         Assert::true($filesystem->fileExists('source://path/image'));
-        Assert::same('... image content ...', $filesystem->read('source://path/image'));
     }
 
     public function testCachedImageShouldBeSaved(): void
     {
         $filesystem = $this->createFilesystem();
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
-
-        $resource->shouldReceive('getSource')
-            ->once()
-            ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('hasBeenModified')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(true);
 
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
@@ -474,32 +302,16 @@ final class ImagePersisterTest extends TestCase
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/w:100,h:200/image.png');
 
+        # a cached image is re-modified before it is encoded and written
         $resource->shouldReceive('modifyImage')
             ->once()
             ->with(['w' => 100, 'h' => 200], true)
             ->andReturnSelf();
 
-        $resource->shouldReceive('getEncodeQuality')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image);
+            ->andReturn('... image content ...');
 
         Assert::same('path/w:100,h:200/image.png', $persister->save($resource));
         Assert::true($filesystem->fileExists('cache://path/w:100,h:200/image.png'));
@@ -509,37 +321,20 @@ final class ImagePersisterTest extends TestCase
     public function testExceptionShouldBeThrownIfFilesystemThrownExceptionOnSave(): void
     {
         $filesystem = Mockery::instanceMock($this->createFilesystem());
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
 
-        $resource->shouldReceive('getSource')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('hasBeenModified')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(true);
-
-        $resource->shouldReceive('getEncodeQuality')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
+            ->andReturn('... image content ...');
 
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
@@ -547,18 +342,6 @@ final class ImagePersisterTest extends TestCase
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
-
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image);
 
         $filesystem->shouldReceive('write')
             ->once()
@@ -575,37 +358,20 @@ final class ImagePersisterTest extends TestCase
     public function testExceptionShouldNotBeThrownIfFilesystemThrownExceptionOnSaveButExceptionAreSuppressed(): void
     {
         $filesystem = Mockery::instanceMock($this->createFilesystem());
-        $config = Mockery::mock(ConfigInterface::class);
-        $persister = new ImagePersister($filesystem, $config);
+        $persister = new ImagePersister($filesystem);
 
         $resource = Mockery::mock(ImageResourceInterface::class);
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
-        $image = Mockery::mock(Image::class);
 
         $resource->shouldReceive('getPathInfo')
             ->once()
             ->withNoArgs()
             ->andReturn($pathInfo);
 
-        $resource->shouldReceive('getSource')
+        $resource->shouldReceive('getEncodedImage')
             ->once()
             ->withNoArgs()
-            ->andReturn($image);
-
-        $resource->shouldReceive('hasBeenModified')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(true);
-
-        $resource->shouldReceive('getEncodeQuality')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
-
-        $resource->shouldReceive('getEncodeFormat')
-            ->once()
-            ->withNoArgs()
-            ->andReturn(null);
+            ->andReturn('... image content ...');
 
         $pathInfo->shouldReceive('getModifiers')
             ->withNoArgs()
@@ -613,18 +379,6 @@ final class ImagePersisterTest extends TestCase
 
         $pathInfo->shouldReceive('getPath')
             ->andReturn('path/image');
-
-        $config->shouldReceive('offsetExists')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(true);
-
-        $config->shouldReceive('offsetGet')
-            ->once()
-            ->with(Config::ENCODE_QUALITY)
-            ->andReturn(90);
-
-        $this->setupImageSaveExpectations($image);
 
         $filesystem->shouldReceive('write')
             ->once()
@@ -641,10 +395,7 @@ final class ImagePersisterTest extends TestCase
 
     public function testExceptionShouldBeThrownIfFilePathInfoIsDeleted(): void
     {
-        $persister = new ImagePersister(
-            $this->createFilesystem(),
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($this->createFilesystem());
 
         Assert::exception(
             static fn () => $persister->delete(Mockery::mock(FilePathInfoInterface::class)),
@@ -659,10 +410,7 @@ final class ImagePersisterTest extends TestCase
             'path/w:100,h:200/image.png' => '... image content ...',
             'path/w:50,h:100/image.png' => '... image content ...',
         ]);
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -685,10 +433,7 @@ final class ImagePersisterTest extends TestCase
         $filesystem = Mockery::instanceMock($this->createFilesystem([], [
             'path/w:100,h:200/image.png' => '... image content ...',
         ]));
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -717,10 +462,7 @@ final class ImagePersisterTest extends TestCase
         $filesystem = Mockery::instanceMock($this->createFilesystem([], [
             'path/w:100,h:200/image.png' => '... image content ...',
         ]));
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -752,10 +494,7 @@ final class ImagePersisterTest extends TestCase
             'path/w:100,h:200/image.png' => '... image content ...',
             'path/w:50,h:100/image.png' => '... image content ...',
         ]));
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -795,10 +534,7 @@ final class ImagePersisterTest extends TestCase
             'path/w:100,h:200/image.png' => '... image content ...',
             'path/w:50,h:100/image.png' => '... image content ...',
         ]));
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -842,10 +578,7 @@ final class ImagePersisterTest extends TestCase
             'path/w:50,h:100/image.png' => '... image content ...',
             'path/w:50,h:100/image2.png' => '... image content ...',
         ]);
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -885,10 +618,7 @@ final class ImagePersisterTest extends TestCase
             'w:50,h:100/image.png' => '... image content ...',
             'w:50,h:100/image2.png' => '... image content ...',
         ]);
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -928,10 +658,7 @@ final class ImagePersisterTest extends TestCase
             'path/w:50,h:100/image.png' => '... image content ...',
             'path/w:50,h:100/image2.png' => '... image content ...',
         ]);
-        $persister = new ImagePersister(
-            $filesystem,
-            Mockery::mock(ConfigInterface::class),
-        );
+        $persister = new ImagePersister($filesystem);
 
         $pathInfo = Mockery::mock(ImagePathInfoInterface::class);
 
@@ -968,6 +695,10 @@ final class ImagePersisterTest extends TestCase
         Mockery::close();
     }
 
+    /**
+     * @param array<string, string> $sourceFiles
+     * @param array<string, string> $cachedFiles
+     */
     private function createFilesystem(array $sourceFiles = [], array $cachedFiles = []): MountManager
     {
         $sourceFs = new Filesystem(
@@ -990,29 +721,6 @@ final class ImagePersisterTest extends TestCase
             ImagePersisterInterface::FILESYSTEM_NAME_SOURCE => $sourceFs,
             ImagePersisterInterface::FILESYSTEM_NAME_CACHE => $cacheFs,
         ]);
-    }
-
-    private function setupImageSaveExpectations(Image|MockInterface $image, string $content = '... image content ...'): void
-    {
-        $encodeCalled = false;
-
-        $image->shouldReceive('encode')
-            ->once()
-            ->with('', 90)
-            ->andReturnUsing(static function () use ($image, &$encodeCalled): Image {
-                $encodeCalled = true;
-
-                return $image;
-            });
-
-        $image->shouldReceive('getEncoded')
-            ->once()
-            ->withNoArgs()
-            ->andReturnUsing(static function () use (&$encodeCalled, $content): string {
-                Assert::true($encodeCalled);
-
-                return $content;
-            });
     }
 }
 

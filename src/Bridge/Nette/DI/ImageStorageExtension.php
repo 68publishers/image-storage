@@ -386,6 +386,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
                 new Reference($this->prefix('filesystem.' . $name)),
                 new Reference($this->prefix('image_manager')),
                 new Reference($this->prefix('modifier_facade.' . $name)),
+                new Reference($this->prefix('config.' . $name)),
             ])
             ->setAutowired(false);
 
@@ -419,7 +420,6 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             ->setType(ImagePersisterInterface::class)
             ->setFactory(ImagePersister::class, [
                 new Reference($this->prefix('filesystem.' . $name)),
-                new Reference($this->prefix('config.' . $name)),
             ])
             ->setAutowired(false);
 

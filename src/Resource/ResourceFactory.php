@@ -12,11 +12,13 @@ use League\Flysystem\FilesystemReader;
 use League\Flysystem\UnableToReadFile;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceFactoryInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
+use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Persistence\ImagePersisterInterface;
@@ -43,6 +45,7 @@ final class ResourceFactory implements ResourceFactoryInterface
         private readonly FilesystemReader $filesystemReader,
         private readonly ImageManager $imageManager,
         private readonly ModifierFacadeInterface $modifierFacade,
+        private readonly ConfigInterface $config,
     ) {}
 
     /**
@@ -92,6 +95,7 @@ final class ResourceFactory implements ResourceFactoryInterface
                 ),
                 localFilename: $filename,
                 modifierFacade: $this->modifierFacade,
+                encodeQuality: (int) ($this->config[Config::ENCODE_QUALITY] ?? 90),
             );
         }
 
@@ -173,6 +177,7 @@ final class ResourceFactory implements ResourceFactoryInterface
                 ),
                 localFilename: $uri,
                 modifierFacade: $this->modifierFacade,
+                encodeQuality: (int) ($this->config[Config::ENCODE_QUALITY] ?? 90),
             );
         }
 
@@ -240,6 +245,7 @@ final class ResourceFactory implements ResourceFactoryInterface
                 location: $location,
             ),
             modifierFacade: $this->modifierFacade,
+            encodeQuality: (int) ($this->config[Config::ENCODE_QUALITY] ?? 90),
             tmpFile: new TmpFile($tmpFilename),
         );
     }

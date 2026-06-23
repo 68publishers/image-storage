@@ -20,7 +20,9 @@ interface ResourceInterface extends FileResourceInterface
      */
     public function modifyImage(string|array $modifiers, bool $stripMeta = false): self;
 
-    public function getEncodeQuality(): ?int;
+    public function getEncodeQuality(): int;
 
     public function getEncodeFormat(): ?string;
+
+    public function getEncodedImage(): string;
 }

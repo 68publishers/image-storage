@@ -15,9 +15,11 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\MountManager;
 use League\Flysystem\UnableToReadFile;
 use Mockery;
+use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\Exception\FileNotFoundException;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
+use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Modifier\Facade\ModifierFacadeInterface;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Resource\ImageResource;
@@ -44,7 +46,7 @@ final class ResourceFactoryTest extends TestCase
             ->withNoArgs()
             ->andReturn('var/www/file');
 
-        $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade, $this->createConfig());
 
         Assert::exception(
             static fn () => $resourceFactory->createResource($pathInfo),
@@ -74,7 +76,7 @@ final class ResourceFactoryTest extends TestCase
             ->with('source://var/www/file')
             ->andThrows(UnableToReadFile::fromLocation('var/www/file', 'test'));
 
-        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade, $this->createConfig());
 
         Assert::exception(
             static fn () => $resourceFactory->createResource($pathInfo),
@@ -105,7 +107,7 @@ final class ResourceFactoryTest extends TestCase
             ->andThrows(new class('test') extends Exception implements LeagueFilesystemExceptionInterface {
             });
 
-        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade, $this->createConfig());
 
         Assert::exception(
             static fn () => $resourceFactory->createResource($pathInfo),
@@ -140,7 +142,7 @@ final class ResourceFactoryTest extends TestCase
             'var/www/file' => '... image content ...',
         ]);
 
-        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade, $this->createConfig());
         /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
@@ -181,7 +183,7 @@ final class ResourceFactoryTest extends TestCase
             'var/www/file' => '... image content ...',
         ]);
 
-        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade, $this->createConfig());
         /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
@@ -228,7 +230,7 @@ final class ResourceFactoryTest extends TestCase
             'var/www/file' => '... image content ...',
         ]);
 
-        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($filesystem, $imageManager, $modifierFacade, $this->createConfig());
         /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResource($pathInfo);
 
@@ -250,7 +252,7 @@ final class ResourceFactoryTest extends TestCase
             ->with('filename')
             ->andReturn($image);
 
-        $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+        $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade, $this->createConfig());
         /** @var ResourceInterface $resource */
         $resource = $resourceFactory->createResourceFromFile($pathInfo, 'filename');
 
@@ -276,7 +278,7 @@ final class ResourceFactoryTest extends TestCase
             ->andReturn($image);
 
         try {
-            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade, $this->createConfig());
             /** @var ResourceInterface $resource */
             $resource = $resourceFactory->createResourceFromPsrStream($pathInfo, $stream);
 
@@ -305,7 +307,7 @@ final class ResourceFactoryTest extends TestCase
             ->andReturn($image);
 
         try {
-            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade);
+            $resourceFactory = new ResourceFactory($this->createFilesystem(), $imageManager, $modifierFacade, $this->createConfig());
             /** @var ResourceInterface $resource */
             $resource = $resourceFactory->createResourceFromPsrStream($pathInfo, $stream);
 
@@ -321,6 +323,18 @@ final class ResourceFactoryTest extends TestCase
     protected function tearDown(): void
     {
         Mockery::close();
+    }
+
+    private function createConfig(): ConfigInterface
+    {
+        $config = Mockery::mock(ConfigInterface::class);
+
+        # the resource reads the encode quality from the config; falling back to the default is enough here
+        $config->shouldReceive('offsetExists')
+            ->with(Config::ENCODE_QUALITY)
+            ->andReturn(false);
+
+        return $config;
     }
 
     private function createFilesystem(array $files = []): MountManager

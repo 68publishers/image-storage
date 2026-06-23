@@ -29,7 +29,7 @@ final class TmpFileImageResourceTest extends TestCase
         $pathInfo1 = Mockery::mock(FilePathInfoInterface::class);
         $pathInfo2 = Mockery::mock(FilePathInfoInterface::class);
 
-        $resource1 = new TmpFileImageResource($pathInfo1, $image, $modifierFacade, new TmpFile('/tmp/fake'));
+        $resource1 = new TmpFileImageResource($pathInfo1, $image, $modifierFacade, 90, new TmpFile('/tmp/fake'));
         $resource2 = $resource1->withPathInfo($pathInfo2);
 
         Assert::notSame($resource1, $resource2);
@@ -58,7 +58,7 @@ final class TmpFileImageResourceTest extends TestCase
             ->with($image, $pathInfo, ['w' => 300], false)
             ->andReturn($modifyResult);
 
-        $resource1 = new TmpFileImageResource($pathInfo, $image, $modifierFacade, new TmpFile('/tmp/fake'));
+        $resource1 = new TmpFileImageResource($pathInfo, $image, $modifierFacade, 90, new TmpFile('/tmp/fake'));
         $resource2 = $resource1->modifyImage(['w' => 300]);
 
         Assert::notSame($resource1, $resource2);
@@ -78,7 +78,7 @@ final class TmpFileImageResourceTest extends TestCase
         Assert::true(file_exists($filename));
 
         try {
-            $resource = new TmpFileImageResource($pathInfo, $image, $modifierFacade, new TmpFile($filename));
+            $resource = new TmpFileImageResource($pathInfo, $image, $modifierFacade, 90, new TmpFile($filename));
 
             $resource->unlink();
             Assert::false(file_exists($filename));
