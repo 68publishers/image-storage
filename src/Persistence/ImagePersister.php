@@ -8,11 +8,9 @@ use League\Flysystem\FilesystemException as LeagueFilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\FilesystemReader;
 use League\Flysystem\StorageAttributes;
-use SixtyEightPublishers\FileStorage\Config\ConfigInterface;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
-use SixtyEightPublishers\ImageStorage\Config\Config;
 use SixtyEightPublishers\ImageStorage\Exception\InvalidArgumentException;
 use SixtyEightPublishers\ImageStorage\PathInfoInterface as ImagePathInfoInterface;
 use SixtyEightPublishers\ImageStorage\Resource\ResourceInterface as ImageResourceInterface;
@@ -26,7 +24,6 @@ final class ImagePersister implements ImagePersisterInterface
 {
     public function __construct(
         private readonly FilesystemOperator $filesystemOperator,
-        private readonly ConfigInterface $config,
     ) {}
 
     public function getFilesystem(): FilesystemOperator
@@ -63,7 +60,7 @@ final class ImagePersister implements ImagePersisterInterface
         $flushCache = self::FILESYSTEM_PREFIX_SOURCE === $prefix && $this->exists($pathInfo);
 
         try {
-            $this->filesystemOperator->write($prefix . $path, $this->encodeImage($resource), $config);
+            $this->filesystemOperator->write($prefix . $path, $resource->getEncodedImage(), $config);
 
             if ($flushCache) {
                 $this->delete($pathInfo, [
@@ -125,24 +122,6 @@ final class ImagePersister implements ImagePersisterInterface
         }
 
         $this->deleteFile(self::FILESYSTEM_PREFIX_SOURCE . $pathInfo->getPath(), $config);
-    }
-
-    private function encodeImage(ImageResourceInterface $resource): string
-    {
-        if (!$resource->hasBeenModified()) {
-            $contents = @file_get_contents($resource->getLocalFilename());
-
-            if (false !== $contents) {
-                return $contents;
-            }
-        }
-
-        $quality = (int) ($resource->getEncodeQuality() ?? $this->config[Config::ENCODE_QUALITY] ?? 90);
-        $format = $resource->getEncodeFormat() ?? '';
-        $image = $resource->getSource();
-        $image = $image->encode($format, $quality);
-
-        return $image->getEncoded();
     }
 
     /**

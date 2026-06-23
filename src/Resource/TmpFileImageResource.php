@@ -14,6 +14,7 @@ final class TmpFileImageResource extends ImageResource
         PathInfoInterface $pathInfo,
         Image $image,
         ModifierFacadeInterface $modifierFacade,
+        int $encodeQuality,
         private readonly TmpFile $tmpFile,
     ) {
         parent::__construct(
@@ -21,6 +22,7 @@ final class TmpFileImageResource extends ImageResource
             image: $image,
             localFilename: $this->tmpFile->filename,
             modifierFacade: $modifierFacade,
+            encodeQuality: $encodeQuality,
         );
     }
 
