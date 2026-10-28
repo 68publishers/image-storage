@@ -95,10 +95,7 @@ final class LocalImageServerTest extends TestCase
             ->withNoArgs()
             ->andReturn($signatureStrategy);
 
-        $signatureStrategy->shouldReceive('verifyToken')
-            ->once()
-            ->with('', 'path/w:100/image.png')
-            ->andReturn(false);
+        $signatureStrategy->shouldNotReceive('verifyToken');
 
         Assert::same($response, $server->getImageResponse($this->createRequest('/path/w:100/image.png', ['__token__'])));
     }
@@ -277,10 +274,13 @@ final class LocalImageServerTest extends TestCase
         Assert::same($response, $server->getImageResponse($this->createRequest('path/w:100/image.png', false)));
     }
 
-    public function testBasePathShouldBeStripped(): void
+    /**
+     * @dataProvider getBasePathsData
+     */
+    public function testBasePathShouldBeStripped(string $basePath): void
     {
         $imageStorage = Mockery::mock(ImageStorageInterface::class);
-        $config = $this->createConfig('images', false);
+        $config = $this->createConfig($basePath, false);
         $pathInfo = Mockery::mock(PathInfoInterface::class);
         $response = (object) ['test' => true];
 
@@ -328,6 +328,15 @@ final class LocalImageServerTest extends TestCase
             ->andReturn(Mockery::mock(FilesystemOperator::class));
 
         Assert::same($response, $server->getImageResponse($this->createRequest('/images/path/w:100/image.png', false)));
+    }
+
+    public function getBasePathsData(): array
+    {
+        return [
+            ['images'],
+            ['images/'],
+            ['/images/'],
+        ];
     }
 
     public function testBasePathShouldNotBeStrippedFromPathWithSamePrefix(): void

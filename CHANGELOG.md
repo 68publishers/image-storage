@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The command `image-storage:lambda:dump-config` had an empty name with `symfony/console` 7+ (the static property `$defaultName` is no longer read), the console application failed to start.
-- `LocalImageServer` stripped the base path also from paths that only start with the same characters (e.g. the base path `images` from `images2/...`).
-- `LocalImageServer` failed with an "Array to string conversion" error (HTTP 500) when the signature query parameter was an array, an invalid signature (HTTP 403) is returned now.
+- `LocalImageServer` stripped the base path also from paths that only start with the same characters (e.g. the base path `images` from `images2/...`). Leading and trailing slashes of the base path are ignored, the same as in `ImageServerRoute`.
+- `LocalImageServer` failed with an "Array to string conversion" error (HTTP 500) when the signature query parameter was an array, an invalid signature (HTTP 403) is returned now, also for paths that need no signature.
 - `MountManager::getAdapter()` without a prefix used `null` as an array key (deprecated in PHP 8.5), the exception about the missing adapter is thrown directly.
 
 ## [1.8.2] - 2026-06-24
