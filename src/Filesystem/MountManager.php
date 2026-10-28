@@ -27,7 +27,7 @@ final class MountManager extends LeagueMountManager implements AdapterProviderIn
 
     public function getAdapter(?string $name = null): FilesystemAdapter
     {
-        if (!isset($this->filesystems[$name])) {
+        if (null === $name || !isset($this->filesystems[$name])) {
             throw new InvalidArgumentException(sprintf(
                 'Adapter with prefix %s:// not found.',
                 $name,

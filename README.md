@@ -19,6 +19,18 @@ The best way to install 68publishers/image-storage is using Composer:
 $ composer require 68publishers/image-storage
 ```
 
+Requirements: PHP `^8.3`, [68publishers/file-storage](https://github.com/68publishers/file-storage) `^2.0` and `tg666/image` `^2.7.4` (a fork of `intervention/image` 2). The optional integrations support `nette/di` `^3.0.10`, `nette/application` `^3.1.8`, `latte/latte` `^3.0` and `symfony/console` `^5.4 || ^6.4 || ^7.0 || ^8.0`.
+
+## Upgrade
+
+### From 1.x to 2.0
+
+- The minimal PHP version is 8.3.
+- `68publishers/file-storage` `^2.0` is required, upgrade it together with this package (see [its upgrade notes](https://github.com/68publishers/file-storage#upgrade)).
+- `symfony/console` older than 5.4 is no longer supported.
+- The command `image-storage:lambda:dump-config` has no static property `$defaultName` anymore, its name is defined by the `#[AsCommand]` attribute. The command name is unchanged.
+- There are no other BC breaks in the API or the configuration.
+
 ## Integration into Nette Framework
 
 Firstly, please read a documentation of [68publishers/file-storage](https://github.com/68publishers/file-storage/blob/master/README.md).
@@ -64,6 +76,7 @@ Here is an example configuration:
 | allowed_qualities        | array<int>                 | `[]`       | An array of allowed qualities. The validation is enabled when the array is not empty.                                                                              |
 | encode_quality           | int                        | `90`       | An encode quality for cached images.                                                                                                                               |
 | cache_max_age            | int                        | `31536000` | The maximum cache age in seconds. The value is used for HTTP headers Cache-Control and Expires.                                                                    |
+| disable_signature_on_known_modifiers | bool           | `false`    | The signature is neither generated nor required for modifiers that are defined by presets (including all descriptor variants).                                     |
 
 ### Image storage configuration example
 

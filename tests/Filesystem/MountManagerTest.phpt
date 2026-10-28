@@ -55,6 +55,12 @@ final class MountManagerTest extends TestCase
             InvalidArgumentException::class,
             'Adapter with prefix d:// not found.',
         );
+
+        Assert::exception(
+            static fn () => $mount->getAdapter(),
+            InvalidArgumentException::class,
+            'Adapter with prefix :// not found.',
+        );
     }
 
     public function tearDown(): void

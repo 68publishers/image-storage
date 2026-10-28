@@ -25,18 +25,17 @@ else
 endif
 
 tests.all:
-	PHP=81 make tests.run
-	PHP=82 make tests.run
 	PHP=83 make tests.run
 	PHP=84 make tests.run
+	PHP=85 make tests.run
 
 cs.fix:
-	PHP=84 make composer.update
-	docker exec -e PHP_CS_FIXER_IGNORE_ENV=1 $(CONTAINER_NAME).84 vendor/bin/php-cs-fixer fix -v
+	PHP=83 make composer.update
+	docker exec $(CONTAINER_NAME).83 vendor/bin/php-cs-fixer fix -v
 
 cs.check:
-	PHP=84 make composer.update
-	docker exec -e PHP_CS_FIXER_IGNORE_ENV=1 $(CONTAINER_NAME).84 vendor/bin/php-cs-fixer fix -v --dry-run
+	PHP=83 make composer.update
+	docker exec $(CONTAINER_NAME).83 vendor/bin/php-cs-fixer fix -v --dry-run
 
 stan:
 	PHP=84 make composer.update
@@ -67,6 +66,9 @@ endif
 	PHP=$(PHP) make composer.update
 	@echo "========== Running tests with PHP $(PHP) ==========" >&2
 	docker exec $(CONTAINER_NAME).$(PHP) vendor/bin/tester -C -s ./tests
+	# the lowest third-party versions predate PHP 8.4 and 8.5, the lowest dependencies are tested on the minimal PHP
+ifeq ($(PHP),83)
 	PHP=$(PHP) make composer.update-lowest
 	@echo "========== Running tests with PHP $(PHP) (prefer lowest dependencies) ==========" >&2
 	docker exec $(CONTAINER_NAME).$(PHP) vendor/bin/tester -C -s ./tests
+endif

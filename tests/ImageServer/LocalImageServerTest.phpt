@@ -77,6 +77,29 @@ final class LocalImageServerTest extends TestCase
         Assert::same($response, $server->getImageResponse($this->createRequest('/path/w:100/image.png', '__token__')));
     }
 
+    public function testErrorResponseShouldBeReturnedIfSignatureParameterIsArray(): void
+    {
+        $imageStorage = Mockery::mock(ImageStorageInterface::class);
+        $signatureStrategy = Mockery::mock(SignatureStrategyInterface::class);
+        $config = $this->createConfig('', true);
+        $response = (object) ['test' => true];
+
+        $server = new LocalImageServer($imageStorage, $this->expectErrorResponse($response, 'Request contains invalid signature.', 403));
+
+        $imageStorage->shouldReceive('getConfig')
+            ->withNoArgs()
+            ->andReturn($config);
+
+        $imageStorage->shouldReceive('getSignatureStrategy')
+            ->once()
+            ->withNoArgs()
+            ->andReturn($signatureStrategy);
+
+        $signatureStrategy->shouldNotReceive('verifyToken');
+
+        Assert::same($response, $server->getImageResponse($this->createRequest('/path/w:100/image.png', ['__token__'])));
+    }
+
     public function testErrorResponseShouldBeReturnedIfUrlPathDoesNotContainModifiers(): void
     {
         $imageStorage = Mockery::mock(ImageStorageInterface::class);
@@ -251,10 +274,13 @@ final class LocalImageServerTest extends TestCase
         Assert::same($response, $server->getImageResponse($this->createRequest('path/w:100/image.png', false)));
     }
 
-    public function testBasePathShouldBeStripped(): void
+    /**
+     * @dataProvider getBasePathsData
+     */
+    public function testBasePathShouldBeStripped(string $basePath): void
     {
         $imageStorage = Mockery::mock(ImageStorageInterface::class);
-        $config = $this->createConfig('images', false);
+        $config = $this->createConfig($basePath, false);
         $pathInfo = Mockery::mock(PathInfoInterface::class);
         $response = (object) ['test' => true];
 
@@ -302,6 +328,46 @@ final class LocalImageServerTest extends TestCase
             ->andReturn(Mockery::mock(FilesystemOperator::class));
 
         Assert::same($response, $server->getImageResponse($this->createRequest('/images/path/w:100/image.png', false)));
+    }
+
+    public function getBasePathsData(): array
+    {
+        return [
+            ['images'],
+            ['images/'],
+            ['/images/'],
+        ];
+    }
+
+    public function testBasePathShouldNotBeStrippedFromPathWithSamePrefix(): void
+    {
+        $imageStorage = Mockery::mock(ImageStorageInterface::class);
+        $config = $this->createConfig('images', false);
+        $pathInfo = Mockery::mock(PathInfoInterface::class);
+        $response = (object) ['test' => true];
+
+        $server = new LocalImageServer($imageStorage, $this->expectErrorResponse($response, 'Internal server error. Missing file extension in requested path.', 500));
+
+        $imageStorage->shouldReceive('getConfig')
+            ->withNoArgs()
+            ->andReturn($config);
+
+        $imageStorage->shouldReceive('getSignatureStrategy')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        $imageStorage->shouldReceive('createPathInfo')
+            ->once()
+            ->with('images2/path/image')
+            ->andReturn($pathInfo);
+
+        $pathInfo->shouldReceive('getExtension')
+            ->once()
+            ->withNoArgs()
+            ->andReturn(null);
+
+        Assert::same($response, $server->getImageResponse($this->createRequest('/images2/path/w:100/image', false)));
     }
 
     public function testImageResponseShouldBeReturnedIfCachedFileExistsWithSignatureToken(): void
@@ -553,7 +619,10 @@ final class LocalImageServerTest extends TestCase
         return $config;
     }
 
-    private function createRequest(string $path, string|null|false $signature): RequestInterface
+    /**
+     * @param string|array<string>|null|false $signature
+     */
+    private function createRequest(string $path, string|array|null|false $signature): RequestInterface
     {
         $request = Mockery::mock(RequestInterface::class);
 

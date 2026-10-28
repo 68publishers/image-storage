@@ -6,7 +6,6 @@ use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
 use PhpCsFixerCustomFixers\Fixers as CustomFixers;
 use PhpCsFixerCustomFixers\Fixer\ConstructorEmptyBracesFixer;
-use PhpCsFixerCustomFixers\Fixer\MultilinePromotedPropertiesFixer;
 
 $finder = Finder::create()
     ->in(__DIR__ . '/src')
@@ -106,7 +105,7 @@ return (new Config())
             ]
         ],
         ConstructorEmptyBracesFixer::name() => true,
-        MultilinePromotedPropertiesFixer::name() => true,
+        'multiline_promoted_properties' => true,
     ])
     ->setRiskyAllowed(true)
     ->setFinder($finder);
