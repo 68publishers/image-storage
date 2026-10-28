@@ -7,7 +7,6 @@ namespace SixtyEightPublishers\ImageStorage\Persistence;
 use League\Flysystem\FilesystemException as LeagueFilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\FilesystemReader;
-use League\Flysystem\StorageAttributes;
 use SixtyEightPublishers\FileStorage\Exception\FilesystemException;
 use SixtyEightPublishers\FileStorage\PathInfoInterface as FilePathInfoInterface;
 use SixtyEightPublishers\FileStorage\Resource\ResourceInterface;
@@ -104,8 +103,6 @@ final class ImagePersister implements ImagePersisterInterface
             );
 
             foreach ($contents as $attributes) {
-                assert($attributes instanceof StorageAttributes);
-
                 if ($attributes->isFile() && preg_match($regex, $attributes->path())) {
                     $this->deleteFile($attributes->path(), $config);
                 }

@@ -118,10 +118,10 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
                             ->before(static function ($factory) {
                                 return $factory instanceof Statement ? $factory : new Statement($factory);
                             }),
-                        'config' => Expect::array([ # @phpstan-ignore-line
+                        'config' => Expect::array([ # defaults are merged with the configured values
                             FlysystemConfig::OPTION_VISIBILITY => Visibility::PRIVATE,
                             FlysystemConfig::OPTION_DIRECTORY_VISIBILITY => Visibility::PRIVATE,
-                        ])->mergeDefaults(),
+                        ]),
                     ])->castTo(FilesystemConfig::class),
 
                     'server' => Expect::anyOf(self::IMAGE_SERVER_LOCAL, self::IMAGE_SERVER_EXTERNAL)
@@ -585,7 +585,7 @@ final class ImageStorageExtension extends CompilerExtension implements FileStora
             callback: static function (Statement $modifier): Modifier\ModifierInterface {
                 $entity = $modifier->getEntity();
                 $params = $modifier->arguments;
-                assert(is_string($entity) && is_subclass_of($entity, Modifier\AbstractModifier::class) && is_array($params));
+                assert(is_string($entity) && is_subclass_of($entity, Modifier\AbstractModifier::class));
 
                 return new $entity(...$params);
             },

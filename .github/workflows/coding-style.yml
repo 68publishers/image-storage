@@ -10,6 +10,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   php-cs-fixer:
     name: Php-Cs-Fixer
@@ -18,12 +21,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.3
           tools: composer:v2
           extensions: imagick
 
@@ -31,7 +35,7 @@ jobs:
         run: composer update --no-progress --prefer-dist --prefer-stable --optimize-autoloader --quiet
 
       - name: Php-Cs-Fixer
-        run: PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix -v --dry-run
+        run: vendor/bin/php-cs-fixer fix -v --dry-run
 
   php-stan:
     name: PHPStan
@@ -39,6 +43,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2

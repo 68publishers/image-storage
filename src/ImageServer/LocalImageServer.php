@@ -20,8 +20,8 @@ use function explode;
 use function implode;
 use function is_string;
 use function ltrim;
+use function str_starts_with;
 use function strlen;
-use function strncmp;
 use function substr;
 
 final class LocalImageServer implements ImageServerInterface
@@ -89,8 +89,9 @@ final class LocalImageServer implements ImageServerInterface
         $basePath = $this->imageStorage->getConfig()[ConfigInterface::BASE_PATH];
         assert(is_string($basePath));
 
-        if (!empty($basePath) && 0 === strncmp($path, $basePath, $basePathLength = strlen($basePath))) {
-            $path = ltrim(substr($path, $basePathLength), '/');
+        # the base path must be a whole path segment, e.g. "images" must not be stripped from "images2/..."
+        if ('' !== $basePath && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+            $path = ltrim(substr($path, strlen($basePath)), '/');
         }
 
         return $path;
@@ -148,7 +149,8 @@ final class LocalImageServer implements ImageServerInterface
         $signatureParameterName = $this->imageStorage->getConfig()[Config::SIGNATURE_PARAMETER_NAME];
         assert(is_string($signatureParameterName));
 
-        $token = (string) ($request->getQueryParameter($signatureParameterName) ?? ''); # @phpstan-ignore-line
+        $token = $request->getQueryParameter($signatureParameterName);
+        $token = is_string($token) ? $token : ''; # an array (e.g. "?_s[]=") is an invalid token
 
         if (!$signatureStrategy->verifyToken($token, $path)) {
             throw new SignatureException('Request contains invalid signature.');

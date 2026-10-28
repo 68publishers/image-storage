@@ -35,7 +35,7 @@ final class ModifierFacade implements ModifierFacadeInterface
     public function setModifiers(array $modifiers): void
     {
         foreach ($modifiers as $modifier) {
-            if (!$modifier instanceof ModifierInterface) {
+            if (!$modifier instanceof ModifierInterface) { # @phpstan-ignore instanceof.alwaysTrue (runtime check of a value from the DI configuration)
                 throw new InvalidArgumentException(sprintf(
                     'The argument passed into the method %s() must be an array of %s.',
                     __METHOD__,
@@ -57,7 +57,7 @@ final class ModifierFacade implements ModifierFacadeInterface
     public function setApplicators(array $applicators): void
     {
         foreach ($applicators as $applicator) {
-            if (!$applicator instanceof ModifierApplicatorInterface) {
+            if (!$applicator instanceof ModifierApplicatorInterface) { # @phpstan-ignore instanceof.alwaysTrue (runtime check of a value from the DI configuration)
                 throw new InvalidArgumentException(sprintf(
                     'The argument passed into the method %s() must be an array of %s.',
                     __METHOD__,
@@ -72,7 +72,7 @@ final class ModifierFacade implements ModifierFacadeInterface
     public function setValidators(array $validators): void
     {
         foreach ($validators as $validator) {
-            if (!$validator instanceof ValidatorInterface) {
+            if (!$validator instanceof ValidatorInterface) { # @phpstan-ignore instanceof.alwaysTrue (runtime check of a value from the DI configuration)
                 throw new InvalidArgumentException(sprintf(
                     'The argument passed into the method %s() must be an array of %s.',
                     __METHOD__,
